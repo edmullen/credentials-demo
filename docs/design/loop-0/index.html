@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" data-app="payroll">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verifiable credentials demo — design system</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;600&family=Public+Sans:wght@400;600&family=Archivo:wght@600&family=Libre+Franklin:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="#">
+        <span class="header__mark" aria-hidden="true"></span>
+        Cred demo system
+      </a>
+      <nav class="header__nav" aria-label="Main">
+        <a href="wallet.html">Wallet</a>
+        <a href="payroll.html">Payroll</a>
+        <a href="benefit.html">Benefit</a>
+      </nav>
+      <span class="initials" role="img" aria-label="Design lead">ED</span>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <div class="nav-menu__panel">
+          <a href="wallet.html">Wallet</a>
+          <a href="payroll.html">Payroll</a>
+          <a href="benefit.html">Benefit Agency</a>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <div class="wrap stack">
+      <div class="stack-s">
+        <p class="intro__eyebrow">Reference</p>
+        <h1 class="intro__title">One stylesheet, three apps</h1>
+      </div>
+      <p class="intro__purpose">
+        <code>cred.css</code> carries the whole system. Set <code>data-app="wallet&#124;payroll&#124;benefit"</code>
+        on the <code>&lt;html&gt;</code> element to switch hue, corner radius and density. Markup stays identical.
+      </p>
+      <hr class="rule">
+
+      <section class="stack-s">
+        <h2 class="card__meta">Home pages</h2>
+        <div class="row">
+          <a class="btn" href="wallet.html">Wallet</a>
+          <a class="btn btn--secondary" href="payroll.html">Meridian Payroll</a>
+          <a class="btn btn--secondary" href="benefit.html">Benefit Agency</a>
+        </div>
+      </section>
+
+      <hr class="rule">
+
+      <section class="stack-s">
+        <h2 class="card__meta">Status badge</h2>
+        <div class="row">
+          <span class="badge badge--neutral">Pending</span>
+          <span class="badge badge--verified">Verified</span>
+          <span class="badge badge--error">Could not verify</span>
+        </div>
+      </section>
+
+      <section class="stack-s">
+        <h2 class="card__meta">Buttons and initials</h2>
+        <div class="row">
+          <button class="btn" type="button">Primary</button>
+          <button class="btn btn--secondary" type="button">Secondary</button>
+          <button class="btn" type="button" disabled>Disabled</button>
+          <span class="initials">AM</span>
+          <span class="initials initials--sm">RK</span>
+        </div>
+      </section>
+
+      <hr class="rule">
+
+      <section class="stack-s">
+        <h2 class="card__meta">Card, per theme</h2>
+        <div style="display:grid;gap:calc(var(--space) * 3);grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr))">
+          <article class="card theme stack-s" style="--hue:52">
+            <div class="row" style="justify-content:space-between">
+              <span class="card__meta">Wallet</span>
+              <span class="badge badge--verified">Verified</span>
+            </div>
+            <h3 class="card__title">Proof of employment</h3>
+            <p class="card__body">Issued by Meridian Payroll, 12 Aug 2026.</p>
+            <a class="btn btn--block" href="wallet.html">Open</a>
+          </article>
+          <article class="card theme stack-s" style="--hue:255">
+            <div class="row" style="justify-content:space-between">
+              <span class="card__meta">Payroll</span>
+              <span class="badge badge--neutral">Pending</span>
+            </div>
+            <h3 class="card__title">Issuance request</h3>
+            <p class="card__body">148 employees awaiting first issuance.</p>
+            <a class="btn btn--block" href="payroll.html">Review</a>
+          </article>
+          <article class="card card--flat theme stack-s" style="--hue:172">
+            <div class="row" style="justify-content:space-between">
+              <span class="card__meta">Benefit</span>
+              <span class="badge badge--error">Could not verify</span>
+            </div>
+            <h3 class="card__title">Income check</h3>
+            <p class="card__body">The credential has expired. You can send a new one.</p>
+            <a class="btn btn--block" href="benefit.html">Continue</a>
+          </article>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>Placeholder system for a verifiable credentials demo</span>
+      <span>Demo environment — no real credentials</span>
+    </div>
+  </footer>
+</body>
+</html>

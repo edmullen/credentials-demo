@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" data-app="wallet">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wallet — your credential wallet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;600&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="#">
+        <span class="header__mark" aria-hidden="true"></span>
+        Wallet
+      </a>
+      <nav class="header__nav" aria-label="Main">
+        <a href="#">Credentials</a>
+        <a href="#">Activity</a>
+        <a href="#">Help</a>
+      </nav>
+      <span class="initials" role="img" aria-label="Avery Mullen">AM</span>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <div class="nav-menu__panel">
+          <a href="#">Credentials</a>
+          <a href="#">Activity</a>
+          <a href="#">Help</a>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <div class="wrap stack">
+      <div class="stack-s">
+        <p class="intro__eyebrow">Wallet</p>
+        <h1 class="intro__title">Your credentials</h1>
+      </div>
+      <p class="intro__purpose">Wallet holds the credentials you have been issued, so you can prove something about yourself without handing over your documents.</p>
+      <hr class="rule">
+      <section class="card stack-s" aria-labelledby="soon">
+        <div class="row" style="justify-content:space-between">
+          <span class="card__meta">Status</span>
+          <span class="badge badge--neutral">Coming soon</span>
+        </div>
+        <h2 class="card__title" id="soon">Your credentials, in one place</h2>
+        <p class="card__body">Sign-in opens when the pilot begins. Nothing to do yet.</p>
+        <button class="btn btn--block" type="button" disabled>Sign in</button>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>Wallet</span>
+      <span>Demo environment — no real credentials</span>
+    </div>
+  </footer>
+</body>
+</html>
