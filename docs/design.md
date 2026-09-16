@@ -59,10 +59,14 @@ credentials-demo/
 | --- | --- | --- | --- |
 | `apps/wallet` | `design/loop-0/wallet.html` | `wallet` | Newsreader 400/600, Public Sans 400/600 |
 | `apps/payroll` | `design/loop-0/payroll.html` | `payroll` | Archivo 500/600/700, Public Sans 400/600 |
-| `apps/benefits` | `design/loop-0/benefit.html` | `benefit` | Libre Franklin 500/600/700, Public Sans 400/600 |
+| `apps/benefits` | `design/loop-0/benefit.html` | `benefits` | Libre Franklin 500/600/700, Public Sans 400/600 |
 
-The benefits app's directory is plural but its theme value stays `benefit`, because that is the
-selector `cred.css` uses.
+**Deviation from the handoff.** The mockup and `docs/design/loop-0/cred.css` use the singular
+`benefit` as the theme value, matching the mockup's filename. The app instead uses `benefits`,
+matching its own directory name — the app's `app/static/cred.css` copy has its five
+`html[data-app="benefit"]` selectors (and the introductory comment) renamed to `"benefits"`.
+This is confined to that one file: `docs/design/loop-0/` is left untouched as the historical
+record of what was handed off.
 
 ### `main.py` shape
 
