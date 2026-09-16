@@ -13,7 +13,6 @@
 - **Loop 2 (planned):** Payroll issues a credential and the Wallet receives it.
 - **Loop 3 (planned):** Benefits requests data from the Wallet and issues its own credential.
 - **Loop 4 (planned):** Move hosting to GCP Cloud Run.
-- Guidance lives in `playbook.md`.
 - **Design stage uses Claude Design** for experience design (a shared design system plus screens, as plain HTML/CSS), handed off to Claude Code and versioned in `docs/design/loop-N/`. From Loop 1 on, `/design-sync` imports the repo's real CSS back into Claude Design.
 
 ## Technical defaults

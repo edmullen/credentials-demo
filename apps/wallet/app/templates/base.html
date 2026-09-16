@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" data-app="{{ site.theme }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ site.title }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="{{ site.fonts_url }}" rel="stylesheet">
+  <link rel="stylesheet" href="/static/cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="/">
+        <span class="header__mark" aria-hidden="true"></span>
+        {{ site.name }}
+      </a>
+      <nav class="header__nav" aria-label="Main">
+        {% for item in site.nav %}
+        <a href="#">{{ item }}</a>
+        {% endfor %}
+      </nav>
+      <span class="initials" role="img" aria-label="{{ site.user.name }}">{{ site.user.initials }}</span>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <div class="nav-menu__panel">
+          {% for item in site.nav %}
+          <a href="#">{{ item }}</a>
+          {% endfor %}
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    {% block main %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>{{ site.footer }}</span>
+      <span>Demo environment — no real credentials</span>
+    </div>
+  </footer>
+</body>
+</html>
