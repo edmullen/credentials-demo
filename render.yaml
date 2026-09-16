@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: cred-demo-wallet
+    runtime: python
+    plan: free
+    branch: main
+    rootDir: apps/wallet
+    buildFilter:
+      paths:
+        - apps/wallet/**
+    autoDeployTrigger: checksPass
+    buildCommand: pip install uv && uv sync --frozen --no-dev
+    startCommand: .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.14"
+
+  - type: web
+    name: cred-demo-payroll
+    runtime: python
+    plan: free
+    branch: main
+    rootDir: apps/payroll
+    buildFilter:
+      paths:
+        - apps/payroll/**
+    autoDeployTrigger: checksPass
+    buildCommand: pip install uv && uv sync --frozen --no-dev
+    startCommand: .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.14"
+
+  - type: web
+    name: cred-demo-benefits
+    runtime: python
+    plan: free
+    branch: main
+    rootDir: apps/benefits
+    buildFilter:
+      paths:
+        - apps/benefits/**
+    autoDeployTrigger: checksPass
+    buildCommand: pip install uv && uv sync --frozen --no-dev
+    startCommand: .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.14"
