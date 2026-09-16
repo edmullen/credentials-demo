@@ -13,6 +13,8 @@ Three documents drive the work and are worth reading before changing anything:
 - [docs/decisions.md](docs/decisions.md): binding. If a change conflicts with it, raise it; don't silently diverge.
 - `docs/intents/NNN-*.md`: problem and constraints for each loop.
 - [docs/design.md](docs/design.md): the current loop's technical design.
+- [docs/loop-log.md](docs/loop-log.md): a retro after each loop — what shipped, what went
+  wrong, what to change. Worth checking before starting a new loop.
 
 `docs/design/loop-N/` is the Claude Design handoff for that loop: a shared `cred.css` plus one
 static HTML page per app, with a README documenting tokens, components and accessibility. It is
@@ -33,8 +35,7 @@ Each app is its own uv project (no root pyproject.toml; Render builds from each 
 
 Each app owns its copy of cred.css; no shared stylesheet, template package, or sync script.
 
-Theming is one attribute: `<html data-app="…">`, with all component CSS reading tokens only. The
-app directory is `apps/benefits` (plural). 
+Theming is one attribute: `<html data-app="…">`, with all component CSS reading tokens only.
 
 ### Things that look like mistakes but are not
 
@@ -45,7 +46,10 @@ app directory is `apps/benefits` (plural).
   `<details>` disclosure and the brand mark is a CSS-filled `<span>`. This is a design
   constraint, not an omission.
 - **Copy, class names and ARIA attributes are verbatim from the mockups**, so `cred.css` applies
-  without edits. 
+  without edits.
+- **`apps/benefits`'s `cred.css` uses `data-app="benefits"`, not the handoff's `"benefit"`.**
+  Deliberate rename to match the directory name, confined to that app's own copy. See
+  `docs/design.md` §2 — don't "fix" it back to match the handoff.
 
 ## Commands
 
@@ -85,3 +89,8 @@ protection — so adding or renaming an app never requires touching branch prote
 `buildFilter.paths` are relative to the **repo root**, not to `rootDir`. Editing one app's files
 redeploys only that service; editing `docs/` redeploys none. `PYTHON_VERSION`
 in `render.yaml` must be kept in step with each app's `.python-version`.
+
+Live at `https://cred-demo-<app>.onrender.com` (`wallet` / `payroll` / `benefits`). Render's
+free tier spins services down after ~15 min idle — the first request after that, including
+right after a fresh Blueprint deploy, can take up to a minute or time out once before
+succeeding. Don't treat that as a failure; retry before diagnosing.
