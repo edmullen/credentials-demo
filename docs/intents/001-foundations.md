@@ -60,14 +60,15 @@ credential without reopening the model.
 - Multi-employer users mean an income check spans several payroll credentials, so a request
   is a **list** of requested credentials — one element in Loop 4, several in Loop 6. Decided.
   What follows for the flow document:
-  - Is approval all-or-nothing for the whole request, or per credential? (Leaning
-    all-or-nothing: it matches real presentation requests and the list shape keeps the other
-    option open.)
+  - Approval is **all-or-nothing** over the whole request, not per credential. Decided: it
+    matches how real presentation requests work, and the list shape leaves per-credential
+    approval open if it's ever wanted.
   - What does the Wallet show when it doesn't hold a requested credential? Unreachable in
-    Loop 4, reachable as soon as Benefits asks for income.
+    Loop 4, reachable as soon as Benefits asks for income. Still open.
 - Credentials are grouped for the user by **category** — Identity, Income, Benefits — not by
   issuer, which is a developer's model rather than a user's. Each credential carries its
   category as data so Loop 6 adds a group without a layout change.
-- Do the five benefit programs issue five credential *types*, or one benefit type with the
-  program as a claim, issued five times? (Leaning one type: identical to the user, one schema
-  and one eligibility code path. Split later if programs need genuinely different claims.)
+- The five benefit programs issue **one credential type with the program as a claim**, five
+  times over — not five types. Decided: identical to the user (five cards under a Benefits
+  heading), but one schema and one eligibility code path. Split later only if a program needs
+  genuinely different claims, such as a housing credential carrying an address.
