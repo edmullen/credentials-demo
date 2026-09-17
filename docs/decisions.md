@@ -8,16 +8,39 @@
 
 ## Delivery approach
 - The SDLC stages follow the Claude Academy course: Plan → Design → Build → Test → Deploy → Maintain.
-- **Loop 0 (walking skeleton):** 3 placeholder apps (home page plus /health) deployed to production through CI/CD.
-- **Loop 1:** The Wallet displays a hard-coded signed credential with a Verified or Tampered badge.
-- **Loop 2 (planned):** Payroll issues a credential and the Wallet receives it.
-- **Loop 3 (planned):** Benefits requests data from the Wallet and issues its own credential.
-- **Loop 4 (planned):** Move hosting to GCP Cloud Run.
-- **Design stage uses Claude Design** for experience design (a shared design system plus screens, as plain HTML/CSS), handed off to Claude Code and versioned in `docs/design/loop-N/`. From Loop 1 on, `/design-sync` imports the repo's real CSS back into Claude Design.
+- **The roadmap lives in the GitHub Project "Credentials demo"**
+  (`https://github.com/users/edmullen/projects/1`). Each loop is a repo milestone named
+  `Loop N - <name>`, and issues carry GitHub blocked-by dependencies. The project is the
+  source of truth for what is in a loop; this file records only the loop boundaries and why
+  they fall where they do.
+- **Loop 0 — Walking skeleton (shipped):** 3 placeholder apps (home page plus `/health`)
+  deployed to production through CI/CD.
+- **Loop 1 — Foundations:** definition and research only; ships no app code. The credential
+  model and target end-to-end flow, the five benefit programs and their eligibility criteria,
+  and the sample data set. A loop with no deployment is deliberate: these three artifacts
+  otherwise get designed three separate times, once per consuming loop.
+- **Loop 2 — Wallet stands up:** sample public users, hard-coded identity credentials with a
+  Verified/Tampered signature badge, plus the Connections and Activity screens.
+- **Loop 3 — Payroll stands up:** sample Payroll accounts and paystub display. Independent of
+  Loop 2 — the two can run in either order.
+- **Loop 4 — Wallet and Payroll connect:** employer lookup, Payroll's inbound connection and
+  verification request, and the Wallet's consent screen. Payroll acts as a *verifier* here.
+- **Loop 5 — Payroll issues credentials:** Payroll turns paystubs into credentials; the Wallet
+  requests and displays them. Payroll acts as an *issuer* here.
+- **Loop 6 — Benefits programs and eligibility:** Benefits publishes its five programs, then
+  verifies credentials and makes an eligibility decision. **Only the program pages are defined
+  so far, by choice.** Benefits introduces no role that Loops 4 and 5 don't already build
+  (verifier, then issuer), so its detailed decisions can wait — provided Loop 1 records the
+  claims an eligibility check will need.
+- **Design stage uses Claude Design** for experience design (a shared design system plus
+  screens, as plain HTML/CSS), handed off to Claude Code and versioned in `docs/design/loop-N/`.
+  From Loop 2 on — the first loop with real screens — `/design-sync` imports the repo's real
+  CSS back into Claude Design.
 
 ## Technical defaults
 - Python 3.12 (installed with **uv**; leave macOS's built-in Python 3.9.6 alone) + FastAPI, with HTML templates so Ed's HTML/CSS skills carry over
 - One public monorepo on GitHub (`credentials-demo`) with `apps/wallet`, `apps/payroll`, `apps/benefits`
 - Wallet is a web app, not native mobile
 - pytest for tests; GitHub Actions for CI; branch protection on `main`
-- **Hosting:** Render via a `render.yaml` Blueprint (free plan, `rootDir` and `buildFilter` per app, `autoDeployTrigger: checksPass`). Move to GCP Cloud Run later.
+- **Hosting:** Render via a `render.yaml` Blueprint (free plan, `rootDir` and `buildFilter` per app, `autoDeployTrigger: checksPass`). GCP Cloud Run still makes sense eventually, but there is **no move planned and no urgency** — revisit only if Render blocks something the demo needs.
+- **Sample data:** one generated set (people, employers, paystubs), then copied per app — each app keeps only the slice it needs. No shared data store, package or sync script, per the monorepo constraint. Some duplication across apps is expected.
