@@ -5,6 +5,8 @@
 - **Scope:** Demo only. No real PII, light security.
 - **Realism:** Signed JWTs shaped like W3C Verifiable Credentials. Simple REST APIs stand in for OpenID4VCI/VP. Full standards could come in a later loop.
 - **Users:** No passwords. You pick from fake personas.
+- **Benefit programs and eligibility rules live in [docs/benefit-programs.md](benefit-programs.md)** — five programs, the FPL/SMI/county-AMI variables, and the Dividend calculation. Four programs are pass/fail on an annual income test; Dividend calculates a monthly payment on a taper with no cliff.
+- **The Benefits app holds no public-user accounts.** There is no applicant-facing portal; the user's own record of applying lives in the Wallet's Activity log, making the Wallet the system of record for the user. Benefits does retain a **determination record** for a future admin/caseworker view — the submitted data, the presented credentials kept **verbatim** so the decision can be re-verified later, the derived figures used, and the decision. That admin experience is deliberately unplanned.
 
 ## Delivery approach
 - The SDLC stages follow the Claude Academy course: Plan → Design → Build → Test → Deploy → Maintain.

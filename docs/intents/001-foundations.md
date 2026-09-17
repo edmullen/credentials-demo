@@ -21,9 +21,11 @@ Three documents and one data set. **No app code, no deployment.**
    - which parts of W3C Verifiable Credentials the demo adheres to, and which it fakes
    - the data points for each credential type: identity, payroll, and (sketched) benefit
    - expiration, and how verification failure is represented
-2. **Benefit programs and eligibility** (#7) — the five programs (Food, Health, Housing,
-   Energy, Dividend) and their criteria: NJ resident, identity verified via credential,
-   income range. Decisions are y/n. Deliberately kept basic: no time windows.
+2. **Benefit programs and eligibility** (#7) — **done**, in
+   [docs/benefit-programs.md](../benefit-programs.md). The five programs and their criteria:
+   valid identity credential, NJ residency, and an income test. Health, Food, Energy and
+   Housing are pass/fail; Dividend calculates a monthly payment on a taper. Deliberately kept
+   basic: no time windows, no household size.
 3. **Sample data** (#6) — 25 people, 15 NJ employers, and two September 2026 paystubs per
    person per employer, covering one-, two- and three-employer scenarios.
 
@@ -53,10 +55,14 @@ credential without reopening the model.
 ## Open questions
 - What format does the sample data ship in — JSON fixtures committed per app, or a
   generator script whose output is committed? The per-app copy rule holds either way.
-- Which income claims does an eligibility check actually need: gross per period, pay
-  frequency, period start/end, YTD? This is the highest-value thing #21 has to settle.
-- Does the identity credential carry a full address or only a state? Residency checks need
-  the state; the sample data includes three out-of-state users so denials are demonstrable.
+- Which income claims does an eligibility check actually need? Settled in
+  [docs/benefit-programs.md](../benefit-programs.md): **gross** pay per period, the period
+  dates and the employer, summed across all of a person's paystub credentials and annualized
+  ×12 — monthly, un-annualized, for Dividend.
+- Does the identity credential carry a full address, or only what eligibility needs? **State
+  and county are both required claims** — state for the residency test, county to select the
+  Housing threshold (30% of county AMI). Whether a street address is carried for realism is
+  still open.
 - Multi-employer users mean an income check spans several payroll credentials, so a request
   is a **list** of requested credentials — one element in Loop 4, several in Loop 6. Decided.
   What follows for the flow document:
@@ -70,5 +76,6 @@ credential without reopening the model.
   category as data so Loop 6 adds a group without a layout change.
 - The five benefit programs issue **one credential type with the program as a claim**, five
   times over — not five types. Decided: identical to the user (five cards under a Benefits
-  heading), but one schema and one eligibility code path. Split later only if a program needs
-  genuinely different claims, such as a housing credential carrying an address.
+  heading), but one schema and one eligibility code path. The type carries `program`,
+  `decision` and an `amount` that is present only for Dividend, which calculates a payment
+  rather than returning a yes or no.
