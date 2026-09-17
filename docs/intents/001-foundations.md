@@ -57,7 +57,17 @@ credential without reopening the model.
   frequency, period start/end, YTD? This is the highest-value thing #21 has to settle.
 - Does the identity credential carry a full address or only a state? Residency checks need
   the state; the sample data includes three out-of-state users so denials are demonstrable.
-- Multi-employer users mean an income check spans several payroll credentials. Does the
-  target flow present several credentials in one request, and if so, should Loop 4's consent
-  screen be built around a list from the start?
-- Does the benefit credential get sketched now or left entirely to Loop 6?
+- Multi-employer users mean an income check spans several payroll credentials, so a request
+  is a **list** of requested credentials — one element in Loop 4, several in Loop 6. Decided.
+  What follows for the flow document:
+  - Is approval all-or-nothing for the whole request, or per credential? (Leaning
+    all-or-nothing: it matches real presentation requests and the list shape keeps the other
+    option open.)
+  - What does the Wallet show when it doesn't hold a requested credential? Unreachable in
+    Loop 4, reachable as soon as Benefits asks for income.
+- Credentials are grouped for the user by **category** — Identity, Income, Benefits — not by
+  issuer, which is a developer's model rather than a user's. Each credential carries its
+  category as data so Loop 6 adds a group without a layout change.
+- Do the five benefit programs issue five credential *types*, or one benefit type with the
+  program as a claim, issued five times? (Leaning one type: identical to the user, one schema
+  and one eligibility code path. Split later if programs need genuinely different claims.)
