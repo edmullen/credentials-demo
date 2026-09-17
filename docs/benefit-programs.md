@@ -77,7 +77,7 @@ and AMI scale with household size.
 ## Health
 
 Health provides access to the Public Option health care plan. **Anyone can buy into the plan**
-— the program determines the *discount*, not whether someone may enrol. So, like Dividend and
+— the program determines the *discount*, not whether someone may enroll. So, like Dividend and
 unlike the other three, Health is not pass/fail: meeting the two shared criteria produces a
 discount between 100% and 0%.
 
@@ -117,7 +117,7 @@ taper replaces that with a 15.6% marginal rate, so money in hand still rises wit
 dollar earned. This is the sharpest illustration of the cliff problem in the demo; Dividend
 makes the same point at a smaller scale.
 
-**Consequence for the demo:** income no longer produces a Health *denial*. Everyone verified
+**Consequence for the demo:** income does not produce a Health *denial*. Everyone verified
 and NJ-resident gets access at some price. Food, Energy and Housing remain the three pass/fail
 programs where income can produce a "no".
 
@@ -236,8 +236,9 @@ monthly benefit = dividend_base + max(0, dividend_max_bump - taper × monthly gr
 **Why the taper exists.** In the phase-out range each additional dollar earned keeps 75¢ after
 the bump is withdrawn; above $1,200 it keeps the full dollar. Total money in hand therefore
 rises at every income level — there is no point on the curve where earning more leaves someone
-worse off. That is deliberately the opposite of the other four programs, which are cliffs: one
-dollar over a threshold and the benefit goes from full to nothing. The demo shows both designs.
+worse off. That is deliberately the opposite of the other three pass/fail programs, which are
+cliffs: one dollar over a threshold and the benefit goes from full to nothing. The demo shows
+both designs.
 
 **Arithmetic.** Compute in integer cents and round once at the end. A half-cent-per-cent
 reduction produces fractional cents at odd income figures, and rounding mid-calculation makes
