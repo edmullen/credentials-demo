@@ -408,6 +408,7 @@ Issued by a state. Proves who the person is and where they live.
   "givenName": "Ana",
   "familyName": "Rivera",
   "birthDate": "1988-04-02",
+  "image": "data:image/jpeg;base64,/9j/4AAQSkZJRg…",
   "address": {
     "type": "PostalAddress",
     "streetAddress": "12 Maple Avenue",
@@ -423,9 +424,17 @@ Issued by a state. Proves who the person is and where they live.
 - **`addressRegion`** is the state (USPS code) — the residency test reads it.
 - **`county`** is the one term schema.org's `PostalAddress` doesn't have. It sits inside the
   address as our own extension, which the standard permits. Housing reads it.
-- `birthDate` and the street address aren't used by any eligibility rule. They are there
-  because an identity document without them wouldn't be believable, and they make the
-  selective-disclosure question below concrete.
+- **`image`** is the person's photo, as on a driver's license — schema.org's `image`, embedded
+  as a `data:` URI rather than linked. Embedding means the signature covers the photo, so
+  swapping it is tampering, and the states have nowhere to host images anyway. Portrait, about
+  240×300 px, JPEG under 20 KB, metadata stripped. The Wallet supplies the alt text from the
+  person's name; alt text is display, not a claim.
+- **Photos are AI-generated faces of people who don't exist** — never real people
+  (`docs/decisions.md`, "No real PII"). Generated in ID-photo style: front-facing, plain light
+  background, neutral expression.
+- `birthDate`, the street address and the photo aren't used by any eligibility rule. They are
+  there because an identity document without them wouldn't be believable, and they make the
+  selective-disclosure question below concrete: Payroll asks for identity and receives a face.
 
 ### Paystub credential
 
