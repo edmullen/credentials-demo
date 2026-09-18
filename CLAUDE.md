@@ -71,6 +71,15 @@ Run one app locally with reload (ports: wallet 8001, payroll 8002, benefits 8003
 cd apps/wallet && uv run uvicorn app.main:app --reload --port 8001
 ```
 
+The one exception to "run from inside an app": the sample-data generator is a self-contained
+uv script, run from the repo root. It regenerates `tools/sample_data/generated/` and
+`docs/sample-data.md` from the hand-written YAML, and refuses to write anything if an edit
+breaks one of the curated placements (docs/sample-data.md):
+
+```bash
+uv run tools/generate_sample_data.py
+```
+
 ## CI and deployment
 
 `.github/workflows/ci.yml` runs on PRs to `main` **and** on pushes to `main` — the second
