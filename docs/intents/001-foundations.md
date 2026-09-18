@@ -16,7 +16,8 @@ consuming it.
 ## Proposed outcome
 Three documents and one data set. **No app code, no deployment.**
 
-1. **Credential model** (GitHub issue #21) — a concept of operations covering:
+1. **Credential model** (GitHub issue #21) — **done**, in
+   [docs/credential-model.md](../credential-model.md). A concept of operations covering:
    - the target end-to-end flow, written out before any of it is implemented
    - which parts of W3C Verifiable Credentials the demo adheres to, and which it fakes
    - the data points for each credential type: identity, payroll, and (sketched) benefit

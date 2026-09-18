@@ -666,14 +666,14 @@ still produce a "no", and the per-program outcome says why, as a code: `not_nj_r
 `income_over_limit`. The Wallet renders them — for example, *"Food Assistance: your income is
 above this program's limit."*
 
-### Open questions for §5
+### Decisions made in review
 
-1. **The validity periods above** — 4 years for identity, none for paystubs, 12 months for
-   benefits. Leaning yes; these are realistic and none of them can expire mid-demo.
-2. **Should a sample person hold an expired identity credential?** It would make the Expired
-   badge reachable and gives a failure that anyone understands — an expired license. But it
-   changes the persona counts set in #6 (21 valid, 2 tampered, 2 none). Leaning no: Tampered
-   already demonstrates a credential failing verification, and Expired is fully designed if
-   it's wanted later.
-3. **The wording above.** Plain language, saying what happened and — where there is one — what
-   the person can do next. It's a first draft of copy, and the design stage may well refine it.
+Settled on 2026-09-18:
+
+1. **Validity periods:** identity 4 years, paystubs none, benefits 12 months — realistic, and
+   none can expire mid-demo.
+2. **No sample person holds an expired credential.** Tampered already demonstrates a credential
+   failing verification, and the persona counts in #6 stay as they are. Expired is fully
+   designed if it is wanted later.
+3. **The wording above is the starting copy.** Plain language, saying what happened and what
+   the person can do next; the design stage may refine it.
