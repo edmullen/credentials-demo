@@ -80,8 +80,10 @@ carry each person's subject identifier.
 2. Payroll replies with a **presentation request**: a list of the credentials it needs and,
    within each, the claims it needs. For Payroll the list has one entry — the identity
    credential — but it is a list, because later verifiers ask for several.
-3. The Wallet shows the **consent screen** (#22): each requested credential, with the requested
-   claims listed under it. Approval is **all-or-nothing** over the whole request.
+3. The Wallet shows the **consent screen** (#22): each requested credential, with **every claim
+   it contains** listed under it and the ones the requester needs marked. A signed credential is
+   shared whole, so the screen shows everything that will actually be handed over (§3).
+   Approval is **all-or-nothing** over the whole request.
    - **Deny** — nothing is shared, and the Wallet returns to its previous state.
    - **Approve** — the Wallet sends a **presentation** containing the requested credential.
 4. Payroll **verifies** the presented credential: the signature checks out against the issuing
@@ -169,7 +171,8 @@ sequenceDiagram
    name the **same subject** — an income credential about someone else must not count toward
    this person's income.
 6. Benefits **evaluates all five programs** in one pass (docs/benefit-programs.md): residency
-   from the identity credential's `state`, county from its `county`, and income summed from the
+   from the identity credential's `address.addressRegion`, county from its `address.county`,
+   and income summed from the
    gross pay on the income credentials.
 7. Benefits returns an **outcome for every program** — eligible or denied, possibly with a
    reason — and a **benefit credential for each eligible one**. The per-program outcome is plain
@@ -463,25 +466,20 @@ Settled earlier today; restated here so the three schemas sit together:
 No `decision` claim — holding one means eligible. `program` is a code (`food`, `health`, …);
 the Wallet supplies the display name.
 
-### Open questions for §3
+### Decisions made in review
 
-1. **Sharing a credential shares everything on it.** A signed JWT can't be partly revealed —
-   removing a claim breaks the signature. So when Benefits asks for the identity credential to
-   check state and county, it also receives the street address and birth date. The flow says
-   the consent screen lists the *requested* claims; if it lists only those, it understates what
-   the person is actually handing over. I'd have the consent screen list **every claim in each
-   credential being shared**, marking the ones the requester says it needs. The standard fix is
-   *selective disclosure* (SD-JWT), which lets a holder reveal only chosen claims; I'd record it
-   as a deferred item alongside #25 rather than build it.
-2. **Category comes from `type`, not from a claim.** On 2026-09-17 we said each credential
-   "carries its category as data." With the W3C shape settled, I'd refine that: the Wallet maps
-   `IdentityCredential` → Identity, `PaystubCredential` → Income and `BenefitCredential` →
-   Benefits. That mapping is still data, so a new category is still a data change rather than
-   a layout change — but a display grouping is not something an issuer should sign, for the same
-   reason UI text isn't a claim.
-3. **Consequence for docs/benefit-programs.md**, which currently refers to `state` and `county`
-   claims: these become `address.addressRegion` and `address.county`. A wording fix once §3 is
-   agreed.
+Settled on 2026-09-18:
+
+1. **The consent screen lists every claim being shared**, marking the ones the requester needs.
+   A signed JWT can't be partly revealed — removing a claim breaks the signature — so asking for
+   the identity credential to check state and county also hands over the street address and
+   birth date. The screen must not understate that. *Selective disclosure* (SD-JWT), which would
+   let the holder reveal only chosen claims, is the standard fix and is deferred (#28).
+2. **Category comes from `type`, not from a claim.** The Wallet maps `IdentityCredential` →
+   Identity, `PaystubCredential` → Income and `BenefitCredential` → Benefits. The mapping is
+   data, so a new category is still a data change rather than a layout change; but a display
+   grouping is not something an issuer signs, for the same reason UI text isn't a claim.
+3. **docs/benefit-programs.md** now refers to `address.addressRegion` and `address.county`.
 
 ## 4. W3C conformance — what we adopt and what we fake
 

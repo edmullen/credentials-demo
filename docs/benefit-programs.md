@@ -15,7 +15,8 @@ Every program requires both of:
 1. **A valid identity credential** — the signature verifies against the issuing state's key.
    A tampered credential fails here, and a person holding no identity credential cannot apply
    at all (they have nothing to present).
-2. **Proof of New Jersey residency** — the `state` claim on that identity credential is NJ.
+2. **Proof of New Jersey residency** — the identity credential's `address.addressRegion` is
+   `NJ`.
 
 The five programs then split into two shapes:
 
@@ -273,8 +274,9 @@ sit at or below the 138% ceiling, so they pay nothing.
 
 Consequences for the credential model (#21):
 
-- **Identity credential** must carry `state` (residency test) and `county` (selects the
-  Housing threshold). Both are required claims.
+- **Identity credential** must carry `address.addressRegion` — the state, for the residency
+  test — and `address.county`, which selects the Housing threshold. Both are required claims.
+  (Schema in docs/credential-model.md §3.)
 - **Payroll credential** must carry **gross** pay for the period, the pay period dates and the
   employer, so income can be summed and annualized.
 - **Benefit credential** is a single type — `["VerifiableCredential", "BenefitCredential"]` —

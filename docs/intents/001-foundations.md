@@ -75,8 +75,9 @@ credential without reopening the model.
     offers no Approve button. Decided — and reachable in **Loop 4**, not only later: the two
     people with no identity credential hit it when they connect to Payroll (#22).
 - Credentials are grouped for the user by **category** — Identity, Income, Benefits — not by
-  issuer, which is a developer's model rather than a user's. Each credential carries its
-  category as data so Loop 6 adds a group without a layout change.
+  issuer, which is a developer's model rather than a user's. The Wallet derives the category
+  from the credential's `type`, so Loop 6 adds a group as a data change, not a layout change —
+  but the category is not itself a signed claim (docs/credential-model.md §3).
 - The five benefit programs issue **one credential type with the program as a claim**, five
   times over — not five types. Decided: identical to the user (five cards under a Benefits
   heading), but one schema and one eligibility code path. Its `credentialSubject` carries
