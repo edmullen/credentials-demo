@@ -362,7 +362,126 @@ Settled on 2026-09-18:
 
 ## 3. Claim schemas
 
-*To be drafted.*
+Three credential types. Names, addresses and figures in the examples below are illustrative,
+not the sample data — #6 supplies that.
+
+### The common envelope
+
+Every credential is a VC Data Model 2.0 document, and the JWT's payload **is** that document
+(VC-JOSE-COSE), not a wrapper around it:
+
+```json
+{
+  "@context": ["https://www.w3.org/ns/credentials/v2"],
+  "id": "urn:uuid:5a0c…",
+  "type": ["VerifiableCredential", "IdentityCredential"],
+  "issuer": { "id": "did:example:state-of-new-jersey", "name": "State of New Jersey" },
+  "validFrom": "2026-01-15T00:00:00Z",
+  "validUntil": "2030-01-15T00:00:00Z",
+  "credentialSubject": { "id": "urn:uuid:9e41…", "…": "…" }
+}
+```
+
+- **`id`** — every credential gets its own `urn:uuid:`. It is what lets the Wallet ask Payroll
+  only for credentials it hasn't received (Phase 3), and what Benefits' determination record
+  refers to.
+- **`type`** — the second entry is the credential's class, and the only thing the apps use to
+  tell credentials apart.
+- **`credentialSubject.id`** — the person's subject identifier, identical across all of their
+  credentials.
+- **`validFrom` / `validUntil`** — the validity window. Values per type are §5.
+- **`@context`** — only the base VC 2.0 context. Our own terms (`county`, `grossPay`, …) are not
+  yet defined in a context of our own; whether to publish one is §4.
+
+The JWT header carries `alg: ES256`, the `kid` of the signing key (§2), and `typ: vc+jwt`.
+
+### Identity credential
+
+Issued by a state. Proves who the person is and where they live.
+
+```json
+"credentialSubject": {
+  "id": "urn:uuid:9e41…",
+  "givenName": "Ana",
+  "familyName": "Rivera",
+  "birthDate": "1988-04-02",
+  "address": {
+    "type": "PostalAddress",
+    "streetAddress": "12 Maple Avenue",
+    "addressLocality": "Trenton",
+    "county": "Mercer",
+    "addressRegion": "NJ",
+    "postalCode": "08608"
+  }
+}
+```
+
+- Names, `birthDate` and the address use **schema.org** terms, per the vocabulary rule.
+- **`addressRegion`** is the state (USPS code) — the residency test reads it.
+- **`county`** is the one term schema.org's `PostalAddress` doesn't have. It sits inside the
+  address as our own extension, which the standard permits. Housing reads it.
+- `birthDate` and the street address aren't used by any eligibility rule. They are there
+  because an identity document without them wouldn't be believable, and they make the
+  selective-disclosure question below concrete.
+
+### Paystub credential
+
+Issued by Meridian Payroll, **one per paystub**. Type `PaystubCredential`.
+
+```json
+"credentialSubject": {
+  "id": "urn:uuid:9e41…",
+  "employer": { "type": "Organization", "name": "Example Grocers" },
+  "payPeriodStart": "2026-09-01",
+  "payPeriodEnd": "2026-09-15",
+  "payDate": "2026-09-19",
+  "payFrequency": "semimonthly",
+  "grossPay": { "type": "MonetaryAmount", "value": 1250.00, "currency": "USD" },
+  "netPay":   { "type": "MonetaryAmount", "value": 1012.37, "currency": "USD" }
+}
+```
+
+- **`grossPay`** is what eligibility sums (docs/benefit-programs.md). `netPay` is there because
+  a person looking at their own paystub expects to see it.
+- **The paystub is Payroll's record; the credential is a claim about it.** Deductions, tax lines
+  and year-to-date figures stay in Payroll's paystub view (#18). The credential carries what a
+  verifier needs and what the holder would recognize, not a copy of the whole document.
+- No employee name: the subject identifier already says whose it is, and Benefits checks that
+  it matches the identity credential's (§2, check 5).
+
+### Benefit credential
+
+Issued by Benefits, one per program the person is eligible for. Type `BenefitCredential`.
+Settled earlier today; restated here so the three schemas sit together:
+
+| Program | `credentialSubject` claims beyond `id` |
+|---|---|
+| Food, Energy, Housing | `program` |
+| Dividend | `program`, `monthlyPayment` (MonetaryAmount) |
+| Health | `program`, `discountPercent`, `planCost` (MonetaryAmount) |
+
+No `decision` claim — holding one means eligible. `program` is a code (`food`, `health`, …);
+the Wallet supplies the display name.
+
+### Open questions for §3
+
+1. **Sharing a credential shares everything on it.** A signed JWT can't be partly revealed —
+   removing a claim breaks the signature. So when Benefits asks for the identity credential to
+   check state and county, it also receives the street address and birth date. The flow says
+   the consent screen lists the *requested* claims; if it lists only those, it understates what
+   the person is actually handing over. I'd have the consent screen list **every claim in each
+   credential being shared**, marking the ones the requester says it needs. The standard fix is
+   *selective disclosure* (SD-JWT), which lets a holder reveal only chosen claims; I'd record it
+   as a deferred item alongside #25 rather than build it.
+2. **Category comes from `type`, not from a claim.** On 2026-09-17 we said each credential
+   "carries its category as data." With the W3C shape settled, I'd refine that: the Wallet maps
+   `IdentityCredential` → Identity, `PaystubCredential` → Income and `BenefitCredential` →
+   Benefits. That mapping is still data, so a new category is still a data change rather than
+   a layout change — but a display grouping is not something an issuer should sign, for the same
+   reason UI text isn't a claim.
+3. **Consequence for docs/benefit-programs.md**, which currently refers to `state` and `county`
+   claims: these become `address.addressRegion` and `address.county`. A wording fix once §3 is
+   agreed.
 
 ## 4. W3C conformance — what we adopt and what we fake
 
