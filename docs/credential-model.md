@@ -492,7 +492,88 @@ Settled on 2026-09-18:
 
 ## 4. W3C conformance — what we adopt and what we fake
 
-*To be drafted.*
+The rule is **a subset of the standard, never contrary to it** (`docs/decisions.md`). This
+section sorts every relevant part of the standards into four piles, so it is always clear
+whether a gap is deliberate.
+
+- **Adopted** — built as the standard specifies.
+- **Subset** — the standard permits leaving it out, and we do.
+- **Stand-in** — the standard defines a protocol; we use simple REST shaped so a later swap is a
+  translation, not a redesign.
+- **Deferred** — a known gap with its own issue.
+
+### Summary
+
+| Area | The standard | The demo | Status |
+|---|---|---|---|
+| Data model | VC Data Model 2.0 | VC Data Model 2.0 | Adopted |
+| Securing | VC-JOSE-COSE: the JWT payload *is* the credential | Same; `alg: ES256`, `typ: vc+jwt`, `kid` | Adopted |
+| Credential fields | `@context`, `id`, `type`, `issuer`, `validFrom`, `validUntil`, `credentialSubject` | All used (§3) | Adopted |
+| Claim vocabulary | Terms defined in a JSON-LD context | schema.org terms; our own few (`county`, `grossPay`, …) resolve through the base context's issuer-dependent vocabulary | Subset |
+| Presentations | A Verifiable Presentation wrapping credentials | A VP carrying each credential as an `EnvelopedVerifiableCredential` | Adopted |
+| Holder binding | Presentation signed by the holder, with a verifier nonce | Unsigned presentations | Deferred (#25) |
+| Selective disclosure | SD-JWT | Whole credentials only; the consent screen shows every claim | Deferred (#28) |
+| Subject identifiers | Any URI; usually a DID | `urn:uuid:` | Subset |
+| Issuer identifiers | Any URI; usually resolvable | Own origins for Payroll and Benefits; `did:example:` for the states | Subset |
+| Key discovery | DID resolution, or keys published by the issuer | Hard-coded per-app trust lists; issuing apps also publish `/.well-known/jwks.json` | Subset |
+| Status and revocation | `credentialStatus` (e.g. Bitstring Status List) | None — credentials stay valid until `validUntil` | Subset (§5) |
+| Schema validation | `credentialSchema` | None | Subset |
+| Issuance protocol | OpenID for Verifiable Credential Issuance (OpenID4VCI) | REST: "give me the credentials I haven't received" | Stand-in |
+| Presentation protocol | OpenID for Verifiable Presentations (OpenID4VP) | REST: a JSON request, a POSTed presentation | Stand-in |
+| Wallet invocation | `openid4vp://` deep link or QR code | A redirect from the Benefits app to the Wallet | Stand-in |
+
+### Presentations
+
+When the Wallet shares credentials it sends a **Verifiable Presentation**, and each credential
+travels inside it as an enveloped credential — the JWT itself, carried as a `data:` URL:
+
+```json
+{
+  "@context": ["https://www.w3.org/ns/credentials/v2"],
+  "type": ["VerifiablePresentation"],
+  "verifiableCredential": [
+    {
+      "@context": "https://www.w3.org/ns/credentials/v2",
+      "type": "EnvelopedVerifiableCredential",
+      "id": "data:application/vc+jwt,eyJhbGciOiJFUzI1NiIs…"
+    }
+  ]
+}
+```
+
+The presentation itself is not signed (#25). The credentials inside it are, and those
+signatures are what the verifier checks (§2).
+
+### Presentation requests
+
+The request a verifier sends — "these credential types, and within each, these claims" — has
+no W3C format; in the real world it belongs to OpenID4VP, whose current version expresses it in
+a query language called **DCQL**. The demo's request is plain JSON, but **shaped after DCQL**: a
+list of credential queries, each naming a credential type and the claim paths it needs. That
+keeps a later move to real OpenID4VP a translation rather than a redesign, and it is what the
+consent screen reads to mark which claims a verifier needs.
+
+### Things that would be contrary — and so are ruled out
+
+These all appear in older tutorials and libraries, which is why they are worth naming:
+
+- **Nesting the credential inside a `vc` claim** of the JWT. That is the VC 1.1 JWT encoding;
+  under VC-JOSE-COSE the payload is the credential.
+- **`issuanceDate` and `expirationDate`.** VC 1.1 names; 2.0 uses `validFrom` and `validUntil`.
+- **Invented wrappers** in place of named claims, and custom fields where a standard one exists
+  (§3, `docs/decisions.md`).
+
+### Open questions for §4
+
+1. **Our own JSON-LD context.** Our handful of custom terms currently resolve through the base
+   context's issuer-dependent vocabulary, which the standard provides for exactly this case.
+   Publishing a context of our own would define them properly, but it needs hosting somewhere
+   and nothing in the demo processes JSON-LD. Leaning: don't, and revisit if Phase 5 brings an
+   outside verifier.
+2. **JWT registered claims** (`iss`, `sub`, `iat`, `exp`). VC-JOSE-COSE permits them alongside
+   the credential's own fields, but they would duplicate `issuer`, `credentialSubject.id`,
+   `validFrom` and `validUntil` — two places to say the same thing, which can disagree.
+   Leaning: omit them, and have verifiers read the credential's fields.
 
 ## 5. Expiration and verification failure
 
