@@ -119,7 +119,7 @@ sequenceDiagram
     W->>B: Presentation
     B->>B: Verify every credential<br/>Check they share one subject<br/>Evaluate all five programs
     B->>W: Outcome per program<br/>+ credentials for eligible ones
-    W->>P: Results; credentials stored under Benefits
+    W->>P: Results, with credentials stored under Benefits
     Note over B: Determination record kept<br/>(credentials verbatim)
 ```
 
