@@ -34,6 +34,8 @@ Three independent FastAPI apps in one monorepo under `apps/<name>`. The defining
 Each app is its own uv project (no root pyproject.toml; Render builds from each rootDir).
 
 Each app owns its copy of cred.css; no shared stylesheet, template package, or sync script.
+A hand-run, one-shot generator under `tools/` that writes committed files into several apps is
+allowed — see `docs/decisions.md`. Apps never import or run it.
 
 Theming is one attribute: `<html data-app="…">`, with all component CSS reading tokens only.
 

@@ -15,7 +15,8 @@ Every program requires both of:
 1. **A valid identity credential** — the signature verifies against the issuing state's key.
    A tampered credential fails here, and a person holding no identity credential cannot apply
    at all (they have nothing to present).
-2. **Proof of New Jersey residency** — the `state` claim on that identity credential is NJ.
+2. **Proof of New Jersey residency** — the identity credential's `address.addressRegion` is
+   `NJ`.
 
 The five programs then split into two shapes:
 
@@ -124,15 +125,21 @@ programs where income can produce a "no".
 ### What the credential carries
 
 Health's determination is a **discount**, and that is what the credential asserts. The dollar
-premium is derived at display time:
+premium is derived at display time. The credential's `credentialSubject`:
 
+```json
+{
+  "program": "health",
+  "discountPercent": 82.9,
+  "planCost": { "type": "MonetaryAmount", "value": 750.00, "currency": "USD" }
+}
 ```
-program                     health
-decision                    eligible
-discount_pct                82.9          <- the entitlement Benefits determined
-plan_cost_at_determination  750.00        <- the rate in force when it was decided
-determined_at               2026-09-17    <- what the snapshot is relative to
-```
+
+- `discountPercent` — the entitlement Benefits determined.
+- `planCost` — the monthly rate in force when it was decided. *When* is not a claim: it is the
+  credential's standard `validFrom`.
+- There is no `decision` claim. Holding a Health credential **means** eligible; a denial
+  produces no credential at all (see Credential requirements).
 
 Rendered by whatever displays it — the Wallet's credential detail, or the determination
 result:
@@ -147,10 +154,10 @@ Three rules this follows, which apply to the credential model generally (#21):
 - **Claims are facts as of the determination; UI text is never a claim.** The sentence above
   is composed by the display, not carried in the credential — signed prose can't be reworded,
   translated or corrected without re-issuing.
-- **Carry the price snapshot for provenance.** `plan_cost_at_determination` records the
-  conditions the decision was made under, so an older credential remains honest if the rate
-  moves. Dividend needs no equivalent because its amount is a payment with no external price
-  attached.
+- **Carry the price snapshot for provenance.** `planCost`, read together with the credential's
+  `validFrom`, records the conditions the decision was made under, so an older credential
+  remains honest if the rate moves. Dividend needs no equivalent because its amount is a
+  payment with no external price attached.
 
 Rendering a derived number is **not** the Wallet re-deciding eligibility — it is multiplying
 two claims. Benefits remains the only app that determines entitlement.
@@ -267,20 +274,27 @@ sit at or below the 138% ceiling, so they pay nothing.
 
 Consequences for the credential model (#21):
 
-- **Identity credential** must carry `state` (residency test) and `county` (selects the
-  Housing threshold). Both are required claims.
+- **Identity credential** must carry `address.addressRegion` — the state, for the residency
+  test — and `address.county`, which selects the Housing threshold. Both are required claims.
+  (Schema in docs/credential-model.md §3.)
 - **Payroll credential** must carry **gross** pay for the period, the pay period dates and the
   employer, so income can be summed and annualized.
-- **Benefit credential** is a single type carrying the `program` and the `decision`, plus
-  whatever that program determined:
-  - Food, Energy, Housing — nothing further; the decision *is* the result.
-  - Dividend — a monthly payment amount.
-  - Health — `discount_pct`, `plan_cost_at_determination` and `determined_at`.
+- **Benefit credential** is a single type — `["VerifiableCredential", "BenefitCredential"]` —
+  whose `credentialSubject` carries the `program` plus **named claims** for whatever that
+  program determined:
 
-  Because Dividend's figure is money received and Health's is a discount on money owed, a
-  single untyped `amount` claim is ambiguous: the claim needs a kind (e.g.
-  `monthly_payment` vs `discount_pct`), or each program's result gets its own named claims.
-  #21 decides which.
+  | Program | `credentialSubject` claims |
+  |---|---|
+  | Food, Energy, Housing | `program` |
+  | Dividend | `program`, `monthlyPayment` (MonetaryAmount) |
+  | Health | `program`, `discountPercent`, `planCost` (MonetaryAmount) |
+
+  Money values use schema.org's `MonetaryAmount` (value and currency) rather than a bare
+  number. Claim names are camelCase, following the W3C VC Data Model's own convention.
+- **A denial produces no credential.** A credential attests to an entitlement the holder may
+  need to prove; a denial is not one. So there is no `decision` claim — holding a benefit
+  credential means eligible for that program. The denial still appears on the determination
+  result, in Benefits' admin record, and in the Wallet's Activity log.
 
 Two rules the Health section establishes for the model as a whole: **assert the entitlement
 and derive the money**, and **claims are facts as of the determination — UI text is never a
