@@ -565,11 +565,11 @@ These all appear in older tutorials and libraries, which is why they are worth n
 
 ### Open questions for §4
 
-1. **Our own JSON-LD context.** Our handful of custom terms currently resolve through the base
-   context's issuer-dependent vocabulary, which the standard provides for exactly this case.
-   Publishing a context of our own would define them properly, but it needs hosting somewhere
-   and nothing in the demo processes JSON-LD. Leaning: don't, and revisit if Phase 5 brings an
-   outside verifier.
+1. **Our own JSON-LD context — decided 2026-09-18: not now.** Our handful of custom terms
+   resolve through the base context's issuer-dependent vocabulary, which the standard provides
+   for exactly this case. Publishing a context of our own would define them properly, but it
+   needs hosting somewhere and nothing in the demo processes JSON-LD. Revisit if Phase 5 brings
+   an outside verifier.
 2. **JWT registered claims** (`iss`, `sub`, `iat`, `exp`). VC-JOSE-COSE permits them alongside
    the credential's own fields, but they would duplicate `issuer`, `credentialSubject.id`,
    `validFrom` and `validUntil` — two places to say the same thing, which can disagree.
