@@ -563,18 +563,117 @@ These all appear in older tutorials and libraries, which is why they are worth n
 - **Invented wrappers** in place of named claims, and custom fields where a standard one exists
   (§3, `docs/decisions.md`).
 
-### Open questions for §4
+### Decisions made in review
 
-1. **Our own JSON-LD context — decided 2026-09-18: not now.** Our handful of custom terms
-   resolve through the base context's issuer-dependent vocabulary, which the standard provides
-   for exactly this case. Publishing a context of our own would define them properly, but it
-   needs hosting somewhere and nothing in the demo processes JSON-LD. Revisit if Phase 5 brings
-   an outside verifier.
-2. **JWT registered claims** (`iss`, `sub`, `iat`, `exp`). VC-JOSE-COSE permits them alongside
-   the credential's own fields, but they would duplicate `issuer`, `credentialSubject.id`,
-   `validFrom` and `validUntil` — two places to say the same thing, which can disagree.
-   Leaning: omit them, and have verifiers read the credential's fields.
+Settled on 2026-09-18:
+
+1. **No JSON-LD context of our own, for now.** Our handful of custom terms resolve through the
+   base context's issuer-dependent vocabulary, which the standard provides for exactly this
+   case. Publishing a context would define them properly, but it needs hosting and nothing in
+   the demo processes JSON-LD. Revisit if Phase 5 brings an outside verifier.
+2. **The credential's own fields, not JWT registered claims.** No `iss`, `sub`, `iat` or `exp`.
+   Replacing the VC fields with them would stop the payload being a conforming credential —
+   `issuer` and `credentialSubject` are required — and is the VC 1.1 pattern ruled out above.
+   Adding them *alongside* would give two copies of each fact that could disagree. Verifiers
+   check the validity window themselves (§2, check 4). Revisit at build time only if the chosen
+   JWT library behaves awkwardly without `exp`.
 
 ## 5. Expiration and verification failure
 
-*To be drafted.*
+Two separate questions: how long each credential is valid for, and what a person is told when
+a check fails.
+
+### Validity periods
+
+`validFrom` is always **the moment the credential was issued**. `validUntil` depends on what the
+credential asserts:
+
+| Credential | `validUntil` | Why |
+|---|---|---|
+| Identity | 4 years after issue | Like a New Jersey driver's license. |
+| Paystub | None | A paystub describes a past pay period, and that stays true. |
+| Benefit | 12 months after issue | An entitlement is decided for a period, like a real program's certification period. |
+
+**Validity is not recency.** A paystub from three years ago is still a valid credential, but a
+verifier may reasonably want recent pay. That is the *verifier's* policy, not something the
+issuer should build into the credential. Benefits currently applies no recency rule, consistent
+with the decision that eligibility has no time windows (docs/benefit-programs.md).
+
+**No time bombs.** Identity credentials are generated once, ahead of time, so their dates are
+fixed in the committed seed data. They are issued with `validFrom` dates in the first half of
+2026, so none expires before 2030. If the demo is still in use then, the generator (§2)
+reissues them. Paystub and benefit credentials are issued while the demo runs, so their dates
+are always current.
+
+### Revocation
+
+None. A credential stays valid until its `validUntil`, and paystubs never expire. The standard's
+mechanism for this is `credentialStatus`, usually a published *status list* a verifier consults
+to see whether the issuer has since withdrawn a credential. Leaving it out is a permitted
+subset (§4). It matters most for benefit credentials, whose entitlement could change within the
+12 months; nothing in the demo changes one.
+
+### Verification outcomes
+
+§2 defines the checks. These are the outcomes they produce, and what each is called on screen:
+
+| Outcome | Caused by | Wallet badge | Reachable in the demo |
+|---|---|---|---|
+| Verified | All checks pass | **Verified** | Yes |
+| Tampered | Signature fails (§2 check 3) | **Tampered** | Yes — the two tampered identity credentials |
+| Expired | After `validUntil` (check 4) | **Expired** | Not with current data |
+| Not yet valid | Before `validFrom` (check 4) | **Not yet valid** | Not with current data |
+| Unrecognized issuer | Issuer not in the trust list, or not trusted for this type (checks 1–2) | **Unrecognized issuer** | Not with current data |
+
+Loop 2 only ever shows Verified and Tampered, but the badge is designed for all five so that
+adding an outcome is not a redesign.
+
+Badges carry a **text label and an icon, never color alone**, per the design handoff's
+accessibility rules — "Tampered" in red text is still "Tampered" to someone who can't see red.
+
+### What the person is told
+
+The Wallet composes every message; nothing on screen comes from a credential or from another
+app's prose. When another app refuses something, it returns a **reason code**, and the Wallet
+turns the code into words. That is the same rule as "UI text is never a claim", applied to
+protocol responses: the Wallet can reword or translate a message without anyone reissuing
+anything.
+
+On a credential the person holds:
+
+| Badge | Message |
+|---|---|
+| Tampered | This credential has been changed since it was issued, so it can't be trusted or used. |
+| Expired | This credential expired on {date}. Ask {issuer} for a new one. |
+| Not yet valid | This credential becomes valid on {date}. |
+| Unrecognized issuer | This wallet doesn't recognize {issuer}, so it can't check this credential. |
+
+When a verifier refuses:
+
+| Where | Reason code | Message |
+|---|---|---|
+| Connect to Payroll | `credential_invalid` | Meridian Payroll couldn't verify your identity credential. |
+| Connect to Payroll | `not_an_employee` | Meridian Payroll doesn't have an employee record that matches you. |
+| Consent screen | `credential_missing` | You don't have a {credential} to share. |
+| Apply for benefits | `credential_invalid` | Your identity credential couldn't be verified, so no program could be decided. |
+| Apply for benefits | `subjects_differ` | The credentials you shared aren't all about the same person. |
+
+`subjects_differ` can't happen in the demo — the Wallet only ever holds one person's
+credentials — but the check exists (§2, check 5), so the outcome is defined.
+
+**Eligibility denials are not verification failures.** Credentials that verify perfectly can
+still produce a "no", and the per-program outcome says why, as a code: `not_nj_resident` or
+`income_over_limit`. The Wallet renders them — for example, *"Food Assistance: your income is
+above this program's limit."*
+
+### Open questions for §5
+
+1. **The validity periods above** — 4 years for identity, none for paystubs, 12 months for
+   benefits. Leaning yes; these are realistic and none of them can expire mid-demo.
+2. **Should a sample person hold an expired identity credential?** It would make the Expired
+   badge reachable and gives a failure that anyone understands — an expired license. But it
+   changes the persona counts set in #6 (21 valid, 2 tampered, 2 none). Leaning no: Tampered
+   already demonstrates a credential failing verification, and Expired is fully designed if
+   it's wanted later.
+3. **The wording above.** Plain language, saying what happened and — where there is one — what
+   the person can do next. It's a first draft of copy, and the design stage may well refine it.
