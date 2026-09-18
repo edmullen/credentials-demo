@@ -222,7 +222,144 @@ Settled on 2026-09-18, and reflected in the phases above:
 
 ## 2. Trust — issuers, keys and verification
 
-*To be drafted.*
+A credential is trustworthy when three things hold: it was signed by the issuer it names, that
+issuer is one the verifier trusts, and the issuer is trusted *for that kind of credential*.
+This section says who the issuers are, where their keys live, and how an app checks all three.
+
+### Issuers
+
+| Issuer | Issues | Signs when | Private key lives |
+|---|---|---|---|
+| State of New Jersey | Identity credentials | Once, before any demo | Your machine, outside git |
+| State of Michigan | Identity credentials | Once, before any demo | Your machine, outside git |
+| State of New York | Identity credentials | Once, before any demo | Your machine, outside git |
+| State of Ohio | Identity credentials | Once, before any demo | Your machine, outside git |
+| Meridian Payroll | Income credentials | During the demo (Loop 5) | Render environment variable |
+| Benefits | Benefit credentials | During the demo (Loop 6) | Render environment variable |
+
+The states sign only when the identity credentials are generated; the signed credentials are
+then committed and deployed like any other seed data. **No machine outside Render is involved
+while a demo runs.**
+
+Every key pair uses **ES256** (ECDSA on the P-256 curve) — the most widely supported algorithm
+in the JOSE family that VC-JOSE-COSE builds on.
+
+### Issuer identifiers
+
+The VC's `issuer` is an object with an `id` (a URI) and a display `name`:
+
+- **Payroll and Benefits** use their own deployed origins, e.g.
+  `https://cred-demo-payroll.onrender.com`. They control those addresses, so the identifier is
+  honest, and each can publish its public key there (see Keeping keys in step).
+- **The states** have no app and no address the demo controls. They use
+  `did:example:state-of-new-jersey` and so on. `did:example` is the method the W3C specs
+  themselves reserve for illustration, so it is syntactically valid, self-evidently fictional,
+  and never resolves anywhere. Using a real government domain such as `nj.gov` would
+  misrepresent a real agency as the issuer.
+
+### Trust lists
+
+Each app that verifies credentials keeps **its own copy** of a trust list, per the monorepo
+rule. An entry names the issuer, its public keys, and the **credential types it is trusted
+for**:
+
+```json
+{
+  "did:example:state-of-new-jersey": {
+    "name": "State of New Jersey",
+    "trustedFor": ["IdentityCredential"],
+    "keys": [ { "kty": "EC", "crv": "P-256", "kid": "nj-1", "x": "…", "y": "…" } ]
+  }
+}
+```
+
+`trustedFor` matters: Payroll's key must not be accepted on an identity credential, and a
+state's key must not be accepted on a paystub. A correctly signed credential from the wrong
+kind of issuer is still rejected.
+
+Who trusts whom:
+
+| App | Trusts | Because it verifies |
+|---|---|---|
+| Wallet | All six issuers | Everything it receives and displays |
+| Payroll | The four states | Identity, when a person connects (Phase 2) |
+| Benefits | The four states and Payroll | Identity and income, when a person applies (Phase 4) |
+
+Nothing needs to trust Benefits except the Wallet, until a Phase 5 verifier exists.
+
+### Verification
+
+Every verifying app runs the same checks, in this order, stopping at the first failure:
+
+1. **Known issuer** — the credential's `issuer.id` is in the trust list.
+2. **Trusted for this type** — the issuer's `trustedFor` includes the credential's type.
+3. **Signature** — the JWT's `kid` names one of that issuer's keys, and the signature verifies
+   against it.
+4. **Validity window** — the current time is within `validFrom` and, if present,
+   `validUntil`.
+
+Verifiers receiving a *presentation* then add:
+
+5. **One subject** — every credential in the presentation names the same subject identifier.
+6. **Known subject** — Payroll only: the subject belongs to an existing employee record.
+
+The order matters for what the person is told: an unknown issuer is not the same failure as a
+broken signature, and an expired credential is not a forged one. What each failure looks like
+on screen is §5.
+
+### Key custody
+
+| Where | Holds | In git? |
+|---|---|---|
+| Each app's trust list | Public keys | Yes — public keys are safe to publish |
+| Committed seed data | Signed identity credentials, including the deliberately tampered ones | Yes — signatures are public by design |
+| A local `keys/` folder on your machine | The four states' private keys | **No** — gitignored |
+| Render environment variables | Payroll's and Benefits' private keys | **No** — set with `sync: false` in `render.yaml` |
+| A local `.env` in `apps/payroll` and `apps/benefits` | The same keys, for running locally | **No** — gitignored; a committed `.env.example` shows the variable names |
+| Tests | Throwaway keys generated at test time | Never real keys — CI has none and needs none |
+
+The repository is public. Committing a private key would let anyone mint credentials that every
+app in the demo would accept.
+
+### Keys are disposable
+
+Keys living only on one machine would be a liability if that machine were lost. Instead, **one
+script regenerates everything**: new key pairs for all six issuers, freshly signed identity
+credentials (tampered ones included), and every app's trust list. It prints the new Payroll and
+Benefits private keys for pasting into Render. Losing the keys costs one run of the script and
+a commit, not a reconstruction.
+
+There is no key *rotation* beyond that: regenerating invalidates every credential signed with
+the old keys. In a demo whose runtime state is reset whenever a service idles (#27), that is
+acceptable.
+
+### Keeping keys in step
+
+A private key held in Render must match the public key committed in the other apps' trust
+lists. If someone replaced Payroll's key in Render and forgot the trust lists, every credential
+Payroll issued would show as **Tampered** — a configuration slip that looks like a
+cryptography bug. Two guards:
+
+- **Startup self-check.** Payroll and Benefits each commit their own public key alongside their
+  code. On startup, each derives the public key from its private key and compares; on a
+  mismatch, `/health` reports unhealthy with a message saying so, rather than the app quietly
+  issuing credentials nothing will accept.
+- **Published keys.** Each issuing app serves its public keys at `/.well-known/jwks.json`, the
+  standard JOSE location, so a mismatch can be diagnosed by looking rather than guessing. It is
+  also the first step towards verifiers looking keys up instead of hard-coding them.
+
+### Open questions for §2
+
+1. **A generator script and the "no sync script" rule.** `docs/decisions.md` and CLAUDE.md both
+   say there is no sync script keeping copies across apps aligned. The regeneration script above
+   writes trust lists and credentials into all three apps. The distinction I'd draw: it is a
+   **one-shot generator**, run by hand and rarely, whose output is committed — not a script
+   that keeps copies continuously in sync, and nothing runs it at build or deploy time. The
+   same question is already open for the sample data (#6), so one decision covers both. This
+   needs your call, since the rule is binding.
+2. **`did:example` for the states.** Leaning yes, for the reasons above. The alternative is
+   hosting a fictional state issuer page on one of the three apps, which gives a resolvable
+   address at the cost of one app pretending to be a state.
 
 ## 3. Claim schemas
 
