@@ -1,0 +1,322 @@
+# Sample people for the credentials demo (#6).
+#
+# Hand-written and curated, not random: most people exist to make a specific rule visible,
+# recorded in `demonstrates`. The generator derives everything mechanical from this file —
+# subject identifiers, paystub figures, and the expected-outcomes table in docs/sample-data.md.
+#
+# Everyone is fictional. Street addresses are invented; towns, counties and ZIP codes are real
+# so the eligibility rules have real inputs. Photos are AI-generated faces of people who don't
+# exist, made to the `photo_brief` (docs/decisions.md).
+#
+# Field notes:
+#   identity   verified | tampered | none (docs/credential-model.md §0, #6)
+#   address    where the person actually lives. For the residency-fake tamper, the altered
+#              address the credential falsely claims is under `tamper.claimed_address`.
+#   jobs.pay   hourly: rate in dollars and `hours` per semi-monthly pay period, the same in both
+#              September periods. salary: annual amount, paid in 24 equal installments.
+#
+# Reference points (docs/benefit-programs.md), monthly gross:
+#   Health free <= 1,835.40 · full price >= 6,650.00 · Food <= 2,460.50 · Energy <= 2,500.00
+#   Dividend bump reaches zero at 1,200.00 · Housing: 30% of county AMI / 12, varies by county
+
+people:
+
+  # ---- New Jersey, verified identity (18) --------------------------------------------------
+
+  - id: p01
+    given_name: Grace
+    family_name: Okafor
+    birth_date: 1982-03-11
+    address: {street: 118 Mine Street, locality: Flemington, county: Hunterdon, region: NJ, postal_code: "08822"}
+    identity: verified
+    photo_brief: Black woman, mid-40s, short natural hair
+    demonstrates: Same job and income as p02 in the highest-AMI county. Housing eligible here, denied for p02.
+    jobs:
+      - {employer: pinecrest, title: Home health aide, pay: {type: hourly, rate: 20.00, hours: 55}}
+
+  - id: p02
+    given_name: Rosa
+    family_name: Medina
+    birth_date: 1979-07-22
+    address: {street: 407 Grape Street, locality: Vineland, county: Cumberland, region: NJ, postal_code: "08360"}
+    identity: verified
+    photo_brief: Latina woman, late 40s, dark hair pulled back
+    demonstrates: Same job and income as p01 in the lowest-AMI county. Housing denied here, eligible for p01.
+    jobs:
+      - {employer: pinecrest, title: Home health aide, pay: {type: hourly, rate: 20.00, hours: 55}}
+
+  - id: p03
+    given_name: Tomasz
+    family_name: Nowak
+    birth_date: 1997-01-30
+    address: {street: 52 Spring Street, locality: Elizabeth, county: Union, region: NJ, postal_code: "07206"}
+    identity: verified
+    photo_brief: White man, late 20s, short light-brown hair, clean-shaven
+    demonstrates: Income between the Food and Energy limits — Energy yes, Food no. Also just under Union County's Housing limit.
+    jobs:
+      - {employer: harborline, title: Warehouse associate, pay: {type: hourly, rate: 16.00, hours: 77.5}}
+
+  - id: p04
+    given_name: Aisha
+    family_name: Rahman
+    birth_date: 2007-05-14
+    address: {street: 31 Hamilton Street, locality: New Brunswick, county: Middlesex, region: NJ, postal_code: "08901"}
+    identity: verified
+    photo_brief: South Asian woman, 19, wears a headscarf
+    demonstrates: Part-time student income — the Dividend taper at its most visible. Health free.
+    jobs:
+      - {employer: crossroads, title: Server, pay: {type: hourly, rate: 16.00, hours: 20}}
+
+  - id: p05
+    given_name: Frank
+    family_name: Russo
+    birth_date: 1959-02-08
+    address: {street: 9 Bay Avenue, locality: Toms River, county: Ocean, region: NJ, postal_code: "08753"}
+    identity: verified
+    photo_brief: White man, late 60s, grey hair, glasses
+    demonstrates: Retiree working part-time — Dividend taper; eligible for everything.
+    jobs:
+      - {employer: shoreway, title: Cashier, pay: {type: hourly, rate: 16.00, hours: 30}}
+
+  - id: p06
+    given_name: Tanya
+    family_name: Brooks
+    birth_date: 1995-10-03
+    address: {street: 214 Federal Street, locality: Camden, county: Camden, region: NJ, postal_code: "08104"}
+    identity: verified
+    photo_brief: Black woman, early 30s, shoulder-length braids
+    demonstrates: Two small part-time jobs summed for the Dividend taper — income is totalled across employers.
+    jobs:
+      - {employer: brightpath, title: Assistant teacher, pay: {type: hourly, rate: 16.00, hours: 20}}
+      - {employer: ridgeline, title: Sales associate, pay: {type: hourly, rate: 16.00, hours: 15}}
+
+  - id: p07
+    given_name: Luis
+    family_name: Ferreira
+    birth_date: 1988-06-19
+    address: {street: 77 Ferry Street, locality: Newark, county: Essex, region: NJ, postal_code: "07105"}
+    identity: verified
+    photo_brief: Latino man, late 30s, short dark hair, trimmed beard
+    demonstrates: Three jobs, and $36 a month over the Energy limit — the cliff the pass/fail programs create.
+    jobs:
+      - {employer: pinecrest, title: Companion aide, pay: {type: hourly, rate: 18.00, hours: 30}}
+      - {employer: crossroads, title: Line cook, pay: {type: hourly, rate: 16.00, hours: 20}}
+      - {employer: beacon, title: Security officer, pay: {type: hourly, rate: 17.00, hours: 24}}
+
+  - id: p08
+    given_name: Nadia
+    family_name: Haddad
+    birth_date: 1991-09-02
+    address: {street: 145 Main Street, locality: Paterson, county: Passaic, region: NJ, postal_code: "07501"}
+    identity: verified
+    photo_brief: Middle Eastern woman, mid-30s, long dark hair
+    demonstrates: Three part-time jobs whose total still qualifies for everything.
+    jobs:
+      - {employer: shoreway, title: Deli clerk, pay: {type: hourly, rate: 16.00, hours: 25}}
+      - {employer: brightpath, title: Aide, pay: {type: hourly, rate: 16.50, hours: 20}}
+      - {employer: ridgeline, title: Cashier, pay: {type: hourly, rate: 16.00, hours: 20}}
+
+  - id: p09
+    given_name: Daniel
+    family_name: Walsh
+    birth_date: 1974-04-27
+    address: {street: 26 Maple Avenue, locality: Morristown, county: Morris, region: NJ, postal_code: "07960"}
+    identity: verified
+    photo_brief: White man, early 50s, receding grey-brown hair
+    demonstrates: Above 500% FPL — Health at full price, no income-tested benefit.
+    jobs:
+      - {employer: libertycrest, title: Senior underwriter, pay: {type: salary, annual: 92000}}
+
+  - id: p10
+    given_name: Priya
+    family_name: Shah
+    birth_date: 1998-12-05
+    address: {street: 88 Grove Street, locality: Jersey City, county: Hudson, region: NJ, postal_code: "07302"}
+    identity: verified
+    photo_brief: South Asian woman, late 20s, long dark hair
+    demonstrates: Salaried, near the top of the Health taper — a small discount.
+    jobs:
+      - {employer: palisade, title: Financial analyst, pay: {type: salary, annual: 68000}}
+
+  - id: p11
+    given_name: Kevin
+    family_name: Tran
+    birth_date: 1992-08-17
+    address: {street: 12 Oak Tree Road, locality: Edison, county: Middlesex, region: NJ, postal_code: "08817"}
+    identity: verified
+    photo_brief: Vietnamese man, mid-30s, short black hair, glasses
+    demonstrates: High earner — Health full price.
+    jobs:
+      - {employer: coastal, title: Software developer, pay: {type: salary, annual: 105000}}
+
+  - id: p12
+    given_name: Helen
+    family_name: Cho
+    birth_date: 1977-03-24
+    address: {street: 40 West High Street, locality: Somerville, county: Somerset, region: NJ, postal_code: "08876"}
+    identity: verified
+    photo_brief: Korean woman, late 40s, chin-length black hair
+    demonstrates: Highest earner — Health full price.
+    jobs:
+      - {employer: northfield, title: Research scientist, pay: {type: salary, annual: 118000}}
+
+  - id: p13
+    given_name: Marcus
+    family_name: Reed
+    birth_date: 2000-11-09
+    address: {street: 19 Delsea Drive, locality: Glassboro, county: Gloucester, region: NJ, postal_code: "08028"}
+    identity: verified
+    photo_brief: Black man, mid-20s, close-cropped hair
+    demonstrates: Middle of the Health taper — roughly half price.
+    jobs:
+      - {employer: ironbound, title: Construction laborer, pay: {type: hourly, rate: 26.00, hours: 86}}
+
+  - id: p14
+    given_name: Andre
+    family_name: Pierre
+    birth_date: 1985-01-16
+    address: {street: 63 Hamilton Avenue, locality: Trenton, county: Mercer, region: NJ, postal_code: "08611"}
+    identity: verified
+    photo_brief: Black man, early 40s, shaved head, short beard
+    demonstrates: Full-time hourly, over every pass/fail limit — Health discount and Dividend base only.
+    jobs:
+      - {employer: beacon, title: Security officer, pay: {type: hourly, rate: 19.00, hours: 86}}
+
+  - id: p15
+    given_name: Jenna
+    family_name: Kowalski
+    birth_date: 1989-05-28
+    address: {street: 305 Bond Street, locality: Asbury Park, county: Monmouth, region: NJ, postal_code: "07712"}
+    identity: verified
+    photo_brief: White woman, late 30s, blonde hair in a ponytail
+    demonstrates: Full-time hourly in a higher-AMI county, still over the Housing limit.
+    jobs:
+      - {employer: harborline, title: Shift lead, pay: {type: hourly, rate: 22.00, hours: 80}}
+
+  - id: p16
+    given_name: Isaiah
+    family_name: Coleman
+    birth_date: 1996-02-12
+    address: {street: 22 Beverly Road, locality: Willingboro, county: Burlington, region: NJ, postal_code: "08046"}
+    identity: verified
+    photo_brief: Black man, 30, short twists
+    demonstrates: Full-time hospital worker — Health discount, over the pass/fail limits.
+    jobs:
+      - {employer: raritan, title: Patient care technician, pay: {type: hourly, rate: 19.00, hours: 80}}
+
+  - id: p17
+    given_name: Jun
+    family_name: Park
+    birth_date: 2002-07-07
+    address: {street: 1560 Center Avenue, locality: Fort Lee, county: Bergen, region: NJ, postal_code: "07024"}
+    identity: verified
+    photo_brief: Korean man, mid-20s, short black hair
+    demonstrates: Over the Food and Energy limits but Housing eligible, thanks to Bergen County's higher AMI.
+    jobs:
+      - {employer: clearview, title: Pharmacy technician, pay: {type: hourly, rate: 18.00, hours: 60}}
+      - {employer: crossroads, title: Host, pay: {type: hourly, rate: 16.00, hours: 20}}
+
+  - id: p18
+    given_name: Ana
+    family_name: Reyes
+    birth_date: 1970-10-21
+    address: {street: 12 North Georgia Avenue, locality: Atlantic City, county: Atlantic, region: NJ, postal_code: "08401"}
+    identity: verified
+    photo_brief: Latina woman, mid-50s, short dark hair with grey streaks
+    demonstrates: Full-time in a low-AMI county — over every pass/fail limit, including Housing.
+    jobs:
+      - {employer: boardwalk, title: Housekeeper, pay: {type: hourly, rate: 17.00, hours: 80}}
+
+  # ---- Out of state, verified identity (3) — valid credentials, fail the residency test ----
+
+  - id: p19
+    given_name: Emily
+    family_name: Carter
+    birth_date: 1987-06-03
+    address: {street: 34 Farmington Road, locality: Livonia, county: Wayne, region: MI, postal_code: "48154"}
+    identity: verified
+    photo_brief: White woman, late 30s, shoulder-length auburn hair
+    demonstrates: Michigan resident working remotely for a New Jersey employer. Identity verifies; residency fails.
+    jobs:
+      - {employer: northfield, title: Clinical data manager, pay: {type: salary, annual: 88000}}
+
+  - id: p20
+    given_name: Nikos
+    family_name: Pappas
+    birth_date: 1981-09-29
+    address: {street: 25 Ditmars Boulevard, locality: Astoria, county: Queens, region: NY, postal_code: "11105"}
+    identity: verified
+    photo_brief: Greek man, mid-40s, dark curly hair, stubble
+    demonstrates: New York resident commuting to Jersey City. Identity verifies; residency fails.
+    jobs:
+      - {employer: palisade, title: Customer service representative, pay: {type: hourly, rate: 24.00, hours: 80}}
+
+  - id: p21
+    given_name: Jamal
+    family_name: Wright
+    birth_date: 1993-04-04
+    address: {street: 1802 West 25th Street, locality: Cleveland, county: Cuyahoga, region: OH, postal_code: "44102"}
+    identity: verified
+    photo_brief: Black man, early 30s, short hair, glasses
+    demonstrates: Ohio resident working remotely for a New Jersey employer. Identity verifies; residency fails.
+    jobs:
+      - {employer: coastal, title: QA engineer, pay: {type: salary, annual: 76000}}
+
+  # ---- Tampered identity (2) — genuinely invalid signatures ---------------------------------
+
+  - id: p22
+    given_name: Victor
+    family_name: Moreno
+    birth_date: 1990-03-15
+    address: {street: 480 Richmond Avenue, locality: Staten Island, county: Richmond, region: NY, postal_code: "10314"}
+    identity: tampered
+    tamper:
+      kind: address
+      claimed_address: {street: 310 Elmora Avenue, locality: Elizabeth, county: Union, region: NJ, postal_code: "07208"}
+    photo_brief: Latino man, mid-30s, short dark hair, clean-shaven
+    demonstrates: >-
+      Faked residency. Issued by the State of New York, then altered to claim an Elizabeth
+      address. His income would qualify for Food, Energy and Housing if the fake worked —
+      the signature is what stops it.
+    jobs:
+      - {employer: harborline, title: Forklift operator, pay: {type: hourly, rate: 16.00, hours: 70}}
+
+  - id: p23
+    given_name: Carmen
+    family_name: Diaz
+    birth_date: 1984-08-08
+    address: {street: 3905 Bergenline Avenue, locality: Union City, county: Hudson, region: NJ, postal_code: "07087"}
+    identity: tampered
+    tamper:
+      kind: photo
+    photo_brief: Latina woman, early 40s, long dark wavy hair
+    demonstrates: >-
+      Swapped photo — the classic fake ID. The credential was signed with a different image;
+      the face shown is hers, so the signature no longer matches.
+    jobs:
+      - {employer: shoreway, title: Cashier, pay: {type: hourly, rate: 16.50, hours: 80}}
+
+  # ---- No identity credential (2) — blocked before eligibility -----------------------------
+
+  - id: p24
+    given_name: Ray
+    family_name: Miller
+    birth_date: 1968-05-01
+    address: {street: 44 South Main Street, locality: Phillipsburg, county: Warren, region: NJ, postal_code: "08865"}
+    identity: none
+    photo_brief: null
+    demonstrates: Employed, but with no identity credential he cannot connect to Payroll, so never receives paystub credentials.
+    jobs:
+      - {employer: ridgeline, title: Stock associate, pay: {type: hourly, rate: 17.00, hours: 80}}
+
+  - id: p25
+    given_name: Megan
+    family_name: Doyle
+    birth_date: 2004-06-12
+    address: {street: 210 East Maple Avenue, locality: Wildwood, county: Cape May, region: NJ, postal_code: "08260"}
+    identity: none
+    photo_brief: null
+    demonstrates: Low income from two jobs, likely eligible for several programs — but with no identity credential she cannot apply at all.
+    jobs:
+      - {employer: crossroads, title: Server, pay: {type: hourly, rate: 16.00, hours: 40}}
+      - {employer: shoreway, title: Cashier, pay: {type: hourly, rate: 16.00, hours: 30}}
