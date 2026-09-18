@@ -23,9 +23,9 @@ Three documents and one data set. **No app code, no deployment.**
    - expiration, and how verification failure is represented
 2. **Benefit programs and eligibility** (#7) — **done**, in
    [docs/benefit-programs.md](../benefit-programs.md). The five programs and their criteria:
-   valid identity credential, NJ residency, and an income test. Health, Food, Energy and
-   Housing are pass/fail; Dividend calculates a monthly payment on a taper. Deliberately kept
-   basic: no time windows, no household size.
+   valid identity credential, NJ residency, and an income test. Food, Energy and Housing are
+   pass/fail; Health (a discount on a $750/month plan) and Dividend (a monthly payment) are
+   calculated on sliding scales. Deliberately kept basic: no time windows, no household size.
 3. **Sample data** (#6) — 25 people, 15 NJ employers, and two September 2026 paystubs per
    person per employer, covering one-, two- and three-employer scenarios.
 
@@ -44,7 +44,8 @@ credential without reopening the model.
 - Demo only, no real PII: names, addresses, employers and paystubs are invented, though
   the employers are real companies operating in NJ.
 - The sample data is a one-time starting resource. Each app gets its own copy of the slice
-  it needs — no shared data store, package or sync script.
+  it needs — no shared data store or package. A one-shot generator under `tools/` whose output
+  is committed is allowed (`docs/decisions.md`).
 - Eligibility criteria stay minimal (residency, verified identity, income range). Anything
   richer is a later decision, not this loop's.
 - Credentials remain signed JWTs shaped like W3C VCs over simple REST, per
@@ -53,8 +54,9 @@ credential without reopening the model.
   *need to ask for*, so earlier loops don't foreclose it.
 
 ## Open questions
-- What format does the sample data ship in — JSON fixtures committed per app, or a
-  generator script whose output is committed? The per-app copy rule holds either way.
+- What format does the sample data ship in? A one-shot generator under `tools/` with
+  committed output is now allowed (`docs/decisions.md`), so either that or hand-written JSON
+  fixtures is open to #6. The per-app copy rule holds either way.
 - Which income claims does an eligibility check actually need? Settled in
   [docs/benefit-programs.md](../benefit-programs.md): **gross** pay per period, the period
   dates and the employer, summed across all of a person's paystub credentials and annualized
@@ -69,13 +71,18 @@ credential without reopening the model.
   - Approval is **all-or-nothing** over the whole request, not per credential. Decided: it
     matches how real presentation requests work, and the list shape leaves per-credential
     approval open if it's ever wanted.
-  - What does the Wallet show when it doesn't hold a requested credential? Unreachable in
-    Loop 4, reachable as soon as Benefits asks for income. Still open.
+  - When the Wallet doesn't hold a requested credential, the consent screen says so and
+    offers no Approve button. Decided — and reachable in **Loop 4**, not only later: the two
+    people with no identity credential hit it when they connect to Payroll (#22).
 - Credentials are grouped for the user by **category** — Identity, Income, Benefits — not by
   issuer, which is a developer's model rather than a user's. Each credential carries its
   category as data so Loop 6 adds a group without a layout change.
 - The five benefit programs issue **one credential type with the program as a claim**, five
   times over — not five types. Decided: identical to the user (five cards under a Benefits
-  heading), but one schema and one eligibility code path. The type carries `program`,
-  `decision` and an `amount` that is present only for Dividend, which calculates a payment
-  rather than returning a yes or no.
+  heading), but one schema and one eligibility code path. Its `credentialSubject` carries
+  `program` plus **named claims** for what that program determined — `monthlyPayment` for
+  Dividend, `discountPercent` and `planCost` for Health. There is **no `decision` claim**: a
+  denial produces no credential, so holding one means eligible.
+- Credentials follow the **W3C VC Data Model 2.0**, secured per VC-JOSE-COSE — a subset,
+  never contrary (`docs/decisions.md`). The flow, trust model and keys are in
+  [docs/credential-model.md](../credential-model.md).

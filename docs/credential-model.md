@@ -348,18 +348,17 @@ cryptography bug. Two guards:
   standard JOSE location, so a mismatch can be diagnosed by looking rather than guessing. It is
   also the first step towards verifiers looking keys up instead of hard-coding them.
 
-### Open questions for §2
+### Decisions made in review
 
-1. **A generator script and the "no sync script" rule.** `docs/decisions.md` and CLAUDE.md both
-   say there is no sync script keeping copies across apps aligned. The regeneration script above
-   writes trust lists and credentials into all three apps. The distinction I'd draw: it is a
-   **one-shot generator**, run by hand and rarely, whose output is committed — not a script
-   that keeps copies continuously in sync, and nothing runs it at build or deploy time. The
-   same question is already open for the sample data (#6), so one decision covers both. This
-   needs your call, since the rule is binding.
-2. **`did:example` for the states.** Leaning yes, for the reasons above. The alternative is
-   hosting a fictional state issuer page on one of the three apps, which gives a resolvable
-   address at the cost of one app pretending to be a state.
+Settled on 2026-09-18:
+
+1. **The regeneration script is allowed.** It is a one-shot generator under `tools/`, run by
+   hand, with committed output, and nothing runs it at build or deploy time. That is distinct
+   from the "no sync script" rule, which exists to rule out tooling that *keeps* copies aligned
+   (it originated in a rejected proposal to sync `cred.css`). Recorded in `docs/decisions.md`;
+   the same allowance covers the sample data generator (#6).
+2. **The states are `did:example:` issuers.** Nothing in the demo may give the impression that
+   any service in it is a real government service — now a product rule in `docs/decisions.md`.
 
 ## 3. Claim schemas
 
