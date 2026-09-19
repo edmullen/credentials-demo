@@ -16,6 +16,16 @@ Three documents drive the work and are worth reading before changing anything:
 - [docs/loop-log.md](docs/loop-log.md): a retro after each loop — what shipped, what went
   wrong, what to change. Worth checking before starting a new loop.
 
+Three reference documents from Loop 1 define what the apps build *towards*. Read the relevant one
+before touching credentials, eligibility or sample data:
+
+- [docs/credential-model.md](docs/credential-model.md): the target flow, issuers and keys,
+  claim schemas, W3C conformance, validity and failure messages.
+- [docs/benefit-programs.md](docs/benefit-programs.md): the five programs and their eligibility
+  rules.
+- [docs/sample-data.md](docs/sample-data.md): the 25 sample people, and the expected eligibility
+  outcome for each — the test oracle for the Benefits app. Generated; don't edit by hand.
+
 `docs/design/loop-N/` is the Claude Design handoff for that loop: a shared `cred.css` plus one
 static HTML page per app, with a README documenting tokens, components and accessibility. It is
 a **historical record** — the design files are never imported at runtime and are not edited to
@@ -34,6 +44,8 @@ Three independent FastAPI apps in one monorepo under `apps/<name>`. The defining
 Each app is its own uv project (no root pyproject.toml; Render builds from each rootDir).
 
 Each app owns its copy of cred.css; no shared stylesheet, template package, or sync script.
+A hand-run, one-shot generator under `tools/` that writes committed files into several apps is
+allowed — see `docs/decisions.md`. Apps never import or run it.
 
 Theming is one attribute: `<html data-app="…">`, with all component CSS reading tokens only.
 
@@ -69,6 +81,15 @@ Run one app locally with reload (ports: wallet 8001, payroll 8002, benefits 8003
 cd apps/wallet && uv run uvicorn app.main:app --reload --port 8001
 ```
 
+The one exception to "run from inside an app": the sample-data generator is a self-contained
+uv script, run from the repo root. It regenerates `tools/sample_data/generated/` and
+`docs/sample-data.md` from the hand-written YAML, and refuses to write anything if an edit
+breaks one of the curated placements (docs/sample-data.md):
+
+```bash
+uv run tools/generate_sample_data.py
+```
+
 ## CI and deployment
 
 `.github/workflows/ci.yml` runs on PRs to `main` **and** on pushes to `main` — the second
@@ -87,7 +108,7 @@ protection — so adding or renaming an app never requires touching branch prote
 
 `render.yaml` at the repo root defines three free web services. `rootDir` is per app;
 `buildFilter.paths` are relative to the **repo root**, not to `rootDir`. Editing one app's files
-redeploys only that service; editing `docs/` redeploys none. `PYTHON_VERSION`
+redeploys only that service; editing `docs/` or `tools/` redeploys none. `PYTHON_VERSION`
 in `render.yaml` must be kept in step with each app's `.python-version`.
 
 Live at `https://cred-demo-<app>.onrender.com` (`wallet` / `payroll` / `benefits`). Render's

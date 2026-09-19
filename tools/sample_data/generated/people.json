@@ -1,0 +1,618 @@
+[
+  {
+    "id": "p01",
+    "subjectId": "urn:uuid:031acde8-d4c0-5778-b6ab-84a4b612af70",
+    "givenName": "Grace",
+    "familyName": "Okafor",
+    "birthDate": "1982-03-11",
+    "address": {
+      "street": "118 Mine Street",
+      "locality": "Flemington",
+      "county": "Hunterdon",
+      "region": "NJ",
+      "postal_code": "08822"
+    },
+    "identity": "verified",
+    "photoBrief": "Black woman, mid-40s, short natural hair",
+    "photo": "p01.jpg",
+    "jobs": [
+      {
+        "employerId": "pinecrest",
+        "title": "Home health aide"
+      }
+    ]
+  },
+  {
+    "id": "p02",
+    "subjectId": "urn:uuid:3341a32e-e1e7-5f75-943e-863cf4e7f910",
+    "givenName": "Rosa",
+    "familyName": "Medina",
+    "birthDate": "1979-07-22",
+    "address": {
+      "street": "407 Grape Street",
+      "locality": "Vineland",
+      "county": "Cumberland",
+      "region": "NJ",
+      "postal_code": "08360"
+    },
+    "identity": "verified",
+    "photoBrief": "Latina woman, late 40s, dark hair pulled back",
+    "photo": "p02.jpg",
+    "jobs": [
+      {
+        "employerId": "pinecrest",
+        "title": "Home health aide"
+      }
+    ]
+  },
+  {
+    "id": "p03",
+    "subjectId": "urn:uuid:17c47e9b-f4d0-5504-aacd-4124d3fac696",
+    "givenName": "Tomasz",
+    "familyName": "Nowak",
+    "birthDate": "1997-01-30",
+    "address": {
+      "street": "52 Spring Street",
+      "locality": "Elizabeth",
+      "county": "Union",
+      "region": "NJ",
+      "postal_code": "07206"
+    },
+    "identity": "verified",
+    "photoBrief": "White man, late 20s, short light-brown hair, clean-shaven",
+    "photo": "p03.jpg",
+    "jobs": [
+      {
+        "employerId": "harborline",
+        "title": "Warehouse associate"
+      }
+    ]
+  },
+  {
+    "id": "p04",
+    "subjectId": "urn:uuid:6c413a22-b670-5021-be2e-82ac59b485b8",
+    "givenName": "Aisha",
+    "familyName": "Rahman",
+    "birthDate": "2007-05-14",
+    "address": {
+      "street": "31 Hamilton Street",
+      "locality": "New Brunswick",
+      "county": "Middlesex",
+      "region": "NJ",
+      "postal_code": "08901"
+    },
+    "identity": "verified",
+    "photoBrief": "South Asian woman, 19, wears a headscarf",
+    "photo": "p04.jpg",
+    "jobs": [
+      {
+        "employerId": "crossroads",
+        "title": "Server"
+      }
+    ]
+  },
+  {
+    "id": "p05",
+    "subjectId": "urn:uuid:710aaa9a-206a-572e-bb9e-40d75591488b",
+    "givenName": "Frank",
+    "familyName": "Russo",
+    "birthDate": "1959-02-08",
+    "address": {
+      "street": "9 Bay Avenue",
+      "locality": "Toms River",
+      "county": "Ocean",
+      "region": "NJ",
+      "postal_code": "08753"
+    },
+    "identity": "verified",
+    "photoBrief": "White man, late 60s, grey hair, glasses",
+    "photo": "p05.jpg",
+    "jobs": [
+      {
+        "employerId": "shoreway",
+        "title": "Cashier"
+      }
+    ]
+  },
+  {
+    "id": "p06",
+    "subjectId": "urn:uuid:d62c0148-4cdf-5817-9019-f4294f8bb12f",
+    "givenName": "Tanya",
+    "familyName": "Brooks",
+    "birthDate": "1995-10-03",
+    "address": {
+      "street": "214 Federal Street",
+      "locality": "Camden",
+      "county": "Camden",
+      "region": "NJ",
+      "postal_code": "08104"
+    },
+    "identity": "verified",
+    "photoBrief": "Black woman, early 30s, shoulder-length braids",
+    "photo": "p06.jpg",
+    "jobs": [
+      {
+        "employerId": "brightpath",
+        "title": "Assistant teacher"
+      },
+      {
+        "employerId": "ridgeline",
+        "title": "Sales associate"
+      }
+    ]
+  },
+  {
+    "id": "p07",
+    "subjectId": "urn:uuid:6688372d-3de5-5ec7-b8a2-a8f0590c599e",
+    "givenName": "Luis",
+    "familyName": "Ferreira",
+    "birthDate": "1988-06-19",
+    "address": {
+      "street": "77 Ferry Street",
+      "locality": "Newark",
+      "county": "Essex",
+      "region": "NJ",
+      "postal_code": "07105"
+    },
+    "identity": "verified",
+    "photoBrief": "Latino man, late 30s, short dark hair, trimmed beard",
+    "photo": "p07.jpg",
+    "jobs": [
+      {
+        "employerId": "pinecrest",
+        "title": "Companion aide"
+      },
+      {
+        "employerId": "crossroads",
+        "title": "Line cook"
+      },
+      {
+        "employerId": "beacon",
+        "title": "Security officer"
+      }
+    ]
+  },
+  {
+    "id": "p08",
+    "subjectId": "urn:uuid:43da9937-774a-58a7-ad99-df6c562f6319",
+    "givenName": "Nadia",
+    "familyName": "Haddad",
+    "birthDate": "1991-09-02",
+    "address": {
+      "street": "145 Main Street",
+      "locality": "Paterson",
+      "county": "Passaic",
+      "region": "NJ",
+      "postal_code": "07501"
+    },
+    "identity": "verified",
+    "photoBrief": "Middle Eastern woman, mid-30s, long dark hair",
+    "photo": "p08.jpg",
+    "jobs": [
+      {
+        "employerId": "shoreway",
+        "title": "Deli clerk"
+      },
+      {
+        "employerId": "brightpath",
+        "title": "Aide"
+      },
+      {
+        "employerId": "ridgeline",
+        "title": "Cashier"
+      }
+    ]
+  },
+  {
+    "id": "p09",
+    "subjectId": "urn:uuid:4046893c-0b3e-598c-a9a7-d8ad0fbc1d8c",
+    "givenName": "Daniel",
+    "familyName": "Walsh",
+    "birthDate": "1974-04-27",
+    "address": {
+      "street": "26 Maple Avenue",
+      "locality": "Morristown",
+      "county": "Morris",
+      "region": "NJ",
+      "postal_code": "07960"
+    },
+    "identity": "verified",
+    "photoBrief": "White man, early 50s, receding grey-brown hair",
+    "photo": "p09.jpg",
+    "jobs": [
+      {
+        "employerId": "libertycrest",
+        "title": "Senior underwriter"
+      }
+    ]
+  },
+  {
+    "id": "p10",
+    "subjectId": "urn:uuid:97577366-60b6-5693-9b08-d680665347e8",
+    "givenName": "Priya",
+    "familyName": "Shah",
+    "birthDate": "1998-12-05",
+    "address": {
+      "street": "88 Grove Street",
+      "locality": "Jersey City",
+      "county": "Hudson",
+      "region": "NJ",
+      "postal_code": "07302"
+    },
+    "identity": "verified",
+    "photoBrief": "South Asian woman, late 20s, long dark hair",
+    "photo": "p10.jpg",
+    "jobs": [
+      {
+        "employerId": "palisade",
+        "title": "Financial analyst"
+      }
+    ]
+  },
+  {
+    "id": "p11",
+    "subjectId": "urn:uuid:f5eaabe2-e029-508e-ac55-1055daa74c06",
+    "givenName": "Kevin",
+    "familyName": "Tran",
+    "birthDate": "1992-08-17",
+    "address": {
+      "street": "12 Oak Tree Road",
+      "locality": "Edison",
+      "county": "Middlesex",
+      "region": "NJ",
+      "postal_code": "08817"
+    },
+    "identity": "verified",
+    "photoBrief": "Vietnamese man, mid-30s, short black hair, glasses",
+    "photo": "p11.jpg",
+    "jobs": [
+      {
+        "employerId": "coastal",
+        "title": "Software developer"
+      }
+    ]
+  },
+  {
+    "id": "p12",
+    "subjectId": "urn:uuid:5eb8ccc3-07bd-590f-9073-844f2039f794",
+    "givenName": "Helen",
+    "familyName": "Cho",
+    "birthDate": "1977-03-24",
+    "address": {
+      "street": "40 West High Street",
+      "locality": "Somerville",
+      "county": "Somerset",
+      "region": "NJ",
+      "postal_code": "08876"
+    },
+    "identity": "verified",
+    "photoBrief": "Korean woman, late 40s, chin-length black hair",
+    "photo": "p12.jpg",
+    "jobs": [
+      {
+        "employerId": "northfield",
+        "title": "Research scientist"
+      }
+    ]
+  },
+  {
+    "id": "p13",
+    "subjectId": "urn:uuid:4beb1748-0e97-5d98-b867-2488de4cac1d",
+    "givenName": "Marcus",
+    "familyName": "Reed",
+    "birthDate": "2000-11-09",
+    "address": {
+      "street": "19 Delsea Drive",
+      "locality": "Glassboro",
+      "county": "Gloucester",
+      "region": "NJ",
+      "postal_code": "08028"
+    },
+    "identity": "verified",
+    "photoBrief": "Black man, mid-20s, close-cropped hair",
+    "photo": "p13.jpg",
+    "jobs": [
+      {
+        "employerId": "ironbound",
+        "title": "Construction laborer"
+      }
+    ]
+  },
+  {
+    "id": "p14",
+    "subjectId": "urn:uuid:ad0957bc-8ad8-5869-9179-a0ccc6f07d5c",
+    "givenName": "Andre",
+    "familyName": "Pierre",
+    "birthDate": "1985-01-16",
+    "address": {
+      "street": "63 Hamilton Avenue",
+      "locality": "Trenton",
+      "county": "Mercer",
+      "region": "NJ",
+      "postal_code": "08611"
+    },
+    "identity": "verified",
+    "photoBrief": "Black man, early 40s, shaved head, short beard",
+    "photo": "p14.jpg",
+    "jobs": [
+      {
+        "employerId": "beacon",
+        "title": "Security officer"
+      }
+    ]
+  },
+  {
+    "id": "p15",
+    "subjectId": "urn:uuid:cd0a0acb-5313-5fe0-9e60-bbdad5a0407c",
+    "givenName": "Jenna",
+    "familyName": "Kowalski",
+    "birthDate": "1989-05-28",
+    "address": {
+      "street": "305 Bond Street",
+      "locality": "Asbury Park",
+      "county": "Monmouth",
+      "region": "NJ",
+      "postal_code": "07712"
+    },
+    "identity": "verified",
+    "photoBrief": "White woman, late 30s, blonde hair in a ponytail",
+    "photo": "p15.jpg",
+    "jobs": [
+      {
+        "employerId": "harborline",
+        "title": "Shift lead"
+      }
+    ]
+  },
+  {
+    "id": "p16",
+    "subjectId": "urn:uuid:5d58d99d-c5a5-5eb8-b751-d123ccb5a5d2",
+    "givenName": "Isaiah",
+    "familyName": "Coleman",
+    "birthDate": "1996-02-12",
+    "address": {
+      "street": "22 Beverly Road",
+      "locality": "Willingboro",
+      "county": "Burlington",
+      "region": "NJ",
+      "postal_code": "08046"
+    },
+    "identity": "verified",
+    "photoBrief": "Black man, 30, short twists",
+    "photo": "p16.jpg",
+    "jobs": [
+      {
+        "employerId": "raritan",
+        "title": "Patient care technician"
+      }
+    ]
+  },
+  {
+    "id": "p17",
+    "subjectId": "urn:uuid:ff005e92-8d37-5c53-a488-6e7b42dcd2db",
+    "givenName": "Jun",
+    "familyName": "Park",
+    "birthDate": "2002-07-07",
+    "address": {
+      "street": "1560 Center Avenue",
+      "locality": "Fort Lee",
+      "county": "Bergen",
+      "region": "NJ",
+      "postal_code": "07024"
+    },
+    "identity": "verified",
+    "photoBrief": "Korean man, mid-20s, short black hair",
+    "photo": "p17.jpg",
+    "jobs": [
+      {
+        "employerId": "clearview",
+        "title": "Pharmacy technician"
+      },
+      {
+        "employerId": "crossroads",
+        "title": "Host"
+      }
+    ]
+  },
+  {
+    "id": "p18",
+    "subjectId": "urn:uuid:311486e6-285e-5cdd-b262-c3496fe6080e",
+    "givenName": "Ana",
+    "familyName": "Reyes",
+    "birthDate": "1970-10-21",
+    "address": {
+      "street": "12 North Georgia Avenue",
+      "locality": "Atlantic City",
+      "county": "Atlantic",
+      "region": "NJ",
+      "postal_code": "08401"
+    },
+    "identity": "verified",
+    "photoBrief": "Latina woman, mid-50s, short dark hair with grey streaks",
+    "photo": "p18.jpg",
+    "jobs": [
+      {
+        "employerId": "boardwalk",
+        "title": "Housekeeper"
+      }
+    ]
+  },
+  {
+    "id": "p19",
+    "subjectId": "urn:uuid:bf402d54-4a34-5979-b386-01f5fc3ce172",
+    "givenName": "Emily",
+    "familyName": "Carter",
+    "birthDate": "1987-06-03",
+    "address": {
+      "street": "34 Farmington Road",
+      "locality": "Livonia",
+      "county": "Wayne",
+      "region": "MI",
+      "postal_code": "48154"
+    },
+    "identity": "verified",
+    "photoBrief": "White woman, late 30s, shoulder-length auburn hair",
+    "photo": "p19.jpg",
+    "jobs": [
+      {
+        "employerId": "northfield",
+        "title": "Clinical data manager"
+      }
+    ]
+  },
+  {
+    "id": "p20",
+    "subjectId": "urn:uuid:615bcf81-f148-5d47-8e9a-8457d07ed798",
+    "givenName": "Nikos",
+    "familyName": "Pappas",
+    "birthDate": "1981-09-29",
+    "address": {
+      "street": "25 Ditmars Boulevard",
+      "locality": "Astoria",
+      "county": "Queens",
+      "region": "NY",
+      "postal_code": "11105"
+    },
+    "identity": "verified",
+    "photoBrief": "Greek man, mid-40s, dark curly hair, stubble",
+    "photo": "p20.jpg",
+    "jobs": [
+      {
+        "employerId": "palisade",
+        "title": "Customer service representative"
+      }
+    ]
+  },
+  {
+    "id": "p21",
+    "subjectId": "urn:uuid:7817ac99-4a1a-5407-beea-160be6bf9a5f",
+    "givenName": "Jamal",
+    "familyName": "Wright",
+    "birthDate": "1993-04-04",
+    "address": {
+      "street": "1802 West 25th Street",
+      "locality": "Cleveland",
+      "county": "Cuyahoga",
+      "region": "OH",
+      "postal_code": "44102"
+    },
+    "identity": "verified",
+    "photoBrief": "Black man, early 30s, short hair, glasses",
+    "photo": "p21.jpg",
+    "jobs": [
+      {
+        "employerId": "coastal",
+        "title": "QA engineer"
+      }
+    ]
+  },
+  {
+    "id": "p22",
+    "subjectId": "urn:uuid:e04a0d4d-2a48-5214-9fe1-c1922e6d36e8",
+    "givenName": "Victor",
+    "familyName": "Moreno",
+    "birthDate": "1990-03-15",
+    "address": {
+      "street": "480 Richmond Avenue",
+      "locality": "Staten Island",
+      "county": "Richmond",
+      "region": "NY",
+      "postal_code": "10314"
+    },
+    "identity": "tampered",
+    "tamper": {
+      "kind": "address",
+      "claimed_address": {
+        "street": "310 Elmora Avenue",
+        "locality": "Elizabeth",
+        "county": "Union",
+        "region": "NJ",
+        "postal_code": "07208"
+      }
+    },
+    "photoBrief": "Latino man, mid-30s, short dark hair, clean-shaven",
+    "photo": "p22.jpg",
+    "jobs": [
+      {
+        "employerId": "harborline",
+        "title": "Forklift operator"
+      }
+    ]
+  },
+  {
+    "id": "p23",
+    "subjectId": "urn:uuid:9c61aa59-9ecb-5b52-aeb3-98ef6e3097a5",
+    "givenName": "Carmen",
+    "familyName": "Diaz",
+    "birthDate": "1984-08-08",
+    "address": {
+      "street": "3905 Bergenline Avenue",
+      "locality": "Union City",
+      "county": "Hudson",
+      "region": "NJ",
+      "postal_code": "07087"
+    },
+    "identity": "tampered",
+    "tamper": {
+      "kind": "photo"
+    },
+    "photoBrief": "Latina woman, early 40s, long dark wavy hair",
+    "photo": "p23.jpg",
+    "jobs": [
+      {
+        "employerId": "shoreway",
+        "title": "Cashier"
+      }
+    ]
+  },
+  {
+    "id": "p24",
+    "subjectId": "urn:uuid:88fd9ae1-28dd-5750-adc1-90805fcce711",
+    "givenName": "Ray",
+    "familyName": "Miller",
+    "birthDate": "1968-05-01",
+    "address": {
+      "street": "44 South Main Street",
+      "locality": "Phillipsburg",
+      "county": "Warren",
+      "region": "NJ",
+      "postal_code": "08865"
+    },
+    "identity": "none",
+    "photoBrief": null,
+    "photo": null,
+    "jobs": [
+      {
+        "employerId": "ridgeline",
+        "title": "Stock associate"
+      }
+    ]
+  },
+  {
+    "id": "p25",
+    "subjectId": "urn:uuid:7f085e7c-9e7f-5386-a9c5-978b8b5b61ed",
+    "givenName": "Megan",
+    "familyName": "Doyle",
+    "birthDate": "2004-06-12",
+    "address": {
+      "street": "210 East Maple Avenue",
+      "locality": "Wildwood",
+      "county": "Cape May",
+      "region": "NJ",
+      "postal_code": "08260"
+    },
+    "identity": "none",
+    "photoBrief": null,
+    "photo": null,
+    "jobs": [
+      {
+        "employerId": "crossroads",
+        "title": "Server"
+      },
+      {
+        "employerId": "shoreway",
+        "title": "Cashier"
+      }
+    ]
+  }
+]
