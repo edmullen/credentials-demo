@@ -14,6 +14,7 @@
     },
     "identity": "verified",
     "photoBrief": "Black woman, mid-40s, short natural hair",
+    "photo": "p01.jpg",
     "jobs": [
       {
         "employerId": "pinecrest",
@@ -36,6 +37,7 @@
     },
     "identity": "verified",
     "photoBrief": "Latina woman, late 40s, dark hair pulled back",
+    "photo": "p02.jpg",
     "jobs": [
       {
         "employerId": "pinecrest",
@@ -58,6 +60,7 @@
     },
     "identity": "verified",
     "photoBrief": "White man, late 20s, short light-brown hair, clean-shaven",
+    "photo": "p03.jpg",
     "jobs": [
       {
         "employerId": "harborline",
@@ -80,6 +83,7 @@
     },
     "identity": "verified",
     "photoBrief": "South Asian woman, 19, wears a headscarf",
+    "photo": "p04.jpg",
     "jobs": [
       {
         "employerId": "crossroads",
@@ -102,6 +106,7 @@
     },
     "identity": "verified",
     "photoBrief": "White man, late 60s, grey hair, glasses",
+    "photo": "p05.jpg",
     "jobs": [
       {
         "employerId": "shoreway",
@@ -124,6 +129,7 @@
     },
     "identity": "verified",
     "photoBrief": "Black woman, early 30s, shoulder-length braids",
+    "photo": "p06.jpg",
     "jobs": [
       {
         "employerId": "brightpath",
@@ -150,6 +156,7 @@
     },
     "identity": "verified",
     "photoBrief": "Latino man, late 30s, short dark hair, trimmed beard",
+    "photo": "p07.jpg",
     "jobs": [
       {
         "employerId": "pinecrest",
@@ -180,6 +187,7 @@
     },
     "identity": "verified",
     "photoBrief": "Middle Eastern woman, mid-30s, long dark hair",
+    "photo": "p08.jpg",
     "jobs": [
       {
         "employerId": "shoreway",
@@ -210,6 +218,7 @@
     },
     "identity": "verified",
     "photoBrief": "White man, early 50s, receding grey-brown hair",
+    "photo": "p09.jpg",
     "jobs": [
       {
         "employerId": "libertycrest",
@@ -232,6 +241,7 @@
     },
     "identity": "verified",
     "photoBrief": "South Asian woman, late 20s, long dark hair",
+    "photo": "p10.jpg",
     "jobs": [
       {
         "employerId": "palisade",
@@ -254,6 +264,7 @@
     },
     "identity": "verified",
     "photoBrief": "Vietnamese man, mid-30s, short black hair, glasses",
+    "photo": "p11.jpg",
     "jobs": [
       {
         "employerId": "coastal",
@@ -276,6 +287,7 @@
     },
     "identity": "verified",
     "photoBrief": "Korean woman, late 40s, chin-length black hair",
+    "photo": "p12.jpg",
     "jobs": [
       {
         "employerId": "northfield",
@@ -298,6 +310,7 @@
     },
     "identity": "verified",
     "photoBrief": "Black man, mid-20s, close-cropped hair",
+    "photo": "p13.jpg",
     "jobs": [
       {
         "employerId": "ironbound",
@@ -320,6 +333,7 @@
     },
     "identity": "verified",
     "photoBrief": "Black man, early 40s, shaved head, short beard",
+    "photo": "p14.jpg",
     "jobs": [
       {
         "employerId": "beacon",
@@ -342,6 +356,7 @@
     },
     "identity": "verified",
     "photoBrief": "White woman, late 30s, blonde hair in a ponytail",
+    "photo": "p15.jpg",
     "jobs": [
       {
         "employerId": "harborline",
@@ -364,6 +379,7 @@
     },
     "identity": "verified",
     "photoBrief": "Black man, 30, short twists",
+    "photo": "p16.jpg",
     "jobs": [
       {
         "employerId": "raritan",
@@ -386,6 +402,7 @@
     },
     "identity": "verified",
     "photoBrief": "Korean man, mid-20s, short black hair",
+    "photo": "p17.jpg",
     "jobs": [
       {
         "employerId": "clearview",
@@ -412,6 +429,7 @@
     },
     "identity": "verified",
     "photoBrief": "Latina woman, mid-50s, short dark hair with grey streaks",
+    "photo": "p18.jpg",
     "jobs": [
       {
         "employerId": "boardwalk",
@@ -434,6 +452,7 @@
     },
     "identity": "verified",
     "photoBrief": "White woman, late 30s, shoulder-length auburn hair",
+    "photo": "p19.jpg",
     "jobs": [
       {
         "employerId": "northfield",
@@ -456,6 +475,7 @@
     },
     "identity": "verified",
     "photoBrief": "Greek man, mid-40s, dark curly hair, stubble",
+    "photo": "p20.jpg",
     "jobs": [
       {
         "employerId": "palisade",
@@ -478,6 +498,7 @@
     },
     "identity": "verified",
     "photoBrief": "Black man, early 30s, short hair, glasses",
+    "photo": "p21.jpg",
     "jobs": [
       {
         "employerId": "coastal",
@@ -510,6 +531,7 @@
       }
     },
     "photoBrief": "Latino man, mid-30s, short dark hair, clean-shaven",
+    "photo": "p22.jpg",
     "jobs": [
       {
         "employerId": "harborline",
@@ -535,6 +557,7 @@
       "kind": "photo"
     },
     "photoBrief": "Latina woman, early 40s, long dark wavy hair",
+    "photo": "p23.jpg",
     "jobs": [
       {
         "employerId": "shoreway",
@@ -557,6 +580,7 @@
     },
     "identity": "none",
     "photoBrief": null,
+    "photo": null,
     "jobs": [
       {
         "employerId": "ridgeline",
@@ -579,6 +603,7 @@
     },
     "identity": "none",
     "photoBrief": null,
+    "photo": null,
     "jobs": [
       {
         "employerId": "crossroads",

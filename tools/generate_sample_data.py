@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["pyyaml>=6"]
+# dependencies = ["pyyaml>=6", "pillow>=10"]
 # ///
 """Generate the demo's sample data from the hand-written files in tools/sample_data/.
 
@@ -8,7 +8,8 @@ Run by hand from the repo root:
 
     uv run tools/generate_sample_data.py
 
-Reads   tools/sample_data/people.yaml, tools/sample_data/employers.yaml
+Reads   tools/sample_data/people.yaml, tools/sample_data/employers.yaml,
+        tools/sample_data/photos/pNN.jpg
 Writes  tools/sample_data/generated/{people,employers,paystubs}.json
         docs/sample-data.md  (expected outcomes, the Loop 6 test oracle, and the photo brief)
 
@@ -30,9 +31,11 @@ from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
 import yaml
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "tools" / "sample_data"
+PHOTOS = SRC / "photos"
 OUT = SRC / "generated"
 DOC = ROOT / "docs" / "sample-data.md"
 
@@ -40,6 +43,11 @@ DOC = ROOT / "docs" / "sample-data.md"
 AS_OF = date(2026, 9, 30)
 PAY_PERIODS = [(date(2026, 9, 1), date(2026, 9, 15)), (date(2026, 9, 16), date(2026, 9, 30))]
 MIN_HOURLY_RATE = Decimal("16.00")  # at or above NJ's 2026 minimum wage
+
+# Identity photos arrive already processed (docs/credential-model.md §3): AI-generated,
+# portrait, ID-photo style, metadata stripped. The generator checks them; it doesn't alter them.
+PHOTO_SIZE = (200, 250)
+PHOTO_MAX_BYTES = 25_000
 
 # Stable namespace for name-based subject and paystub identifiers.
 NAMESPACE = uuid.UUID("6f1c2a4e-2d7b-5c1e-9a3f-0b8d4e7c1a52")
@@ -256,6 +264,19 @@ def check_invariants(people: list[dict], employers: dict, outcomes: dict[str, Ou
         if p["address"]["region"] == "NJ":
             need(p["address"]["county"] in COUNTY_AMI, f"{p['id']} has unknown county {p['address']['county']!r}")
 
+    needs_photo = {p["id"] for p in people if p["identity"] != "none"}
+    supplied = {f.stem for f in PHOTOS.glob("*.jpg")}
+    need(supplied == needs_photo,
+         f"photos missing for {sorted(needs_photo - supplied)}; unexpected photos {sorted(supplied - needs_photo)}")
+    for stem in sorted(supplied & needs_photo):
+        path = PHOTOS / f"{stem}.jpg"
+        with Image.open(path) as im:
+            need(im.format == "JPEG", f"{path.name} is {im.format}, not JPEG")
+            need(im.size == PHOTO_SIZE, f"{path.name} is {im.size[0]}x{im.size[1]}, not {PHOTO_SIZE[0]}x{PHOTO_SIZE[1]}")
+            need(len(im.getexif()) == 0 and "xmp" not in im.info and "icc_profile" not in im.info,
+                 f"{path.name} carries metadata; strip it before committing")
+        need(path.stat().st_size <= PHOTO_MAX_BYTES, f"{path.name} is {path.stat().st_size} bytes, over {PHOTO_MAX_BYTES}")
+
     evaluated = {pid: o for pid, o in outcomes.items() if o.gate is None}
     # Same income, different Housing answer, in the highest- and lowest-AMI counties.
     by_county = {next(p for p in people if p["id"] == pid)["address"]["county"]: o for pid, o in evaluated.items()}
@@ -388,21 +409,25 @@ def write_doc(people: list[dict], employers: dict, outcomes: dict[str, Outcome],
         "",
         "Full detail: [tools/sample_data/generated/paystubs.json](../tools/sample_data/generated/paystubs.json).",
         "",
-        "## Photo brief",
+        "## Photos",
         "",
-        "For generating identity photos: **AI-generated faces of people who don't exist**, in",
-        "ID-photo style — front-facing, plain light background, neutral expression, even lighting.",
-        "Any size; the credential generator crops, compresses and strips metadata. Ages are as of",
-        f"{AS_OF.isoformat()}. People with no identity credential need no photo.",
+        "Identity photos are **AI-generated faces of people who don't exist**, in ID-photo style —",
+        "front-facing, plain light background, neutral expression, even lighting — each watermarked",
+        f"\"Not real person\". Stored in [tools/sample_data/photos/](../tools/sample_data/photos/) as",
+        f"{PHOTO_SIZE[0]}×{PHOTO_SIZE[1]} JPEGs of about 20 KB with no metadata; the generator checks",
+        "each one but doesn't alter it. The identity credential embeds it as its `image` claim",
+        f"(docs/credential-model.md §3). Ages are as of {AS_OF.isoformat()}. People with no identity",
+        "credential have no photo.",
         "",
-        "| ID | Name | Age | Brief |",
-        "|---|---|---:|---|",
+        "| ID | Name | Age | Photo | Brief |",
+        "|---|---|---:|---|---|",
     ]
     for p in people:
         if p["identity"] == "none":
             continue
-        note = " *(tampered: photo swapped — supply her real photo; the swap is automatic)*" if p.get("tamper", {}).get("kind") == "photo" else ""
-        lines.append(f"| {p['id']} | {p['given_name']} {p['family_name']} | {age(p['birth_date'])} | {p['photo_brief']}{note} |")
+        note = " *(tampered: photo swapped — the credential is signed over a placeholder, then this photo is put in its place)*" if p.get("tamper", {}).get("kind") == "photo" else ""
+        lines.append(f"| {p['id']} | {p['given_name']} {p['family_name']} | {age(p['birth_date'])} "
+                     f"| [{p['id']}.jpg](../tools/sample_data/photos/{p['id']}.jpg) | {p['photo_brief']}{note} |")
 
     DOC.write_text("\n".join(lines) + "\n")
 
@@ -429,6 +454,7 @@ def main() -> None:
             "identity": p["identity"],
             **({"tamper": p["tamper"]} if "tamper" in p else {}),
             "photoBrief": p.get("photo_brief"),
+            "photo": f"{p['id']}.jpg" if p["identity"] != "none" else None,
             "jobs": [{"employerId": j["employer"], "title": j["title"]} for j in p["jobs"]],
         }
         for p in people

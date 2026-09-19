@@ -115,35 +115,38 @@ Year-to-date figures are not generated; Payroll can decide in Loop 3 whether it 
 
 Full detail: [tools/sample_data/generated/paystubs.json](../tools/sample_data/generated/paystubs.json).
 
-## Photo brief
+## Photos
 
-For generating identity photos: **AI-generated faces of people who don't exist**, in
-ID-photo style — front-facing, plain light background, neutral expression, even lighting.
-Any size; the credential generator crops, compresses and strips metadata. Ages are as of
-2026-09-30. People with no identity credential need no photo.
+Identity photos are **AI-generated faces of people who don't exist**, in ID-photo style —
+front-facing, plain light background, neutral expression, even lighting — each watermarked
+"Not real person". Stored in [tools/sample_data/photos/](../tools/sample_data/photos/) as
+200×250 JPEGs of about 20 KB with no metadata; the generator checks
+each one but doesn't alter it. The identity credential embeds it as its `image` claim
+(docs/credential-model.md §3). Ages are as of 2026-09-30. People with no identity
+credential have no photo.
 
-| ID | Name | Age | Brief |
-|---|---|---:|---|
-| p01 | Grace Okafor | 44 | Black woman, mid-40s, short natural hair |
-| p02 | Rosa Medina | 47 | Latina woman, late 40s, dark hair pulled back |
-| p03 | Tomasz Nowak | 29 | White man, late 20s, short light-brown hair, clean-shaven |
-| p04 | Aisha Rahman | 19 | South Asian woman, 19, wears a headscarf |
-| p05 | Frank Russo | 67 | White man, late 60s, grey hair, glasses |
-| p06 | Tanya Brooks | 30 | Black woman, early 30s, shoulder-length braids |
-| p07 | Luis Ferreira | 38 | Latino man, late 30s, short dark hair, trimmed beard |
-| p08 | Nadia Haddad | 35 | Middle Eastern woman, mid-30s, long dark hair |
-| p09 | Daniel Walsh | 52 | White man, early 50s, receding grey-brown hair |
-| p10 | Priya Shah | 27 | South Asian woman, late 20s, long dark hair |
-| p11 | Kevin Tran | 34 | Vietnamese man, mid-30s, short black hair, glasses |
-| p12 | Helen Cho | 49 | Korean woman, late 40s, chin-length black hair |
-| p13 | Marcus Reed | 25 | Black man, mid-20s, close-cropped hair |
-| p14 | Andre Pierre | 41 | Black man, early 40s, shaved head, short beard |
-| p15 | Jenna Kowalski | 37 | White woman, late 30s, blonde hair in a ponytail |
-| p16 | Isaiah Coleman | 30 | Black man, 30, short twists |
-| p17 | Jun Park | 24 | Korean man, mid-20s, short black hair |
-| p18 | Ana Reyes | 55 | Latina woman, mid-50s, short dark hair with grey streaks |
-| p19 | Emily Carter | 39 | White woman, late 30s, shoulder-length auburn hair |
-| p20 | Nikos Pappas | 45 | Greek man, mid-40s, dark curly hair, stubble |
-| p21 | Jamal Wright | 33 | Black man, early 30s, short hair, glasses |
-| p22 | Victor Moreno | 36 | Latino man, mid-30s, short dark hair, clean-shaven |
-| p23 | Carmen Diaz | 42 | Latina woman, early 40s, long dark wavy hair *(tampered: photo swapped — supply her real photo; the swap is automatic)* |
+| ID | Name | Age | Photo | Brief |
+|---|---|---:|---|---|
+| p01 | Grace Okafor | 44 | [p01.jpg](../tools/sample_data/photos/p01.jpg) | Black woman, mid-40s, short natural hair |
+| p02 | Rosa Medina | 47 | [p02.jpg](../tools/sample_data/photos/p02.jpg) | Latina woman, late 40s, dark hair pulled back |
+| p03 | Tomasz Nowak | 29 | [p03.jpg](../tools/sample_data/photos/p03.jpg) | White man, late 20s, short light-brown hair, clean-shaven |
+| p04 | Aisha Rahman | 19 | [p04.jpg](../tools/sample_data/photos/p04.jpg) | South Asian woman, 19, wears a headscarf |
+| p05 | Frank Russo | 67 | [p05.jpg](../tools/sample_data/photos/p05.jpg) | White man, late 60s, grey hair, glasses |
+| p06 | Tanya Brooks | 30 | [p06.jpg](../tools/sample_data/photos/p06.jpg) | Black woman, early 30s, shoulder-length braids |
+| p07 | Luis Ferreira | 38 | [p07.jpg](../tools/sample_data/photos/p07.jpg) | Latino man, late 30s, short dark hair, trimmed beard |
+| p08 | Nadia Haddad | 35 | [p08.jpg](../tools/sample_data/photos/p08.jpg) | Middle Eastern woman, mid-30s, long dark hair |
+| p09 | Daniel Walsh | 52 | [p09.jpg](../tools/sample_data/photos/p09.jpg) | White man, early 50s, receding grey-brown hair |
+| p10 | Priya Shah | 27 | [p10.jpg](../tools/sample_data/photos/p10.jpg) | South Asian woman, late 20s, long dark hair |
+| p11 | Kevin Tran | 34 | [p11.jpg](../tools/sample_data/photos/p11.jpg) | Vietnamese man, mid-30s, short black hair, glasses |
+| p12 | Helen Cho | 49 | [p12.jpg](../tools/sample_data/photos/p12.jpg) | Korean woman, late 40s, chin-length black hair |
+| p13 | Marcus Reed | 25 | [p13.jpg](../tools/sample_data/photos/p13.jpg) | Black man, mid-20s, close-cropped hair |
+| p14 | Andre Pierre | 41 | [p14.jpg](../tools/sample_data/photos/p14.jpg) | Black man, early 40s, shaved head, short beard |
+| p15 | Jenna Kowalski | 37 | [p15.jpg](../tools/sample_data/photos/p15.jpg) | White woman, late 30s, blonde hair in a ponytail |
+| p16 | Isaiah Coleman | 30 | [p16.jpg](../tools/sample_data/photos/p16.jpg) | Black man, 30, short twists |
+| p17 | Jun Park | 24 | [p17.jpg](../tools/sample_data/photos/p17.jpg) | Korean man, mid-20s, short black hair |
+| p18 | Ana Reyes | 55 | [p18.jpg](../tools/sample_data/photos/p18.jpg) | Latina woman, mid-50s, short dark hair with grey streaks |
+| p19 | Emily Carter | 39 | [p19.jpg](../tools/sample_data/photos/p19.jpg) | White woman, late 30s, shoulder-length auburn hair |
+| p20 | Nikos Pappas | 45 | [p20.jpg](../tools/sample_data/photos/p20.jpg) | Greek man, mid-40s, dark curly hair, stubble |
+| p21 | Jamal Wright | 33 | [p21.jpg](../tools/sample_data/photos/p21.jpg) | Black man, early 30s, short hair, glasses |
+| p22 | Victor Moreno | 36 | [p22.jpg](../tools/sample_data/photos/p22.jpg) | Latino man, mid-30s, short dark hair, clean-shaven |
+| p23 | Carmen Diaz | 42 | [p23.jpg](../tools/sample_data/photos/p23.jpg) | Latina woman, early 40s, long dark wavy hair *(tampered: photo swapped — the credential is signed over a placeholder, then this photo is put in its place)* |
