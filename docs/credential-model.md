@@ -426,12 +426,12 @@ Issued by a state. Proves who the person is and where they live.
   address as our own extension, which the standard permits. Housing reads it.
 - **`image`** is the person's photo, as on a driver's license — schema.org's `image`, embedded
   as a `data:` URI rather than linked. Embedding means the signature covers the photo, so
-  swapping it is tampering, and the states have nowhere to host images anyway. Portrait, about
-  240×300 px, JPEG under 20 KB, metadata stripped. The Wallet supplies the alt text from the
+  swapping it is tampering, and the states have nowhere to host images anyway. Portrait,
+  200×250 px, JPEG of about 20 KB, metadata stripped. The Wallet supplies the alt text from the
   person's name; alt text is display, not a claim.
 - **Photos are AI-generated faces of people who don't exist** — never real people
   (`docs/decisions.md`, "No real PII"). Generated in ID-photo style: front-facing, plain light
-  background, neutral expression.
+  background, neutral expression, each watermarked "Not real person".
 - `birthDate`, the street address and the photo aren't used by any eligibility rule. They are
   there because an identity document without them wouldn't be believable, and they make the
   selective-disclosure question below concrete: Payroll asks for identity and receives a face.
@@ -446,7 +446,7 @@ Issued by Meridian Payroll, **one per paystub**. Type `PaystubCredential`.
   "employer": { "type": "Organization", "name": "Example Grocers" },
   "payPeriodStart": "2026-09-01",
   "payPeriodEnd": "2026-09-15",
-  "payDate": "2026-09-19",
+  "payDate": "2026-09-15",
   "payFrequency": "semimonthly",
   "grossPay": { "type": "MonetaryAmount", "value": 1250.00, "currency": "USD" },
   "netPay":   { "type": "MonetaryAmount", "value": 1012.37, "currency": "USD" }
