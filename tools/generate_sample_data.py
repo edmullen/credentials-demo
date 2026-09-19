@@ -11,7 +11,7 @@ Run by hand from the repo root:
 Reads   tools/sample_data/people.yaml, tools/sample_data/employers.yaml,
         tools/sample_data/photos/pNN.jpg
 Writes  tools/sample_data/generated/{people,employers,paystubs}.json
-        docs/sample-data.md  (expected outcomes, the Loop 6 test oracle, and the photo brief)
+        docs/sample-data.md  (expected outcomes, the Loop 6 test oracle, and the photos)
 
 A one-shot generator with committed output, as docs/decisions.md allows: no app imports or
 runs it. Output is deterministic — subject identifiers are name-based UUIDs and nothing
@@ -411,7 +411,8 @@ def write_doc(people: list[dict], employers: dict, outcomes: dict[str, Outcome],
         "",
         "## Photos",
         "",
-        "Identity photos are **AI-generated faces of people who don't exist**, in ID-photo style —",
+        "Identity photos are **AI-generated faces of people who don't exist**, generated with",
+        "ChatGPT (OpenAI), in ID-photo style —",
         "front-facing, plain light background, neutral expression, even lighting — each watermarked",
         f"\"Not real person\". Stored in [tools/sample_data/photos/](../tools/sample_data/photos/) as",
         f"{PHOTO_SIZE[0]}×{PHOTO_SIZE[1]} JPEGs of about 20 KB with no metadata; the generator checks",

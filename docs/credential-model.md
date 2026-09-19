@@ -446,7 +446,7 @@ Issued by Meridian Payroll, **one per paystub**. Type `PaystubCredential`.
   "employer": { "type": "Organization", "name": "Example Grocers" },
   "payPeriodStart": "2026-09-01",
   "payPeriodEnd": "2026-09-15",
-  "payDate": "2026-09-19",
+  "payDate": "2026-09-15",
   "payFrequency": "semimonthly",
   "grossPay": { "type": "MonetaryAmount", "value": 1250.00, "currency": "USD" },
   "netPay":   { "type": "MonetaryAmount", "value": 1012.37, "currency": "USD" }

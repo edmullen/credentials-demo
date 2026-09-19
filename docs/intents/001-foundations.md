@@ -44,8 +44,9 @@ credential without reopening the model.
 - **End users**: none yet. The sample personas defined here are what Loop 2 picks from.
 
 ## Constraints
-- Demo only, no real PII: names, addresses, employers and paystubs are invented, though
-  the employers are real companies operating in NJ.
+- Demo only, no real PII: names, addresses, employers and paystubs are all invented. The
+  employers are fictional companies of recognizable NJ types, so no real employer has
+  invented wages attributed to it.
 - The sample data is a one-time starting resource. Each app gets its own copy of the slice
   it needs — no shared data store or package. A one-shot generator under `tools/` whose output
   is committed is allowed (`docs/decisions.md`).

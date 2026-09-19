@@ -117,7 +117,8 @@ Full detail: [tools/sample_data/generated/paystubs.json](../tools/sample_data/ge
 
 ## Photos
 
-Identity photos are **AI-generated faces of people who don't exist**, in ID-photo style —
+Identity photos are **AI-generated faces of people who don't exist**, generated with
+ChatGPT (OpenAI), in ID-photo style —
 front-facing, plain light background, neutral expression, even lighting — each watermarked
 "Not real person". Stored in [tools/sample_data/photos/](../tools/sample_data/photos/) as
 200×250 JPEGs of about 20 KB with no metadata; the generator checks

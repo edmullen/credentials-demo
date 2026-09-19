@@ -253,7 +253,9 @@ totals drift by a cent depending on evaluation order.
 
 ## Sample data requirements
 
-For these rules to be visible, the personas in #6 have to be placed deliberately:
+For these rules to be visible, the personas in #6 have to be placed deliberately. The sample
+data generator checks every placement below before writing anything, and
+[docs/sample-data.md](sample-data.md) shows the outcome each person produces:
 
 - **Two personas with identical income in different counties** — one high-AMI (Hunterdon,
   $41,835.90) and one low-AMI (Cumberland, $19,349.70) — so the same income yields different
