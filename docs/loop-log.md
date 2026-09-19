@@ -59,7 +59,8 @@ binding (#25) and selective disclosure (#28) are recorded as deliberate gaps.
 
 **What went wrong.** Documentation drift. Decisions were made in conversation and then written
 into several places at once — a reference doc, one or more issue bodies, Intent 001,
-sometimes `decisions.md` — and later decisions didn't always reach every copy. Intent 001 went
+sometimes `decisions.md` — and later decisions didn't always reach every copy. The cause was
+the number of copies, not the number of decisions. Intent 001 went
 stale twice (it still called Health pass/fail after Health became a sliding scale), the photo
 size in the credential model was wrong once the real photos arrived, and a final sweep before
 merging found twelve stale items. The most consequential was CLAUDE.md not listing the three
@@ -69,20 +70,32 @@ missing-credential state was unreachable until Loop 6 (two personas hit it in Lo
 the Benefits app would store nothing (Ed corrected it: there will be an admin-side record).
 Both were caught in review, not in code.
 
-**Slow or expensive.** Every decision cost three or four edits — doc, issue, intent, sometimes
-`decisions.md` — which is the real cost behind the drift above. The review sessions themselves
-were long but not wasted: most of the loop's value came from questioning the spec rather than
-executing it. App-based gig workers receive 1099s, not paystubs; real company names would have
-had invented wages attached; a consent screen listing only the *requested* claims would have
-understated what a person hands over, since a signed credential is shared whole; and the
-original Health threshold hid a $9,000-a-year cliff that became the sliding scale.
+**Slow or expensive.** Nothing Ed counts as a cost. The loop ran as long review-and-revise
+conversations — Claude proposing, explaining and recommending, Ed learning, questioning and
+pushing back — and that was the intended way of working, not overhead. Most of the loop's
+value came from questioning the spec rather than executing it: app-based gig workers receive
+1099s, not paystubs; real company names would have had invented wages attached; a consent
+screen listing only the *requested* claims would have understated what a person hands over,
+since a signed credential is shared whole; and the original Health threshold hid a
+$9,000-a-year cliff that became the sliding scale.
 
-**Process note.** Stacked PRs worked, with two things worth knowing next time. Closing keywords
-only fire on the default branch, so every `Closes` line had to be gathered onto the bottom PR;
-and CI doesn't run on a PR whose base isn't `main`, so the stack was merged top-down and CI ran
-once, on the final PR. Separately, the sample-data generator's self-checks earned their place
+**Process note.** The branching worked mechanically but wasn't designed. #24 began as the
+PR for one item (#7) and grew into the carrier for the whole loop: #29 and #30 were stacked on
+it, its description was rewritten twice, and `Closes` lines were gathered onto it one at a
+time, because closing keywords only fire on the default branch. CI never ran on the stacked
+PRs, whose base wasn't `main`. Ed's view is that this could be cleaner, and a direction to try
+is a **loop branch created deliberately at the start** — `loop-2` off `main`, with its PR to
+`main` opened up front listing every issue it closes, and one branch per item merged into it as
+each finishes. Two things to settle before Loop 2 relies on it: CI would need to run on PRs into
+the loop branch (the workflow only triggers for `main` today), and merging to `main` once per
+loop means deployment problems surface at the end rather than item by item. To decide at the
+start of Loop 2. Separately, the sample-data generator's self-checks earned their place
 immediately: when a placement was deliberately broken, or a photo removed, it refused to write
 anything and named the problem.
+
+**Last loop's improvement.** *Confirm a manual step is actually finished before treating it as
+done.* It held: before merging #24, Claude checked that CI had run on the PR's latest commit,
+not just that the checks were green, and watched `main`'s own CI run to completion afterwards.
 
 **One improvement for Loop 2.** Give each kind of fact one home, and link to it from everywhere
 else. Specifications live in the reference docs and binding rules in `docs/decisions.md`; issue
