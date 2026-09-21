@@ -1,0 +1,60 @@
+import re
+
+import pytest
+from fastapi.testclient import TestClient
+
+from app.main import NAV, app
+from app.people import all_people
+
+client = TestClient(app)
+
+
+def test_root_redirects_to_the_first_person() -> None:
+    response = client.get("/", follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers["location"] == "/p/p01/credentials"
+
+
+@pytest.mark.parametrize("screen", [key for key, _ in NAV])
+@pytest.mark.parametrize("person_id", ["p08", "p24"])
+def test_each_screen_renders_for_a_person(screen: str, person_id: str) -> None:
+    response = client.get(f"/p/{person_id}/{screen}")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/html")
+    assert 'href="/static/cred.css"' in response.text
+    assert "<script" not in response.text
+
+
+@pytest.mark.parametrize("screen", [key for key, _ in NAV])
+def test_unknown_person_is_404(screen: str) -> None:
+    assert client.get(f"/p/p99/{screen}").status_code == 404
+
+
+def test_there_are_25_people_in_order() -> None:
+    ids = [p["id"] for p in all_people()]
+    assert ids == [f"p{n:02d}" for n in range(1, 26)]
+
+
+def test_header_shows_the_viewed_person() -> None:
+    body = client.get("/p/p08/credentials").text
+    assert 'aria-label="Nadia Haddad">NH</span>' in body
+    assert "Avery Mullen" not in body
+
+
+def test_nav_is_the_three_screens_with_no_help() -> None:
+    body = client.get("/p/p08/connections").text
+    assert "Help" not in body
+    for key, label in NAV:
+        assert f'href="/p/p08/{key}"' in body and f">{label}</a>" in body
+
+
+@pytest.mark.parametrize("screen", [key for key, _ in NAV])
+def test_active_item_is_marked_in_both_navs(screen: str) -> None:
+    body = client.get(f"/p/p08/{screen}").text
+    current = re.findall(r'<a href="/p/p08/(\w+)" aria-current="page"', body)
+    assert current == [screen, screen]  # inline nav and <details> panel
+
+
+def test_footer_links_to_the_switcher_from_the_current_screen() -> None:
+    body = client.get("/p/p08/activity").text
+    assert 'href="/p/p08/switch?from=activity">Switch person</a>' in body

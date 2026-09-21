@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ site.title }}</title>
+  <title>{{ page_title }} — {{ site.name }}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="{{ site.fonts_url }}" rel="stylesheet">
@@ -13,21 +13,21 @@
   <a class="skip" href="#main">Skip to main content</a>
   <header class="header">
     <div class="header__inner">
-      <a class="header__brand" href="/">
-        <span class="header__mark" aria-hidden="true"></span>
+      <a class="header__brand" href="/p/{{ person.id }}/credentials">
+        <span class="header__mark header__mark--wallet" aria-hidden="true"></span>
         {{ site.name }}
       </a>
       <nav class="header__nav" aria-label="Main">
-        {% for item in site.nav %}
-        <a href="#">{{ item }}</a>
+        {% for key, label in nav %}
+        <a href="/p/{{ person.id }}/{{ key }}"{% if key == active %} aria-current="page"{% endif %}>{{ label }}</a>
         {% endfor %}
       </nav>
-      <span class="initials" role="img" aria-label="{{ site.user.name }}">{{ site.user.initials }}</span>
+      <span class="initials" role="img" aria-label="{{ person.name }}">{{ person.initials }}</span>
       <details class="nav-menu">
         <summary>Menu</summary>
         <div class="nav-menu__panel">
-          {% for item in site.nav %}
-          <a href="#">{{ item }}</a>
+          {% for key, label in nav %}
+          <a href="/p/{{ person.id }}/{{ key }}"{% if key == active %} aria-current="page"{% endif %}>{{ label }}</a>
           {% endfor %}
         </div>
       </details>
@@ -41,6 +41,7 @@
   <footer class="footer">
     <div class="wrap">
       <p class="footer__note"><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></p>
+      {% block footer_aside %}<span class="footer__aside"><a href="/p/{{ person.id }}/switch?from={{ active }}">Switch person</a></span>{% endblock %}
     </div>
   </footer>
 </body>
