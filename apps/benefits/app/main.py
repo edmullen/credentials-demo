@@ -26,7 +26,6 @@ SITE = {
     ),
     "nav": ["About the program", "Who can apply", "Contact us"],
     "user": {"name": "Jordan Diaz", "initials": "JD"},
-    "footer": "Benefit Agency",
 }
 
 

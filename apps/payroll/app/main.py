@@ -22,7 +22,6 @@ SITE = {
     ),
     "nav": ["Product", "Issuance", "Documentation", "Support"],
     "user": {"name": "Rina Kapoor", "initials": "RK"},
-    "footer": "Meridian Payroll, Inc.",
 }
 
 

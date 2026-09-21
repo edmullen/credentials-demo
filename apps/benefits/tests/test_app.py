@@ -25,3 +25,10 @@ def test_static_css() -> None:
     response = client.get("/static/cred.css")
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/css")
+
+
+def test_footer_states_this_is_a_demo() -> None:
+    body = client.get("/").text
+    assert "<strong>This is a demo.</strong>" in body
+    assert 'href="https://github.com/edmullen/credentials-demo"' in body
+    assert "<script" not in body

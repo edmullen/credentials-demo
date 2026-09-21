@@ -22,7 +22,6 @@ SITE = {
     ),
     "nav": ["Credentials", "Activity", "Help"],
     "user": {"name": "Avery Mullen", "initials": "AM"},
-    "footer": "Wallet",
 }
 
 
