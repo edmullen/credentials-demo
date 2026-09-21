@@ -13,7 +13,7 @@ Wallet presents, so the credential has to exist, and the Wallet has to hold it, 
 
 ## Proposed outcome
 The Wallet holds real, signed credentials for real sample people, and shows whether each
-one can be trusted. Closes #10, #12, #14, #15, #26 and #11.
+one can be trusted. Six issues, one PR each: #10, #12, #14, #15, #26 and #11.
 
 1. **Signed identity credentials exist.** A one-shot generator under `tools/` creates key
    pairs for the four states, signs an identity credential for each of the 23 people who
@@ -32,8 +32,8 @@ one can be trusted. Closes #10, #12, #14, #15, #26 and #11.
    that this is a fictional demonstration (#11).
 
 **Design comes before build.** Most of these screens have no Loop 0 mockup. Ed and Claude
-write a design brief, Claude Design produces `docs/design/loop-2/`, and `/design-sync`
-imports the repo's real `cred.css` back first (`docs/decisions.md`).
+write a design brief, `cred.css` and the Loop 0 pages are handed to Claude Design as files,
+and what comes back is committed under `docs/design/loop-2/` (`docs/decisions.md`).
 
 Done means: for any of the 25 people, the Wallet shows their credentials and the right
 badge; altering a committed credential by hand flips it to Tampered.
@@ -51,6 +51,9 @@ badge; altering a committed credential by hand flips it to Tampered.
 - **Per-item PRs to `main`**, one branch per issue, merged as each finishes — not a loop
   branch. Settled at the start of this loop from the Loop 1 retro: closing keywords fire,
   CI needs no change, and Render deploys item by item so breakage surfaces immediately.
+- **A closing keyword belongs only in the PR that finishes that issue.** Prose listing the
+  loop's scope names issues without one — `Closes #10` in a PR body closes #10 on merge no
+  matter what the rest of the sentence says. This cost #10 once already.
 - Each app copies the slice of sample data it needs; the Wallet takes all 25 people. No
   shared package, no app reading outside its own directory.
 - **JavaScript is not ruled out.** The Loop 0 pages have none because the design handoff
