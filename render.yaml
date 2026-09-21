@@ -15,6 +15,10 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.14"
+      - key: PAYROLL_URL
+        value: https://cred-demo-payroll.onrender.com
+      - key: BENEFITS_URL
+        value: https://cred-demo-benefits.onrender.com
 
   - type: web
     name: cred-demo-payroll
@@ -32,6 +36,10 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.14"
+      - key: WALLET_URL
+        value: https://cred-demo-wallet.onrender.com
+      - key: BENEFITS_URL
+        value: https://cred-demo-benefits.onrender.com
 
   - type: web
     name: cred-demo-benefits
@@ -49,3 +57,7 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.14"
+      - key: WALLET_URL
+        value: https://cred-demo-wallet.onrender.com
+      - key: PAYROLL_URL
+        value: https://cred-demo-payroll.onrender.com
