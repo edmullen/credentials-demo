@@ -12,13 +12,13 @@ each serving its Loop 0 mockup at `/` and a `/health` check, deployed through th
 [#4](https://github.com/edmullen/credentials-demo/pull/4)): the apps, GitHub Actions CI, and
 the Render Blueprint. Branch protection on `main` requires the `ci-passed` check. All three
 apps are live on Render and match their mockups. Full trace in
-[docs/design.md](design.md) §8.
+[design/loop-0/design.md](design/loop-0/design.md) §8.
 
 **What went wrong.** Nothing structural. One real gap surfaced and got caught early: the
 design handoff used the singular `benefit` as the theme value while the app directory is
 `benefits` — Ed flagged it before any code was written, so the fix (Step 6 of the build)
 was a clean rename confined to one app's own `cred.css` copy, recorded as a deviation in
-`design.md` §2 rather than a bug fix later.
+[design/loop-0/design.md](design/loop-0/design.md) §2 rather than a bug fix later.
 
 **Slow or expensive.** Nothing on Ed's side. One false alarm during final verification: a
 `curl` against the live `wallet`/`payroll` URLs timed out at 15s right after the Render

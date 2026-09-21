@@ -46,6 +46,13 @@
   built JavaScript component library (an npm package, its `dist/` bundled into React components
   with `.d.ts` prop contracts) into a claude.ai/design project, and this repo has no package,
   no build and no JavaScript. Checked on 2026-09-21; revisit only if that ever changes.
+- **Each loop's technical design is archived when it is superseded.** `docs/design.md` is always
+  the *current* loop's technical design; when the next loop's replaces it, the outgoing one moves
+  to `docs/design/loop-N/design.md`, beside that loop's handoff. A loop's design record then sits
+  in one directory — what Claude Design handed over, and what Claude Code built to — and
+  `docs/design.md` stays a stable path that always means "the design in force". The move is
+  otherwise verbatim — only the archived file's relative links are repointed, since it drops two
+  directories down. Established 2026-09-21, when Loop 2's design replaced Loop 0's.
 
 ## Technical defaults
 - Python 3.12 (installed with **uv**; leave macOS's built-in Python 3.9.6 alone) + FastAPI, with HTML templates so Ed's HTML/CSS skills carry over
