@@ -59,3 +59,16 @@ def test_ping_swallows_a_peer_that_is_down(monkeypatch) -> None:
     real = httpx.AsyncClient
     monkeypatch.setattr(peers.httpx, "AsyncClient", lambda **kw: real(transport=transport, **kw))
     _run(peers._ping("https://peer.example"))  # must not raise
+
+
+def test_ping_waits_long_enough_for_a_sleeping_peer_to_wake(monkeypatch) -> None:
+    seen: dict = {}
+    real = httpx.AsyncClient
+
+    def client(**kwargs):
+        seen.update(kwargs)
+        return real(transport=httpx.MockTransport(lambda r: httpx.Response(200)), **kwargs)
+
+    monkeypatch.setattr(peers.httpx, "AsyncClient", client)
+    _run(peers._ping("https://peer.example"))
+    assert seen["timeout"] >= 60
