@@ -39,8 +39,12 @@ Six, all under the wallet theme. Header nav becomes **Credentials · Connections
 
 ### 3.1 Credentials — the home screen
 Replaces the Loop 0 "Coming soon" page. Lists the credentials the selected person holds, as
-preview cards showing the person's **photo** (if applicable), what the credential is, who issued it, and its
-status badge. Opening one goes to the detail screen.
+preview cards showing what the credential is, who issued it, and its status badge. Opening one
+goes to the detail screen.
+
+**Only the Identity credential carries a photo.** Income and benefit credentials have no `image`
+claim at all ([credential model §3](../../credential-model.md#3-claim-schemas)), so the photo is
+what distinguishes identity from the other two types — not a property every credential card has.
 
 Credentials group by **category** — Identity, Income, Benefits. Only Identity exists this loop; design the grouping so Loops 5 and 6 add a group without a new layout. A person may eventually hold six or more income credentials from one issuer, so the grouping has to survive a long list. Consider stacked, overlapping cards with some affordance that implies the ability to open for full details.
 
@@ -59,13 +63,15 @@ county, state and postal code.
 The **status badge** is the centrepiece — see §4.
 
 ### 3.3 Empty state
-The person holds no credentials at all. Ray Miller and Megan Doyle are in this state, and it is reachable from the first moment of the demo, not an edge case. The lack of an identity credential would defeat the purpose of the Wallet app. Adding an identity credential would be the first action of a user in a real world situation, but for now, we will not build Add Identity credential functionality. The UI should have a demarcated space where the identity credential would be placed, and in that space, include a message such as, "You have not yet added an Identity credential" with an "Add Identity Card" button, which is deactivated. 
+The person holds no credentials at all. Ray Miller and Megan Doyle are in this state, and it is reachable from the first moment of the demo, not an edge case. The lack of an identity credential would defeat the purpose of the Wallet app. Adding an identity credential would be the first action of a user in a real world situation, but for now, we will not build Add Identity credential functionality. The UI should have a demarcated space where the identity credential would be placed, and in that space, include a message such as, "You have not yet added an Identity credential" with an "Add Identity" button, which is deactivated. 
 
 ### 3.4 Connections (#14)
 A placeholder this loop: heading, and whatever an empty Connections screen should say. Loop 4 fills it with an employer, a **Connect payroll** button, and a connected state — design the empty screen knowing that is what arrives.
 
 ### 3.5 Activity (#15)
-Also a placeholder: heading, plus **one sample item** to establish the pattern — a circle icon, a timestamp, and a message ("New connection to Meridian Payroll established"). This will be an activity log page, so the display should read as a chronological listing of events that happen. Nothing in Loop 2 generates a real event. 
+Also a placeholder: heading, plus **one sample item** to establish the pattern — a circle icon, a timestamp, and a message ("New connection to Meridian Payroll established"). This will be an activity log page, so the display should read as a chronological listing of events that happen. Nothing in Loop 2 generates a real event.
+Both the nav item and the page heading read **Activity** — #15's body still says "Activities",
+and the issue gets corrected rather than the design.
 
 ### 3.6 Person switcher
 **Its own page**, reached from the footer, listing all 25 sample people so the demo can move
@@ -99,9 +105,9 @@ per app.
 
 ## 5. Facts to design against
 
-- **25 people, 23 photos.** The two with no photo are exactly the two with no credential, so a
-  missing photo never appears next to a credential. Photos are **200×250 portrait JPEGs, ~18 KB**,
-  ID-style: front-facing, plain background, each watermarked "Not real person". They are claims
+- **25 people, 23 photos.** The two with no photo are exactly the two with no identity
+  credential, so a missing photo never appears where one is expected. Photos are
+  **200×250 portrait JPEGs, ~18 KB**, ID-style: front-facing, plain background, each watermarked "Not real person". They are claims
   inside the credential, not profile pictures — design them as part of the credential, and don't
   crop to a circle.
 - **The header identity element stays initials**, not the photo: two people have no photo, and
