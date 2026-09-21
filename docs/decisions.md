@@ -40,8 +40,12 @@
   claims an eligibility check will need.
 - **Design stage uses Claude Design** for experience design (a shared design system plus
   screens, as plain HTML/CSS), handed off to Claude Code and versioned in `docs/design/loop-N/`.
-  From Loop 2 on — the first loop with real screens — `/design-sync` imports the repo's real
-  CSS back into Claude Design.
+  **The handoff is file-based in both directions**: `cred.css` and the current pages are handed
+  to Claude Design at the start of a loop, and what comes back is committed under
+  `docs/design/loop-N/`. Claude Code's `/design-sync` does **not** apply here — it converts a
+  built JavaScript component library (an npm package, its `dist/` bundled into React components
+  with `.d.ts` prop contracts) into a claude.ai/design project, and this repo has no package,
+  no build and no JavaScript. Checked on 2026-09-21; revisit only if that ever changes.
 
 ## Technical defaults
 - Python 3.12 (installed with **uv**; leave macOS's built-in Python 3.9.6 alone) + FastAPI, with HTML templates so Ed's HTML/CSS skills carry over

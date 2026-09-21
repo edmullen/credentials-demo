@@ -19,8 +19,8 @@ a signature is.
 
 ## 2. What already exists — extend it, don't restart
 
-`cred.css` and the three Loop 0 pages are **authoritative and already in the repo**, imported
-back into Claude Design with `/design-sync` before this work starts. Tokens, the five
+`cred.css` and the three Loop 0 pages are **authoritative and already in the repo**, and are
+handed to Claude Design as files at the start of this work. Tokens, the five
 components, the theming model and the accessibility rules all carry forward unchanged. Adding
 a component is expected; redefining an existing one is not.
 
