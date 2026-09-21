@@ -10,7 +10,9 @@ import os
 import httpx
 
 PEER_ENV_VARS = ('WALLET_URL', 'BENEFITS_URL')
-TIMEOUT_SECONDS = 5
+# A sleeping Render service can take up to a minute to answer, and hanging up sooner may abandon
+# the wake-up. Safe to wait this long: the ping is a background task that never delays startup.
+TIMEOUT_SECONDS = 65
 
 
 async def _ping(origin: str) -> None:
