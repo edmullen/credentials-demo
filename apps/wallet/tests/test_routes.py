@@ -92,3 +92,12 @@ def test_connections_shows_the_heading_and_a_disabled_find_your_employer(person_
     assert "Connections are the services allowed to send credentials" in body
     assert '<button class="btn" type="button" disabled>Find your employer</button>' in body
     assert 'class="empty"' in body
+
+
+@pytest.mark.parametrize("person_id", ["p08", "p24"])
+def test_activity_shows_one_sample_log_item(person_id: str) -> None:
+    body = client.get(f"/p/{person_id}/activity").text
+    assert '<h1 class="intro__title">Activity</h1>' in body
+    assert body.count('class="log__item"') == 1
+    assert "New connection to Meridian Payroll established" in body
+    assert '<span class="log__time">2:14 PM</span>' in body
