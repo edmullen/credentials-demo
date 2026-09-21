@@ -347,6 +347,7 @@ for the answer.
 | Change | Where | Why |
 | --- | --- | --- |
 | `pyjwt[crypto]` added | `apps/wallet` runtime | Verification (§4) |
+| `cryptography<49` pinned | `apps/wallet` runtime, `tools/generate_credentials.py` | Versions 49 and later publish no Intel-Mac wheel (§12, item 4) |
 | `httpx` moved dev → runtime | all three apps | Peer wake (§8) |
 | `PAYROLL_URL`, `BENEFITS_URL`, `WALLET_URL` | `render.yaml`, two per service | Peer wake (§8) |
 | `keys/` | root `.gitignore` | Private keys never in git |
@@ -424,6 +425,34 @@ Nothing here is left open; each item records what was settled and why.
    that is never edited to match the apps.
 3. **`:has()`** is used once, to hide the badge dot when a glyph is present. Kept — every target
    browser has supported it since 2023. The handoff documents the fallback if that changes.
+4. **Deviation: `cryptography` is capped below 49.** `pyjwt[crypto]` pulls it in, and 49 and
+   later publish no wheel for Intel Macs, so `uv sync` in `apps/wallet` and
+   `uv run tools/generate_credentials.py` on Ed's machine fall back to a source build that needs
+   OpenSSL and `pkg-config`. Both carry `cryptography<49` (48.0.1 resolves), with a comment saying
+   why. Linux — CI and Render — is unaffected. Revisit when the machine changes or a newer
+   release ships an Intel wheel.
+5. **Deviation: the empty state shows Identity only.** §6 says the Identity category renders the
+   `.empty` slot for a person with no credential but is silent on the Income row.
+   `credentials-empty.html` has none, so `/p/p24/credentials` and `/p/p25/credentials` follow the
+   mockup: no Income category. The waiting row appears only once a person holds a credential.
+6. **Deviation: "the" before a state, not before Meridian Payroll.** §4's messages use `{issuer}`,
+   but the mockups read "since the State of New Jersey issued it" while the issuer's name is
+   "State of New Jersey". A small helper in `app/display.py` adds "the" to names beginning "State
+   of", so the sentences match the mockups and Loop 5's "Meridian Payroll" reads correctly.
+   Ed considered capitalizing it ("The") on 2026-09-21 and left it as is: every use is
+   mid-sentence.
+7. **Settled: how the switcher keeps the reader on the same kind of screen.** AC 9 asks for it and
+   §5 doesn't say how, since `/p/{id}/switch` carries no origin. The footer's **Switch person**
+   link is `/p/{id}/switch?from={screen}`, each row links to that screen for its person, and the
+   switcher's own footer link reads "Back to {screen}". Only the three screen names are accepted;
+   anything else falls back to Credentials, so the query string can't steer a link elsewhere. A
+   query parameter rather than the `Referer` header, so it survives a copied URL.
+8. **Settled: switcher badges landed with #12, not #10.** §11 puts the switcher in #10, but §2
+   derives each badge from verification, which #12 builds. #10 shipped the rows, links and
+   current-row marker; #12 added the badges.
+9. **The Wallet took the Loop 2 handoff's `cred.css` in #11.** `.footer__note` and
+   `.footer__aside` exist only there, and §7 assumes the Wallet's copy has them. It is a straight
+   copy of `design/loop-2/cred.css`; Payroll and Benefits keep theirs.
 
 ## 13. Acceptance criteria
 
