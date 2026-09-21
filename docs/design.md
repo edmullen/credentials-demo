@@ -122,8 +122,10 @@ so the Render service has it with no copy step, build step or symlink.
 - **Deploy scope.** Editing one app's CSS changes files under that app's directory only, so only
   that Render service rebuilds (see §6).
 - **Design handoff.** `docs/design/loop-0/` stays as the historical record of what was handed
-  off. From Loop 1 on, `/design-sync` imports the stylesheet of whichever app is being designed,
-  for example `apps/wallet/app/static/cred.css`.
+  off. From Loop 1 on, the stylesheet of whichever app is being designed — for example
+  `apps/wallet/app/static/cred.css` — is handed to Claude Design as a file, and what comes back
+  is committed under `docs/design/loop-N/`. Not `/design-sync`: it converts a built JavaScript
+  component library, which this repo does not have ([decisions.md](decisions.md)).
 - **Trade-off.** A change meant for all three apps, such as an accessibility fix to `.btn`, has to
   be made in three files. That is accepted: the apps are meant to look different, and
   independence avoids a sync mechanism.
