@@ -7,7 +7,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.peers import wake_peers
+from app.credentials import credentials_for, find_credential, identity_status
 from app.people import all_people, get_person
+from app.verify import Outcome
 
 BASE_DIR = Path(__file__).parent
 
@@ -62,7 +64,23 @@ async def index() -> RedirectResponse:
 
 @app.get("/p/{person_id}/credentials", response_class=HTMLResponse)
 async def credentials(request: Request, person: dict = Depends(viewed_person)) -> HTMLResponse:
-    return render(request, "credentials.html", person, "credentials")
+    identity = [c for c in credentials_for(person["id"]) if c.category == "Identity"]
+    return render(request, "credentials.html", person, "credentials", identity=identity)
+
+
+@app.get("/p/{person_id}/credentials/{credential_id}", response_class=HTMLResponse)
+async def credential(
+    request: Request, credential_id: str, person: dict = Depends(viewed_person)
+) -> HTMLResponse:
+    # Someone else's credential id is a 404, not a redirect: the URL shape shouldn't imply that
+    # one person's wallet can address another's.
+    found = find_credential(person["id"], credential_id)
+    if found is None:
+        raise HTTPException(status_code=404)
+    return render(
+        request, "credential.html", person, "credentials",
+        c=found, tampered=found.outcome is Outcome.TAMPERED,
+    )
 
 
 @app.get("/p/{person_id}/connections", response_class=HTMLResponse)
@@ -84,9 +102,9 @@ async def switch(
     # Rows keep the reader on the kind of screen they came from. Only a known screen name is
     # accepted, so the query string can't steer a link anywhere else.
     screen = from_screen if from_screen in dict(NAV) else "credentials"
-    return render(
-        request, "switch.html", person, "", people=all_people(), screen=screen
-    )
+    # Each badge is the result of verifying that person's credential, not a stored field.
+    rows = [{**p, "status": identity_status(p["id"])} for p in all_people()]
+    return render(request, "switch.html", person, "", people=rows, screen=screen)
 
 
 @app.get("/health")
