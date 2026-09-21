@@ -58,3 +58,28 @@ def test_active_item_is_marked_in_both_navs(screen: str) -> None:
 def test_footer_links_to_the_switcher_from_the_current_screen() -> None:
     body = client.get("/p/p08/activity").text
     assert 'href="/p/p08/switch?from=activity">Switch person</a>' in body
+
+
+def test_switcher_lists_25_people_with_the_viewed_one_current() -> None:
+    body = client.get("/p/p08/switch").text
+    rows = re.findall(r'<a class="people__row" href="/p/(p\d\d)/credentials"( aria-current="page")?>', body)
+    assert [r[0] for r in rows] == [f"p{n:02d}" for n in range(1, 26)]
+    assert [r[0] for r in rows if r[1]] == ["p08"]
+    assert "Paterson, NJ" in body
+    assert 'aria-label="Nadia Haddad">NH</span>' in body
+
+
+def test_switcher_rows_keep_the_reader_on_the_same_screen() -> None:
+    body = client.get("/p/p08/switch?from=activity").text
+    assert 'href="/p/p22/activity"' in body
+    assert "Back to activity" in body
+
+
+def test_switcher_ignores_an_unknown_from_value() -> None:
+    body = client.get("/p/p08/switch?from=https://evil.example").text
+    assert 'href="/p/p22/credentials"' in body
+    assert "evil.example" not in body
+
+
+def test_switcher_for_an_unknown_person_is_404() -> None:
+    assert client.get("/p/p99/switch").status_code == 404

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% set page_title = "Switch person" %}
+{% block main %}
+    <div class="wrap stack">
+      <div class="stack-s">
+        <p class="intro__eyebrow">Demo control</p>
+        <h1 class="intro__title">Switch person</h1>
+      </div>
+      <ul class="people">
+        {% for p in people %}
+        <li>
+          <a class="people__row" href="/p/{{ p.id }}/{{ screen }}"{% if p.id == person.id %} aria-current="page"{% endif %}>
+            <span class="initials initials--sm" role="img" aria-label="{{ p.name }}">{{ p.initials }}</span>
+            <span class="people__meta">
+              <span class="people__name">{{ p.name }}</span>
+              <span class="people__place">{{ p.place }}</span>
+            </span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+{% endblock %}
+{% block footer_aside %}<span class="footer__aside"><a href="/p/{{ person.id }}/{{ screen }}">Back to {{ screen }}</a></span>{% endblock %}

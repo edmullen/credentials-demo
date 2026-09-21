@@ -1,13 +1,13 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.peers import wake_peers
-from app.people import get_person
+from app.people import all_people, get_person
 
 BASE_DIR = Path(__file__).parent
 
@@ -73,6 +73,20 @@ async def connections(request: Request, person: dict = Depends(viewed_person)) -
 @app.get("/p/{person_id}/activity", response_class=HTMLResponse)
 async def activity(request: Request, person: dict = Depends(viewed_person)) -> HTMLResponse:
     return render(request, "activity.html", person, "activity")
+
+
+@app.get("/p/{person_id}/switch", response_class=HTMLResponse)
+async def switch(
+    request: Request,
+    person: dict = Depends(viewed_person),
+    from_screen: str = Query("credentials", alias="from"),
+) -> HTMLResponse:
+    # Rows keep the reader on the kind of screen they came from. Only a known screen name is
+    # accepted, so the query string can't steer a link anywhere else.
+    screen = from_screen if from_screen in dict(NAV) else "credentials"
+    return render(
+        request, "switch.html", person, "", people=all_people(), screen=screen
+    )
 
 
 @app.get("/health")
