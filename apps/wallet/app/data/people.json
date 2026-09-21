@@ -1,0 +1,202 @@
+[
+  {
+    "id": "p01",
+    "givenName": "Grace",
+    "familyName": "Okafor",
+    "initials": "GO",
+    "locality": "Flemington",
+    "region": "NJ"
+  },
+  {
+    "id": "p02",
+    "givenName": "Rosa",
+    "familyName": "Medina",
+    "initials": "RM",
+    "locality": "Vineland",
+    "region": "NJ"
+  },
+  {
+    "id": "p03",
+    "givenName": "Tomasz",
+    "familyName": "Nowak",
+    "initials": "TN",
+    "locality": "Elizabeth",
+    "region": "NJ"
+  },
+  {
+    "id": "p04",
+    "givenName": "Aisha",
+    "familyName": "Rahman",
+    "initials": "AR",
+    "locality": "New Brunswick",
+    "region": "NJ"
+  },
+  {
+    "id": "p05",
+    "givenName": "Frank",
+    "familyName": "Russo",
+    "initials": "FR",
+    "locality": "Toms River",
+    "region": "NJ"
+  },
+  {
+    "id": "p06",
+    "givenName": "Tanya",
+    "familyName": "Brooks",
+    "initials": "TB",
+    "locality": "Camden",
+    "region": "NJ"
+  },
+  {
+    "id": "p07",
+    "givenName": "Luis",
+    "familyName": "Ferreira",
+    "initials": "LF",
+    "locality": "Newark",
+    "region": "NJ"
+  },
+  {
+    "id": "p08",
+    "givenName": "Nadia",
+    "familyName": "Haddad",
+    "initials": "NH",
+    "locality": "Paterson",
+    "region": "NJ"
+  },
+  {
+    "id": "p09",
+    "givenName": "Daniel",
+    "familyName": "Walsh",
+    "initials": "DW",
+    "locality": "Morristown",
+    "region": "NJ"
+  },
+  {
+    "id": "p10",
+    "givenName": "Priya",
+    "familyName": "Shah",
+    "initials": "PS",
+    "locality": "Jersey City",
+    "region": "NJ"
+  },
+  {
+    "id": "p11",
+    "givenName": "Kevin",
+    "familyName": "Tran",
+    "initials": "KT",
+    "locality": "Edison",
+    "region": "NJ"
+  },
+  {
+    "id": "p12",
+    "givenName": "Helen",
+    "familyName": "Cho",
+    "initials": "HC",
+    "locality": "Somerville",
+    "region": "NJ"
+  },
+  {
+    "id": "p13",
+    "givenName": "Marcus",
+    "familyName": "Reed",
+    "initials": "MR",
+    "locality": "Glassboro",
+    "region": "NJ"
+  },
+  {
+    "id": "p14",
+    "givenName": "Andre",
+    "familyName": "Pierre",
+    "initials": "AP",
+    "locality": "Trenton",
+    "region": "NJ"
+  },
+  {
+    "id": "p15",
+    "givenName": "Jenna",
+    "familyName": "Kowalski",
+    "initials": "JK",
+    "locality": "Asbury Park",
+    "region": "NJ"
+  },
+  {
+    "id": "p16",
+    "givenName": "Isaiah",
+    "familyName": "Coleman",
+    "initials": "IC",
+    "locality": "Willingboro",
+    "region": "NJ"
+  },
+  {
+    "id": "p17",
+    "givenName": "Jun",
+    "familyName": "Park",
+    "initials": "JP",
+    "locality": "Fort Lee",
+    "region": "NJ"
+  },
+  {
+    "id": "p18",
+    "givenName": "Ana",
+    "familyName": "Reyes",
+    "initials": "AR",
+    "locality": "Atlantic City",
+    "region": "NJ"
+  },
+  {
+    "id": "p19",
+    "givenName": "Emily",
+    "familyName": "Carter",
+    "initials": "EC",
+    "locality": "Livonia",
+    "region": "MI"
+  },
+  {
+    "id": "p20",
+    "givenName": "Nikos",
+    "familyName": "Pappas",
+    "initials": "NP",
+    "locality": "Astoria",
+    "region": "NY"
+  },
+  {
+    "id": "p21",
+    "givenName": "Jamal",
+    "familyName": "Wright",
+    "initials": "JW",
+    "locality": "Cleveland",
+    "region": "OH"
+  },
+  {
+    "id": "p22",
+    "givenName": "Victor",
+    "familyName": "Moreno",
+    "initials": "VM",
+    "locality": "Staten Island",
+    "region": "NY"
+  },
+  {
+    "id": "p23",
+    "givenName": "Carmen",
+    "familyName": "Diaz",
+    "initials": "CD",
+    "locality": "Union City",
+    "region": "NJ"
+  },
+  {
+    "id": "p24",
+    "givenName": "Ray",
+    "familyName": "Miller",
+    "initials": "RM",
+    "locality": "Phillipsburg",
+    "region": "NJ"
+  },
+  {
+    "id": "p25",
+    "givenName": "Megan",
+    "familyName": "Doyle",
+    "initials": "MD",
+    "locality": "Wildwood",
+    "region": "NJ"
+  }
+]
