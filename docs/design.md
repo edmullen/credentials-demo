@@ -402,7 +402,9 @@ that finishes its issue.
 
 #14 and #15 are small and independent; they come last so the nav they join is already real.
 
-## 12. Open decisions
+## 12. Decisions and deviations
+
+Nothing here is left open; each item records what was settled and why.
 
 1. **Decided: the footer keeps the mockup's copy.** The question was whether "**This is a
    demo.** For more info, view this repo." is enough, given that #11 asks the footer to say the
@@ -410,12 +412,16 @@ that finishes its issue.
    states make that load-bearing (`decisions.md`). Ed decided on 2026-09-21 that it is: the
    footer stays verbatim, and the weight moves to the README, which #11 also asks for and which
    is the only place that spells out what is fictional (§7).
-2. **The tampered photo's opacity.** `design/loop-2/README.md` documents the tampered photo at
-   72% opacity as a supplementary signal, but the handoff's `credential-detail-tampered.html` and
-   `cred.css` contain no such rule — the `<img>` carries the same classes as the verified page.
-   Recommendation: add `.cred__photo--tampered { opacity: .72 }` to the Wallet's own `cred.css`
-   and the modifier to that one template, since the README states the intent. Dropping it is also
-   safe; the README itself says opacity is never the signal.
+2. **Decided: the tampered photo is not dimmed.** `design/loop-2/README.md` describes the
+   tampered photo at 72% opacity as a supplementary signal, but the handoff's
+   `credential-detail-tampered.html` and `cred.css` contain no such rule — the `<img>` carries
+   the same classes as the verified page. Ed decided on 2026-09-21 to drop it: photo quality
+   varies enough between people that a dimmed photo is not a reliable indicator of anything, and
+   a signal a reader can't calibrate is worse than none. The badge, its message and the
+   `.panel__note` row carry the meaning, which is what the handoff's own rule — opacity is never
+   the signal — already required. Nothing needs building: the delivered files behave this way.
+   The divergence is from the handoff README's prose only, and the handoff is a historical record
+   that is never edited to match the apps.
 3. **`:has()`** is used once, to hide the badge dot when a glyph is present. Kept — every target
    browser has supported it since 2023. The handoff documents the fallback if that changes.
 
