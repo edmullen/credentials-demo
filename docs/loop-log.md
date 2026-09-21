@@ -103,3 +103,73 @@ bodies say *what to build* and link to the section that says *how*, rather than 
 When a decision changes, search for its old wording across docs and issues before committing —
 the sweep that caught twelve items at the end should happen with each change, not once per
 loop.
+
+## Loop 2 — Wallet Stands Up
+
+**Built.** The Wallet went from a placeholder to a per-person app over committed, signed data, in
+six per-item PRs to `main` — [#37](https://github.com/edmullen/credentials-demo/pull/37) (footer
+and README, #11), [#38](https://github.com/edmullen/credentials-demo/pull/38) (apps wake each
+other, #26), [#39](https://github.com/edmullen/credentials-demo/pull/39) (the 25 people, #10),
+[#40](https://github.com/edmullen/credentials-demo/pull/40) (signed identity credentials, #12),
+[#41](https://github.com/edmullen/credentials-demo/pull/41) (Connections, #14) and
+[#42](https://github.com/edmullen/credentials-demo/pull/42) (Activity, #15) — plus
+[#43](https://github.com/edmullen/credentials-demo/pull/43), which records the build's deviations
+in the design. `tools/generate_credentials.py` creates four state key pairs, signs 23 identity
+credentials and tampers two; `app/verify.py` runs the four ordered checks and yields five
+outcomes. Verified and Tampered come from committed data; the other three are proven with
+throwaway keys. The Wallet suite grew from 3 tests to 72, Payroll and Benefits to 9 each. All
+six issues closed on merge. Checked live: the three services answer `/health`, the Wallet shows
+21 Verified, 2 Tampered and 2 No credential, and every page is styled over HTTPS with no
+`http://` reference or script.
+
+**What went wrong.** Nothing broke in production, but two kinds of thing were found late.
+
+- *The design left four things open that only the build exposed*, and they are now
+  [design §12](design.md#12-decisions-and-deviations) items 5–8. AC 9 asked the switcher to keep
+  the reader on the same kind of screen without saying how. The switcher's badges depended on
+  verification, which the design built a PR after the switcher. The empty-state mockup has no
+  Income row, and the design's message table used `{issuer}` where the mockups say "the State of
+  New Jersey". Two of the four (the badge ordering and the mechanism) were spotted while writing
+  the build plan; the other two surfaced while building.
+- *A dependency the machine couldn't install.* `pyjwt[crypto]` pulls in `cryptography`, whose 49
+  and later releases publish no Intel-Mac wheel, and a source build needs OpenSSL and
+  `pkg-config`. It surfaced at the first run of the generator, not at design time, and is fixed
+  by a `cryptography<49` cap in the Wallet and the generator. CLAUDE.md already says this is an
+  Intel Mac; nothing checked the dependency against it.
+- *Two build slips, both caught the same run.* A BSD `sed -i` failed inside a `&&` chain, so a
+  batch of tests silently wasn't added; the unchanged test count ("3 passed", not 4) gave it
+  away. A Jinja edit assumed both nav loops were indented alike. And one live check of mine
+  appeared to fail on Payroll and Benefits because my command only substituted the path for the
+  Wallet.
+
+**Slow or expensive.** The Claude Design pass at the start of the Design stage. Ed asked for
+several options for the stacked credentials and made a number of other changes, and that used
+97% of his session usage. Exploring options is the costly part of a design pass, so it is the
+thing to budget for: Ed's aim for next time is to watch his usage status while working in Claude
+Design, and to decide before asking for options how many he can afford. Elsewhere, CI took seconds
+on every run. Each PR waited on a manual "CI has passed, merge it" from Ed, seven times over;
+that was deliberate, but it is a step Claude could have taken by reading the checks itself.
+
+**Not verified at the time of writing.** AC 13's cold start (all three services were already
+awake when checked; Ed is checking it himself), AC 18's deploy scope (Render's deploy history
+wasn't visible from the session), and part of AC 17 (the empty-state and verified-detail
+screenshots weren't compared, and mobile width was checked only on the credentials home).
+
+**Process note.** Per-item PRs to `main` — the answer to Loop 1's branching question — worked as
+hoped. CI ran on every PR, closing keywords fired only in the PR that finished each issue, and
+Render deployed item by item. Committing per step and stopping before each push kept every PR
+reviewable. The plan-first step earned its keep: it flagged the badge ordering and the
+mechanism gap before any code, and proceeding on stated defaults when a question went
+unanswered cost nothing.
+
+**Last loop's improvement.** *Give each kind of fact one home, and link to it from everywhere
+else.* It mostly held: the design linked to `credential-model.md` by section rather than
+restating it, the README carries the full statement the footer points at, and the build's
+deviations went into one place, design §12. The exception was two homes disagreeing — the design
+text and the mockups over the "the State of…" copy.
+
+**One improvement for Loop 3.** Make the plan step a reconciliation pass, not just a breakdown.
+Before building, compare each mockup against the design text, each acceptance criterion against
+the mechanism that would satisfy it, and each new dependency against Ed's machine (does it
+install here, without a compiler?). Five of this loop's six design deviations (§12 items 4–8) were
+gaps of that kind, and the plan already caught two of them.
