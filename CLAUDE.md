@@ -12,7 +12,8 @@ Three documents drive the work and are worth reading before changing anything:
 
 - [docs/decisions.md](docs/decisions.md): binding. If a change conflicts with it, raise it; don't silently diverge.
 - `docs/intents/NNN-*.md`: problem and constraints for each loop.
-- [docs/design.md](docs/design.md): the current loop's technical design.
+- [docs/design.md](docs/design.md): the current loop's technical design. When the next loop's
+  design replaces it, the outgoing one is archived to `docs/design/loop-N/design.md`.
 - [docs/loop-log.md](docs/loop-log.md): a retro after each loop — what shipped, what went
   wrong, what to change. Worth checking before starting a new loop.
 
@@ -26,10 +27,11 @@ before touching credentials, eligibility or sample data:
 - [docs/sample-data.md](docs/sample-data.md): the 25 sample people, and the expected eligibility
   outcome for each — the test oracle for the Benefits app. Generated; don't edit by hand.
 
-`docs/design/loop-N/` is the Claude Design handoff for that loop: a shared `cred.css` plus one
-static HTML page per app, with a README documenting tokens, components and accessibility. It is
-a **historical record** — the design files are never imported at runtime and are not edited to
-match the apps.
+`docs/design/loop-N/` holds both halves of a loop's design record. The **Claude Design
+handoff** — a shared `cred.css` plus one static HTML page per app, with a README documenting
+tokens, components and accessibility — and, once a later loop supersedes it, that loop's
+**`design.md`**, the technical design Claude Code worked to. Both are a **historical record**:
+the design files are never imported at runtime and are not edited to match the apps.
 
 ## Branch 
 
@@ -61,7 +63,7 @@ Theming is one attribute: `<html data-app="…">`, with all component CSS readin
   without edits.
 - **`apps/benefits`'s `cred.css` uses `data-app="benefits"`, not the handoff's `"benefit"`.**
   Deliberate rename to match the directory name, confined to that app's own copy. See
-  `docs/design.md` §2 — don't "fix" it back to match the handoff.
+  `docs/design/loop-0/design.md` §2 — don't "fix" it back to match the handoff.
 
 ## Commands
 
