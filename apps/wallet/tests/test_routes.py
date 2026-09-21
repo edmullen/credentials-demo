@@ -83,3 +83,12 @@ def test_switcher_ignores_an_unknown_from_value() -> None:
 
 def test_switcher_for_an_unknown_person_is_404() -> None:
     assert client.get("/p/p99/switch").status_code == 404
+
+
+@pytest.mark.parametrize("person_id", ["p08", "p24"])
+def test_connections_shows_the_heading_and_a_disabled_find_your_employer(person_id: str) -> None:
+    body = client.get(f"/p/{person_id}/connections").text
+    assert '<h1 class="intro__title">Connections</h1>' in body
+    assert "Connections are the services allowed to send credentials" in body
+    assert '<button class="btn" type="button" disabled>Find your employer</button>' in body
+    assert 'class="empty"' in body
