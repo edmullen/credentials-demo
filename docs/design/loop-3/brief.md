@@ -103,14 +103,32 @@ button is a door, not an authentication flow, and it should look like an ordinar
 rather than a demo control — the demo's honesty lives in the footer note, not in hedged button
 copy. Use a real `<a>` styled as a button, since it navigates.
 
-Two things follow that the README should settle:
+**There is no Sign out.** Nothing to sign out of, and the footer's switcher link already moves
+between people. Don't design one.
 
-- **What the header carries inside the portal.** The natural counterpart is the selected person's
-  `.initials` where Sign In sits on the public page, so the header is one component in two states.
-  Propose it if you agree; say what else you'd do if not.
-- **Whether there is a way back out** — a "Sign out" returning to `/`. Nothing requires one, and
-  the footer's switcher link already moves between people, but a portal with no exit is
-  conspicuous. Your call, stated either way.
+### 5.1a The header, inside the portal
+
+One header component, two states. Public (`/`) it carries the marketing nav and the Sign In
+button; inside the portal it carries:
+
+- **The selected person's `.initials`**, where Sign In sits on the public page, in the existing
+  styling — `role="img"` with the person's full name as `aria-label`, as Loops 0 and 2 have it.
+  Not their photo: that is a claim inside an identity credential, and two people have none (§6).
+- **Three nav links — Paystubs · Connections · Activity** — replacing the marketing four.
+  **Paystubs is the account landing page** (§5.2), and is the only one that goes anywhere this
+  loop. `aria-current="page"` marks it, as in Loop 2.
+
+This deliberately mirrors the Wallet's **Credentials · Connections · Activity**. The two apps are
+different products with the same three-part shape, and Loop 4 gives Payroll a real Connections
+screen when the Wallet connects to it.
+
+**Connections and Activity are inactive, and how they're rendered needs deciding here.** An `<a>`
+cannot be disabled: `aria-disabled="true"` on a link is advisory, leaving it focusable and
+clickable, and a screen reader announces a link that does nothing. Loop 2's rule — disabled
+actions are real `<button disabled>`, never disabled links — doesn't reach nav items. Propose the
+treatment, including whether the item is a non-focusable element rather than a link at all, and
+how it reads as *coming later* rather than *broken*. Whatever you choose applies equally in the
+mobile `<details>` nav panel, which repeats the same items.
 
 ### 5.2 Employee account landing — the portal's home
 The person's own pay, at `/p/<id>/`. **A section per employer**, headed with the employer name,
