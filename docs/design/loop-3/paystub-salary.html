@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-app="payroll">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pay statement, 16–30 September 2026 — Meridian Payroll</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="paystubs.html">
+        <span class="header__mark" aria-hidden="true"></span>
+        Meridian Payroll
+      </a>
+      <nav class="header__nav" aria-label="Main">
+        <a href="paystubs.html">Paystubs</a>
+        <a href="#">Connections</a>
+        <a href="#">Activity</a>
+      </nav>
+      <span class="initials" role="img" aria-label="Daniel Walsh">DW</span>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <div class="nav-menu__panel">
+          <a href="paystubs.html">Paystubs</a>
+          <a href="#">Connections</a>
+          <a href="#">Activity</a>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <div class="wrap stack">
+      <a class="back" href="paystubs.html">All paystubs</a>
+      <div class="stack-s">
+        <p class="intro__eyebrow">Pay statement</p>
+        <h1 class="intro__title">16&ndash;30 September 2026</h1>
+      </div>
+      <article class="panel">
+        <div class="panel__section stub__head">
+          <div class="stub__party">
+            <p class="card__meta">Employer</p>
+            <p class="stub__party-name">Liberty Crest Insurance</p>
+            <p class="stub__party-sub">Morristown, NJ</p>
+          </div>
+          <div class="stub__party">
+            <p class="card__meta">Employee</p>
+            <p class="stub__party-name">Daniel Walsh</p>
+            <p class="stub__party-sub">Senior underwriter</p>
+          </div>
+        </div>
+        <div class="panel__section">
+          <dl class="stub__meta">
+            <div>
+              <dt class="card__meta">Pay period</dt>
+              <dd>16&ndash;30 Sep 2026</dd>
+            </div>
+            <div>
+              <dt class="card__meta">Pay date</dt>
+              <dd>30 Sep 2026</dd>
+            </div>
+            <div>
+              <dt class="card__meta">Frequency</dt>
+              <dd>Semimonthly</dd>
+            </div>
+          </dl>
+        </div>
+        <div class="panel__section">
+          <div class="figures__pair">
+            <table class="figures">
+              <caption>Earnings</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Description</th>
+                  <th scope="col">Rate</th>
+                  <th scope="col">Installment</th>
+                  <th scope="col" class="figures__amount">This period</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Salary</th>
+                  <td>$92,000.00</td>
+                  <td>1 of 24</td>
+                  <td class="figures__amount">$3,833.33</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th scope="row">Gross pay</th>
+                  <td></td>
+                  <td></td>
+                  <td class="figures__amount">$3,833.33</td>
+                </tr>
+              </tfoot>
+            </table>
+            <table class="figures">
+              <caption>Deductions</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Description</th>
+                  <th scope="col" class="figures__amount">This period</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Federal income tax</th>
+                  <td class="figures__amount">$487.04</td>
+                </tr>
+                <tr>
+                  <th scope="row">Social Security</th>
+                  <td class="figures__amount">$237.67</td>
+                </tr>
+                <tr>
+                  <th scope="row">Medicare</th>
+                  <td class="figures__amount">$55.58</td>
+                </tr>
+                <tr>
+                  <th scope="row">State income tax</th>
+                  <td class="figures__amount">$152.94</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th scope="row">Total deductions</th>
+                  <td class="figures__amount">$933.23</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+        <div class="panel__section stub__net">
+          <div class="stack-s">
+            <span class="stub__net-label">Net pay</span>
+            <p class="stub__net-sub">Gross pay less total deductions.</p>
+          </div>
+          <span class="stub__net-amount">$2,900.10</span>
+        </div>
+        <p class="panel__note">Withholding on this statement is estimated for the demo, using 2025 single-filer federal and New Jersey rates. It is not a real tax calculation.</p>
+      </article>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="wrap">
+      <p class="footer__note"><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></p>
+      <span class="footer__aside"><a href="person-switcher.html">Switch person</a></span>
+    </div>
+  </footer>
+</body>
+</html>
