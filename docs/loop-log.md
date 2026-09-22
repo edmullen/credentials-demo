@@ -150,10 +150,19 @@ Design, and to decide before asking for options how many he can afford. Elsewher
 on every run. Each PR waited on a manual "CI has passed, merge it" from Ed, seven times over;
 that was deliberate, but it is a step Claude could have taken by reading the checks itself.
 
-**Not verified at the time of writing.** AC 13's cold start (all three services were already
-awake when checked; Ed is checking it himself), AC 18's deploy scope (Render's deploy history
-wasn't visible from the session), and part of AC 17 (the empty-state and verified-detail
-screenshots weren't compared, and mobile width was checked only on the credentials home).
+**Not verified at the time of writing.** AC 18's deploy scope is now confirmed: Ed checked
+Render's history and Payroll and Benefits redeployed only for #37 and #38, as designed. AC 13's
+cold start is not: three attempts on Render never woke a sleeping peer, and diagnosing why (a
+Render-documented `429 hibernate-rate-limited` gate, not a bug in this app) became its own short
+arc — [#45](https://github.com/edmullen/credentials-demo/pull/45) (a longer timeout, since
+superseded), [#46](https://github.com/edmullen/credentials-demo/pull/46) (diagnostic logging that
+found the real cause) and [#47](https://github.com/edmullen/credentials-demo/pull/47) (retry on
+429, Wallet only, confirmed locally but not yet on Render). Finishing it —
+[#48](https://github.com/edmullen/credentials-demo/issues/48) — is deferred to Loop 3 rather than
+block this loop's close: it makes cold starts faster, but every app already works once visited
+directly, so nothing else depended on it. Part of AC 17 also stayed unchecked (the empty-state
+and verified-detail screenshots weren't compared, and mobile width was checked only on the
+credentials home).
 
 **Process note.** Per-item PRs to `main` — the answer to Loop 1's branching question — worked as
 hoped. CI ran on every PR, closing keywords fired only in the PR that finished each issue, and
