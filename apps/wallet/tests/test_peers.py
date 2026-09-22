@@ -108,3 +108,61 @@ def test_wake_peers_logs_which_urls_are_configured(monkeypatch, capsys) -> None:
     _run(go())
     out = capsys.readouterr().out
     assert "[peer-wake] ('PAYROLL_URL', 'BENEFITS_URL') -> ['https://payroll.example', 'https://benefits.example']" in out
+
+
+def test_ping_retries_on_429_and_succeeds(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(peers, "RETRY_INTERVAL_SECONDS", 0)
+    calls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        if len(calls) == 1:
+            return httpx.Response(429, headers={"x-render-routing": "hibernate-rate-limited"})
+        return httpx.Response(200)
+
+    transport = httpx.MockTransport(handler)
+    real = httpx.AsyncClient
+    monkeypatch.setattr(peers.httpx, "AsyncClient", lambda **kw: real(transport=transport, **kw))
+    _run(peers._ping("https://peer.example"))
+
+    assert len(calls) == 2
+    out = capsys.readouterr().out
+    assert "-> 429 (hibernate-rate-limited), retrying in 0s" in out
+    assert "(attempt 1)" in out and "(attempt 2)" in out
+    assert "[peer-wake] https://peer.example/health -> 200" in out
+
+
+def test_ping_gives_up_after_max_wait_and_reports_the_last_429(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(peers, "RETRY_INTERVAL_SECONDS", 0)
+    monkeypatch.setattr(peers, "MAX_WAIT_SECONDS", 0)
+    calls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        return httpx.Response(429)
+
+    transport = httpx.MockTransport(handler)
+    real = httpx.AsyncClient
+    monkeypatch.setattr(peers.httpx, "AsyncClient", lambda **kw: real(transport=transport, **kw))
+    _run(peers._ping("https://peer.example"))
+
+    assert len(calls) == 1  # MAX_WAIT_SECONDS = 0: no retry budget left after the first 429
+    out = capsys.readouterr().out
+    assert "[peer-wake] https://peer.example/health -> 429" in out
+    assert "retrying" not in out
+
+
+def test_ping_does_not_retry_a_non_429_status(monkeypatch, capsys) -> None:
+    calls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        return httpx.Response(503)
+
+    transport = httpx.MockTransport(handler)
+    real = httpx.AsyncClient
+    monkeypatch.setattr(peers.httpx, "AsyncClient", lambda **kw: real(transport=transport, **kw))
+    _run(peers._ping("https://peer.example"))
+
+    assert len(calls) == 1
+    assert "[peer-wake] https://peer.example/health -> 503" in capsys.readouterr().out
