@@ -236,15 +236,24 @@ one proposal per screen, no options explored. The peer-wake diagnosis was the lo
 and it wasn't a single check: the intent's own warning that Render returns the 429 "only some of
 the time" held, and it took Ed re-running the idle-to-wake retest and pasting two separate logs
 before the pattern (a ping that never succeeds, distinct from a browser visit that reliably does)
-was visible. Neither log alone would have shown it.
+was visible. Neither log alone would have shown it. Ed also hit Claude's usage limit again this
+session, from Claude Design and Claude Code combined — the second loop in a row this happened
+(Loop 2's retro names the same thing). Expected to keep recurring rather than be a one-off. His
+own mitigation: open a short message an hour or so before he actually starts working, so the
+5-hour usage window resets earlier in the day rather than mid-session.
 
-**Not verified at the time of writing.** Deploy scope (AC 19) hasn't been checked against Render's
-actual history yet — that #54 and #55 redeployed Payroll alone and #56 redeployed all three, as
-design.md §8 predicts. Also unconfirmed: whether removing `WALLET_URL`/`PAYROLL_URL`/
-`BENEFITS_URL` from `render.yaml` cleared those env vars on the live services once Render's
-Blueprint re-synced, or whether they're still sitting configured until a manual sync. The three
-apps were verified running locally and against the mockup screenshots in the browser tool, not
-yet against their live Render URLs.
+**Not verified at the time of writing.** Deploy scope (AC 19) is now confirmed: Ed checked
+Render's events log and found no deploy for Benefits or Wallet around when #54 and #55 merged, so
+those Payroll-only PRs redeployed Payroll alone, as design.md §8 predicts. The env var removal is
+**not** confirmed — the opposite, in fact: `WALLET_URL`, `PAYROLL_URL` and `BENEFITS_URL` are
+still listed on all three live services. That's Render's documented Blueprint behavior, not a bug
+in #56 — "the resource retains any existing environment variable values that aren't overwritten
+by the Blueprint"
+([Render: Infrastructure as Code](https://render.com/docs/infrastructure-as-code)). Removing an
+`envVars` entry from `render.yaml` stops it from being *set*; it doesn't get an
+existing value *unset* on a resync. Clearing it needs a manual delete in the Render dashboard, six
+clicks (two vars × three services) — outside git, so nothing in this repo can do it or verify it
+was done.
 
 **Process note.** Per-item PRs continued to work cleanly — three branches, three PRs, one per
 issue, closing keyword only in the PR that finished it. New this loop: the #48 investigation was a
