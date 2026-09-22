@@ -11,6 +11,25 @@
         </p>
       </div>
       <hr class="rule">
+      {% for group in groups %}
+      <section class="category" aria-labelledby="e-{{ group.employer_id }}">
+        <div class="category__head">
+          <h2 class="category__title" id="e-{{ group.employer_id }}">{{ group.employer_name }}</h2>
+        </div>
+        <p class="category__sub">{{ group.sub }}</p>
+        <ul class="paylist">
+          {% for row in group.rows %}
+          <li>
+            <a class="paylist__row" href="/p/{{ person.id }}/paystubs/{{ row.id }}">
+              <span class="paylist__date">{{ row.date }}</span>
+              <span class="paylist__period">{{ row.period }}</span>
+              <span class="paylist__go" aria-hidden="true"></span>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endfor %}
       <section class="card stack-s" aria-labelledby="wallet">
         <div class="row" style="justify-content:space-between">
           <span class="card__meta">Wallet</span>
