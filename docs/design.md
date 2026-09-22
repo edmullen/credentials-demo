@@ -1,533 +1,523 @@
-# Design: Loop 2 — Wallet Stands Up
+# Design: Loop 3 — Payroll Stands Up
 
-Technical design for [Intent 002](intents/002-wallet-stands-up.md), following
-[decisions.md](decisions.md), the credential model in
-[credential-model.md](credential-model.md), and the Claude Design handoff in
-[design/loop-2/](design/loop-2/README.md).
+Technical design for [Intent 003](intents/003-payroll-stands-up.md), following
+[decisions.md](decisions.md), the sample data in [sample-data.md](sample-data.md), and the Claude
+Design handoff in [design/loop-3/](design/loop-3/README.md).
 
-Covers the loop's six issues, one PR each: #10 (populate the Wallet), #12 (identity
-credentials, display and verification), #14 (Connections), #15 (Activity), #26 (apps wake each
-other) and #11 (footer and README).
+Covers the loop's three issues, one PR each: #17 (populate Payroll), #18 (display paystubs) and
+#48 (finish the peer-wake retry).
 
-**Link, don't restate.** Claim schemas, verification order, validity windows and failure copy
-are defined in `credential-model.md` and are referenced by section here, not repeated. Component
-names, tokens and accessibility rules are defined in `design/loop-2/README.md`, likewise.
+**Link, don't restate.** The people, employers and paystubs are defined in `sample-data.md`;
+component names, tokens, copy and accessibility rules are defined in
+`design/loop-3/README.md`; the 429 trace is in
+[design/loop-2/design.md §12 item 10](design/loop-2/design.md#12-decisions-and-deviations). Each
+is referenced by section here, not repeated.
+
+Loop 2's design document moves to `design/loop-2/design.md` as this one replaces it, per
+[decisions.md](decisions.md).
 
 ## 1. Overview
 
-The Wallet becomes a per-person, server-rendered app over committed, signed data. Nothing is
-stored at runtime and there is no session: the person being viewed is in the URL, so every page
-is a pure function of the path plus the committed seed data.
+Payroll becomes **Meridian Payroll**, an employee self-service portal, built the way the Wallet
+was: a per-person, server-rendered app over a committed slice of the Loop 1 sample data, with the
+person in the URL and no session. Every page is a pure function of the path plus committed data.
 
-Three things arrive together:
+Three things arrive:
 
-- **A one-shot generator** under `tools/` creates key pairs for the four states, signs an
-  identity credential for each of the 23 people who has one, tampers two of them, and writes the
-  Wallet's data directory. Output committed; private keys gitignored.
-- **The Wallet gains five screens** — credentials home, credential detail, Connections, Activity
-  and the person switcher — built from the handoff's mockups.
-- **All three apps** gain the demo footer and a startup ping to their peers.
+- **Payroll's own data slice** — 25 people, 15 employers, 64 paystubs — written by a one-shot
+  script and committed. Each employee record carries the person's `subjectId`, which #16 needs in
+  Loop 4.
+- **Four screens**: the marketing home with one change, the account landing page, the paystub
+  detail view, and the person switcher.
+- **#48 finishes**: the Wallet's temporary diagnostic logging comes out and the retry-on-429
+  lands in Payroll's and Benefits' copies of `app/peers.py`.
+
+**Nothing is signed, verified or connected this loop.** Payroll's keys, `/.well-known/jwks.json`
+and credential issuance are Loop 5; the Wallet connection and consent flow are Loop 4. Paystubs
+here are display only, and Payroll's `cred.css` gains no badge or status vocabulary
+([credential-model.md §2](credential-model.md#2-trust--issuers-keys-and-verification)).
 
 Loop 0's structure is unchanged: three independent uv projects, one matrix CI job, three Render
-services, no app reading outside its own directory, no JavaScript and no bundler. The parts of
-Loop 0's design that still govern this loop — monorepo layout, per-app `cred.css`, CI, and the
-Blueprint — are unchanged except where §9 says otherwise. Loop 0's own design document is in git
-archived beside its handoff at
-[design/loop-0/design.md](design/loop-0/design.md).
+services, no app reading outside its own directory, no JavaScript and no bundler.
 
-## 2. What the Wallet owns (#10, #12)
+## 2. Payroll's data slice (#17)
 
-Per the monorepo rule, the Wallet gets its own copy of the slice it needs. It is generated, not
-hand-edited:
+Per the monorepo rule, Payroll gets its own copy of the slice it needs, under
+`apps/payroll/app/data/`:
 
 ```
-apps/wallet/app/data/
-├── people.json        # the 25 people: the switcher's rows and each person's display identity
-├── credentials.json   # personId → list of signed JWT strings (23 people, one each)
-└── trust.json         # issuer id → name, trustedFor, public keys (JWK)
+apps/payroll/app/data/
+├── people.json      # the 25 people: display identity and subjectId
+├── employers.json   # the 15 employers, verbatim
+└── paystubs.json    # the 64 paystubs, verbatim
 ```
 
-- **`people.json`** carries only what a screen shows: `id`, `givenName`, `familyName`,
-  `initials`, and `locality` + `region` for the switcher's "Paterson, NJ". It does **not** carry
-  an identity status. The switcher's badge is derived by verifying, exactly as the credential
-  screens do (§4) — a `tampered` field the app trusted would be the thing #12 rules out.
-- **`credentials.json`** maps a person to their credentials as opaque JWT strings. A person with
-  no credential has an empty list; Ray Miller (p24) and Megan Doyle (p25) are the two.
-- **`trust.json`** is the trust list shape from
-  [credential-model §2](credential-model.md#2-trust--issuers-keys-and-verification): four state
-  issuers, each `trustedFor: ["IdentityCredential"]`, each with its P-256 public key as a JWK
-  with a `kid`. Payroll's and Benefits' entries arrive in Loops 5 and 6.
+**`people.json` is a projection.** Each record carries `id`, `subjectId`, `givenName`,
+`familyName`, `initials`, `locality` and `region` — what the header, the landing page's `.ident`
+block and the switcher's rows render, plus the identifier #17 requires. `initials` is computed
+the same way the Wallet's generator computes it (first letter of each name).
 
-### Photos come out of the credential, not out of a file
+It deliberately does **not** carry `birthDate`, `address.street`, `county`, `postal_code`,
+`photo`, `photoBrief`, `identity` or `jobs`:
 
-The Wallet stores **no photo files**. The `image` claim is a `data:` URI inside the signed
-payload ([credential-model §3](credential-model.md#3-claim-schemas)), so the template renders
-`src="{{ claims.image }}"` directly and the alt text is the person's name, which the Wallet
-supplies.
+- The first five are personal detail a payroll portal has no screen for, and decisions.md says
+  each app keeps only the slice it needs.
+- `identity` has no expression in Payroll — there is no verification here and the switcher has no
+  badge column (§11, item 7).
+- `jobs` is left out so employment has **one** home in this app's data: the paystubs. Every job
+  in the sample set has two stubs, so nothing is lost, and the landing page and the switcher
+  can't disagree with each other (§11, item 6).
 
-This is the one place where being faithful to the credential model is also the simplest build,
-and it is what makes Carmen Diaz's tampered credential demonstrate anything: the face on screen
-is the substituted one, and the signature fails because the signed value was something else. A
-photo served from `/static/` would be a picture the signature never covered.
+**`employers.json` and `paystubs.json` are byte-for-byte copies** of
+`tools/sample_data/generated/`. A verbatim copy is the cheapest thing to trust: checking it is
+one `diff`. `paystubs.json` already carries everything a stub renders — `employerName`, `title`,
+`payType`, the rate/hours or annual salary, the period, `grossPay`, the four `deductions` and
+`netPay` — and `employers.json` supplies the city the employer's name is shown with.
 
-The mockups reference `photos/p08.jpg` because they are standalone files that have to render in
-a browser with no server. Every other page-level link in the mockups is relative for the same
-reason (§5).
+## 3. The data generator (#17)
 
-## 3. The credential generator (#12)
-
-`tools/generate_credentials.py`, a self-contained uv script run by hand from the repo root, like
-`tools/generate_sample_data.py`:
+`tools/generate_payroll_data.py`, a self-contained uv script run by hand from the repo root, like
+`tools/generate_sample_data.py` and `tools/generate_credentials.py`:
 
 ```bash
-uv run tools/generate_credentials.py
+uv run tools/generate_payroll_data.py
 ```
 
-It reads `tools/sample_data/generated/people.json` and `tools/sample_data/photos/`, and writes
-`keys/` plus the Wallet's three data files. Nothing runs it at build or deploy time, which is what
-keeps it on the right side of the "one-shot generators yes, sync scripts no" rule
-([decisions.md](decisions.md)).
+It reads `tools/sample_data/generated/{people,employers,paystubs}.json` and writes the three
+files in §2 — two copied, one projected. It is stdlib only (`json`, `pathlib`): no PEP 723
+dependency block, nothing to install, nothing to compile.
 
-### What it does
+It **regenerates nothing upstream**: it never reads the hand-written YAML and never writes
+`tools/sample_data/generated/` or `docs/sample-data.md`, so `uv run tools/generate_sample_data.py`
+and its curated-placement self-checks are untouched. Nothing runs it at build or deploy time,
+which keeps it on the right side of the "one-shot generators yes, sync scripts no" rule
+([decisions.md](decisions.md)). Adding it is a divergence from Intent 003, recorded in §11 item 1.
 
-1. **Key pairs.** One ES256 (P-256) pair per state — New Jersey, Michigan, New York, Ohio —
-   with `kid`s `nj-1`, `mi-1`, `ny-1`, `oh-1`. Private keys are written to `keys/` as JWK JSON,
-   gitignored. Public keys go into `trust.json`.
-2. **One identity credential per person with `identity != "none"`.** Payload per
-   credential-model §3, built from the person's record: schema.org claim names
-   (`givenName`, `familyName`, `birthDate`, `image`, `address`), where the sample data's
-   `street` / `locality` / `region` / `postal_code` become `streetAddress` /
-   `addressLocality` / `addressRegion` / `postalCode`, and `county` passes through as the one
-   documented extension.
-3. **Signs it** as a JWT with `alg: ES256`, `typ: vc+jwt` and the issuing state's `kid`. The
-   payload *is* the credential — no `vc` wrapper, no `iss`/`sub`/`exp` (credential-model §4).
-   The issuer is the person's own state: `did:example:state-of-new-york` for Victor Moreno, and
-   so on.
-4. **Tampers two credentials, after signing**, per the `tamper` block the sample data already
-   carries — the generator reads it, it does not choose:
-   - **p22 Victor Moreno (`kind: address`)** — signed with his real Staten Island, NY address,
-     then the payload's `address` is replaced with the `claimed_address` (Elizabeth, Union
-     County, NJ) and re-encoded with the original signature. The screen then shows an NJ address
-     on a credential issued by the State of New York.
-   - **p23 Carmen Diaz (`kind: photo`)** — signed over a placeholder image, then the payload's
-     `image` is replaced with her real photo. The face shown is hers, and the signature no
-     longer matches ([sample-data.md](sample-data.md)). The placeholder is a small base64 JPEG
-     constant in the generator, so no extra file joins `tools/sample_data/photos/` and the
-     sample-data generator's curated-placement checks are untouched.
+## 4. Display helpers and derived values (#18)
 
-   Both are payload substitutions with the header and signature left alone, so verification
-   fails at check 3 for a genuine cryptographic reason.
-5. **Dates.** `validFrom` is spread deterministically across the first half of 2026 from the
-   person's id and `validUntil` is four years later, per credential-model §5. Fixed in committed
-   data, so nothing expires mid-demo and no test depends on today's date.
-6. **Credential ids** are `urn:uuid:` values derived with **uuid5** from the person id and
-   credential type, the same technique the sample data uses for `subjectId`. Re-running the
-   generator issues new keys and new signatures but the same ids, so detail-page URLs survive a
-   regeneration.
+`apps/payroll/app/display.py` — Payroll's own; the Wallet's copy is not importable and is not
+meant to be. Everything here is text Payroll composes for reading. Money is parsed with
+`decimal.Decimal`, never a float, because the committed figures are exact decimal strings.
 
-### Keys are disposable, not precious
-
-Re-running the script replaces every key and every signature. That is the documented posture
-(credential-model §2, "Keys are disposable"): losing `keys/` costs one run and one commit. The
-script prints nothing to paste into Render this loop — Payroll and Benefits do not sign anything
-until Loops 5 and 6, so their keys, the `/health` self-check and `/.well-known/jwks.json` are
-deliberately out of scope here. The script is written so those issuers are added as data.
-
-## 4. Verification (#12)
-
-A module inside the Wallet — `app/verify.py` — that takes a JWT string and the trust list and
-returns an outcome plus the decoded claims. It implements
-[credential-model §2](credential-model.md#2-trust--issuers-keys-and-verification)'s four checks
-in order, stopping at the first failure:
-
-| # | Check | Failure outcome |
+| Helper | Example | Used by |
 | --- | --- | --- |
-| 1 | `issuer.id` is in the trust list | Unrecognized issuer |
-| 2 | that issuer's `trustedFor` includes the credential's type | Unrecognized issuer |
-| 3 | the header's `kid` names one of that issuer's keys and the signature verifies | **Tampered** |
-| 4 | now is within `validFrom` / `validUntil` | Expired, or Not yet valid |
+| `short_date("2026-09-30")` | `30 Sep 2026` | pay date, `.paylist__date` |
+| `period_short(start, end)` | `16–30 Sep 2026` | `.paylist__period`, the Pay period row |
+| `period_long(start, end)` | `16–30 September 2026` | the detail page's `<h1>` and `<title>` |
+| `money("1100.00")` | `$1,100.00` | every figure cell |
+| `hours("55")` | `55.00` | the hourly earnings row |
+| `installment(stub)` | `18 of 24` | the salaried earnings row |
+| `employer_place(employer)` | `Trenton, NJ` | `.category__sub`, the Employer party block |
 
-All four pass → **Verified**. Checks 5 and 6 belong to presentations and have no caller yet.
+- **`period_short` collapses a single month** — `16–30 Sep 2026`, not `16 Sep – 30 Sep 2026` —
+  with an en dash, as the mockups have it. Every committed period sits inside September 2026; a
+  period spanning two months falls back to naming both.
+- **`installment` is derived from the period start**, not stored: `(month − 1) × 2 + 1` for a
+  period beginning on the 1st, `+ 2` otherwise, over the 24 semimonthly installments of the year.
+  September's two periods are therefore the 17th and 18th. This is a position in the calendar,
+  not a running total, so it does not reintroduce the year-to-date figure #50 defers (§11,
+  item 4).
+- **`employer_place` appends a literal `NJ`** from a single module constant with a comment.
+  `employers.json` carries a city and no region, and all fifteen are in New Jersey
+  ([design/loop-3/README.md](design/loop-3/README.md), known gap 5); one constant means a
+  non-NJ employer is a one-line change rather than a search through templates.
 
-Implementation notes:
+`apps/payroll/app/people.py` and `apps/payroll/app/paystubs.py` load and index the data with
+`functools.lru_cache`, as the Wallet's `people.py` does:
 
-- **PyJWT with the `crypto` extra** does ES256 and reads JWKs directly
-  (`jwt.algorithms.ECAlgorithm.from_jwk`). It is the smallest dependency that covers signing in
-  the generator and verifying in the app.
-- The claims for checks 1, 2 and 4 are read from the payload **without** trusting it, then
-  check 3 decides whether any of it can be believed. That ordering is what lets a tampered
-  credential still be displayed as received, which the design requires.
-- PyJWT's own `exp`/`nbf` handling is not used, because the credential carries `validFrom` and
-  `validUntil` instead of registered claims (credential-model §4). Check 4 is ours.
-- The outcome is an enum, not a string the template matches on, so adding an outcome is a
-  mapping change.
+- `all_people()` — the 25 records in `p01`–`p25` order, each with `name` and `place` composed.
+- `get_person(person_id)`.
+- `employers_for(person_id)` — the person's employers, each with its paystubs, grouped by
+  `employerId` **in the order that person's stubs first mention each employer** (the source's
+  jobs order), stubs within a group newest pay date first. This drives both the landing page's
+  sections and the switcher's employers line.
+- `find_paystub(person_id, paystub_id)` — `None` when the id is not that person's.
 
-### Outcome → badge → message
-
-One table drives the badge variant, its glyph and its sentence. Variants and glyphs are the
-handoff's ([design/loop-2/README.md](design/loop-2/README.md) §1–2); the copy is the handoff's
-revision of credential-model §5.
-
-| Outcome | Variant | Glyph | Status band | Message |
-| --- | --- | --- | --- | --- |
-| Verified | `badge--verified` | `&#10003;` | `panel__status--verified` | Nothing in this credential has changed since {issuer} issued it. |
-| Tampered | `badge--error` | `&#10005;` | `panel__status--error` | Something in this credential was changed after {issuer} issued it, so it can't be trusted or used. Ask {issuer} for a new one. |
-| Expired | `badge--caution` | `!` | `panel__status--caution` | This credential expired on {date}. Ask {issuer} for a new one. |
-| Not yet valid | `badge--caution` | `!` | `panel__status--caution` | This credential can't be used until {date}. |
-| Unrecognized issuer | `badge--unknown` | `?` | `panel__status--unknown` | This wallet doesn't recognize {issuer}, so it can't check whether this credential is genuine. |
-
-`badge--neutral` with an en-dash glyph is not an outcome — it is the switcher's **No credential**
-row, the absence of a credential rather than the result of checking one.
-
-Only Verified and Tampered are reachable from committed data. The other three are covered by
-tests that mint credentials with throwaway keys (§10), which is how CI exercises all five without
-committing a credential that expires.
-
-## 5. Routes and templates
-
-The person is in the path, so no cookie and no server state, and a URL survives a Render
-spin-down (Intent 002).
+## 5. Routes and templates (#17, #18)
 
 | Route | Screen | Mockup |
 | --- | --- | --- |
-| `GET /` | 303 redirect to `/p/p01/credentials` | — |
-| `GET /p/{person_id}/credentials` | Credentials home, or the empty state | `credentials.html`, `credentials-empty.html` |
-| `GET /p/{person_id}/credentials/{credential_id}` | Credential detail | `credential-detail.html`, `credential-detail-tampered.html` |
-| `GET /p/{person_id}/connections` | Connections | `connections.html` |
-| `GET /p/{person_id}/activity` | Activity | `activity.html` |
+| `GET /` | Meridian Payroll marketing home | `index.html` |
+| `GET /p/{person_id}/` | 303 redirect to `/p/{person_id}/paystubs` | — |
+| `GET /p/{person_id}/paystubs` | Account landing | `paystubs.html`, `paystubs-p08.html` |
+| `GET /p/{person_id}/paystubs/{paystub_id}` | Paystub detail | `paystub.html`, `paystub-salary.html` |
 | `GET /p/{person_id}/switch` | Person switcher | `person-switcher.html` |
 | `GET /health` | unchanged from Loop 0 | — |
 
-- `{credential_id}` is the credential's UUID without the `urn:uuid:` prefix. Stable across
-  regeneration (§3), and it scales to Loop 5's many paystubs without a route change.
-- An unknown `person_id`, or a `credential_id` that isn't that person's, returns **404**. A
-  credential id that belongs to someone else is a 404 rather than a redirect: there is no
-  sign-in, but the URL shape should not imply one person's wallet can address another's.
-- `/` redirecting to the first person means the landing experience is a populated wallet. The
-  switcher is one click away in the footer, on every page.
+- **`/` stays the public marketing page** and is not a redirect. Payroll has a front door the
+  Wallet doesn't: a payroll company has a marketing site, and Loop 4's employer lookup needs
+  somewhere to land (brief §5.1).
+- **`{paystub_id}` is the stub's UUID without the `urn:uuid:` prefix**, the same convention Loop 2
+  used for credential ids. Stable in committed data.
+- An unknown `person_id`, or a `paystub_id` that is not that person's, returns **404** — not a
+  redirect, for the reason Loop 2 gives: there is no sign-in, but the URL shape should not imply
+  one employee can address another's record.
+- `/p/{person_id}/` redirects rather than 404s, so every URL the handoff names
+  ([design/loop-3/README.md](design/loop-3/README.md), known gap 1) resolves. The route shape
+  itself is a deviation from that gap's wording, recorded in §11 item 2.
 
 ### Templates
 
-`base.html` is extended, not replaced. Changes:
+`base.html` is extended, not replaced. It becomes **one header component with two states**, as
+the handoff asks (§5):
 
-- Nav becomes **Credentials · Connections · Activity**, "Help" removed (#14). Each item carries
-  `aria-current="page"` when active, in both the inline nav and the `<details>` panel, so the
-  nav needs the active screen and the person id in its context.
-- The brand mark gains `header__mark--wallet`; the brand and every nav link point at real routes
-  for the current person.
-- `.initials` takes the viewed person's initials and `aria-label` — replacing Loop 0's
-  hard-coded "Avery Mullen", who leaves the project here.
-- The footer becomes the two-part note and aside (§7), with the aside linking to the switcher.
-- The stylesheet link stays the literal `/static/cred.css`. The mockups' `href="cred.css"` and
-  their relative page links (`credentials.html`, `photos/p08.jpg`) are artefacts of being
-  browsable as files; every one becomes a real route or a data URI.
-
-`SITE` stays for what is genuinely per-app (theme, brand, fonts). Per-person and per-screen
-values are passed per request, not folded into it.
-
-One new page-level component the templates rely on: `.back`, the "All credentials" link at the
-top of the detail screen.
-
-## 6. Screens
-
-Copy, class names and ARIA attributes come **verbatim from the mockups**, so each app's
-`cred.css` applies without edits — the same rule as Loop 0.
-
-### Credentials home (#10, #12)
-
-Eyebrow, `<h1>Your credentials</h1>`, then one `.category` section per category. Identity holds
-the person's credential as a `.cred` card: `Issuer:` eyebrow with the issuer's display name from
-the credential, the status badge opposite, then the photo beside name and address, a rule, and a
-footer row with `Valid until {date}` and the **Details** affordance. The whole card is the link.
-
-The **Income** category renders in its waiting state (`.category--waiting`, `None yet`, one line
-of `.category__waiting-note` copy). Kept: Loop 5 is two loops away, and the row is what shows
-the grouping already exists.
-
-Where a person holds no credential, the Identity category renders the `.empty` slot with a real
-`<button disabled>Add Identity</button>` — never a link with `aria-disabled`. Reachable at
-`/p/p24/credentials` and `/p/p25/credentials`.
-
-The `.stack-cards` component ships in `cred.css` but no Loop 2 page renders a stack; nobody holds
-two credentials yet.
-
-### Credential detail (#12)
-
-One `.panel`: a full-width status band carrying the badge and its message, then `.panel__section`
-rows — claims beside the photo, address, the validity pair — and `.disclosure` last, holding the
-credential id, issuer identifier, `type`, the raw `validFrom`/`validUntil` and the JWT in a
-scrollable `.jwt` block.
-
-Labels are plain language ("Date of birth", "ZIP code"), and values are formatted for reading:
-`birthDate` as "2 September 1991", the validity pair as "Valid from 15 January 2026", and the
-state as its full name. That last one needs a USPS-code → name map in the Wallet — display text,
-which the Wallet composes and no issuer signs.
-
-A tampered credential shows the same sections with the claims **as received**, plus the
-`.panel__note` row saying so, and a second note inside the disclosure naming the key the check
-failed against.
-
-### Connections (#14)
-
-Heading, one line of purpose, and the `.empty` slot with a disabled **Find your employer**. Loop 4
-replaces the slot's contents; the surrounding screen does not change.
-
-### Activity (#15)
-
-Heading, one line of purpose, one day group, **one** `.log` item: `2:14 PM` / "New connection to
-Meridian Payroll established". The mockup's five items are illustrative; the issue's single item
-is the requirement, and Loop 2 generates no events.
-
-The day heading is hard-coded and will read as a fixed past date. That is accepted for a
-placeholder Loop 4 replaces — a computed "today" would imply the log is live, which is a worse
-lie than a stale date.
-
-The marker dot stays neutral. Whether it should take the status palette is the handoff's open
-question, and it belongs to Loop 4, when there are events to colour.
-
-### Person switcher (#10)
-
-`Demo control` eyebrow, `<h1>Switch person</h1>`, and a flat `.people` list of all 25 rows in
-`p01`–`p25` order: small initials, name, "Locality, ST", and the badge that says what the person
-demonstrates — Verified (21), Tampered (2), No credential (2). The viewed person's row is tinted
-and carries `aria-current="page"`. Rows are links, so the selected person changes by URL like
-everything else.
-
-Each row's badge is the result of verifying that person's credential, not a field read from
-`people.json` (§2). Twenty-five verifications per request is a few milliseconds of ES256 and
-needs no caching at this size.
-
-## 7. Footer and README (#11)
-
-**Footer, all three apps.** The wallet mockup's footer is the two-part row: `.footer__note` at
-`flex: 3` carrying the demo statement and the repo link, `.footer__aside` at `flex: 1` carrying
-**Switch person**.
-
-Payroll and Benefits get the same statement in their existing footer markup, without the aside —
-neither has a person to switch, and `.footer__note` / `.footer__aside` exist only in the wallet's
-`cred.css`. Porting the two classes into the other two copies is allowed (three independent
-files, no sync) but buys nothing this loop.
-
-**The copy is the mockup's, verbatim:** "**This is a demo.** For more info,
-[view this repo.](https://github.com/edmullen/credentials-demo)" Decided 2026-09-21 — that is
-enough detail for a footer, and the copy-verbatim rule holds.
-
-It follows that the **README carries the full statement**, not an abridged one. The footer says
-where to look; the README is what it points at, and it is the only place that spells out what is
-fictional.
-
-**README.** Replaced, per #11: what the project is, that it is a fictional demonstration whose
-people, employers, agencies, programs and credentials are invented and whose identity photos are
-AI-generated faces of people who do not exist, links to the three live apps, and a link to
-`docs/decisions.md`. `docs/` changes redeploy nothing.
-
-## 8. Waking the other two apps (#26)
-
-Each app, on its own startup, fires a request at the other two apps' `/health` and does not wait
-for the answer, retrying if the peer's platform rejects the wake-up rather than answering it.
-
-- **FastAPI `lifespan`**, one `asyncio.create_task` per peer, `httpx.AsyncClient` with a timeout
-  long enough for a sleeping peer to wake (about 65s), retrying on a `429` response for up to two
-  minutes before giving up (see §12, item 10). Every exception is swallowed: a peer being down
-  must never stop an app starting, and because the task is never awaited, Render's health check
-  never sees a slow startup.
-- **Configuration** is two environment variables per app, naming the other two origins —
-  `PAYROLL_URL` and `BENEFITS_URL` in the Wallet, and so on. Set as plain values in
-  `render.yaml` (they are public URLs, not secrets). Loop 4 needs the Wallet → Payroll one
-  anyway.
-- **Unset means no-op.** Locally and in CI no URLs are set, so nothing is pinged and no test
-  touches the network. Tests that need the behaviour drive the lifespan explicitly with a stub.
-- It cannot loop: an app pings only on its own startup, and waking an app that is already awake
-  does not restart it.
-- Server-side only, so the no-JavaScript rule is untouched; an HTTP call to another app is not
-  reading outside the app's directory, so the monorepo rule is untouched too.
-
-`httpx` moves from the dev group into runtime dependencies in all three apps.
-
-## 9. Dependencies, configuration and deployment
-
-| Change | Where | Why |
+| | Public (`/`) | Portal (`/p/…`) |
 | --- | --- | --- |
-| `pyjwt[crypto]` added | `apps/wallet` runtime | Verification (§4) |
-| `cryptography<49` pinned | `apps/wallet` runtime, `tools/generate_credentials.py` | Versions 49 and later publish no Intel-Mac wheel (§12, item 4) |
-| `httpx` moved dev → runtime | all three apps | Peer wake (§8) |
-| `PAYROLL_URL`, `BENEFITS_URL`, `WALLET_URL` | `render.yaml`, two per service | Peer wake (§8) |
-| `keys/` | root `.gitignore` | Private keys never in git |
+| Brand link | `/` | `/p/{id}/paystubs` |
+| Nav | Product · Issuance · Documentation · Support, each `href="#"` | Paystubs · Connections · Activity |
+| Identity element | `<a class="btn" href="/p/p01/paystubs">Sign in</a>` | `.initials`, `role="img"`, full name as `aria-label` |
+| `<details>` panel | the four nav items, then Sign in | the three nav items |
+| Footer aside | none | **Switch person** |
 
-Unchanged: `.python-version` and `PYTHON_VERSION`, the CI workflow (no `paths:` filters, no
-cancellation on `main`, `ci-passed` the one required check), `rootDir` and `buildFilter` per app,
-`autoDeployTrigger: checksPass`.
+The template switches on whether a `person` is in the context. Nav items carry a key, a label and
+an href; **Connections' and Activity's href is the literal `#`** until Loop 4 gives them routes,
+styled identically to Paystubs — the Loop 0 convention, settled on this loop's mockups in
+`7274c80`. `aria-current="page"` marks Paystubs on the account landing page only, in both the
+inline nav and the `<details>` panel; no nav item is current on the detail page or the switcher.
 
-Deploy scope behaves as designed: generated data under `apps/wallet/app/data/` redeploys the
-Wallet only; the footer change touches all three apps and redeploys all three; the README and this
-document redeploy nothing.
+Other changes to `base.html`:
 
-## 10. Tests
+- `<title>` comes from a `page_title` block carrying the whole string, because the marketing
+  page's title (`Meridian Payroll — verifiable employment credentials`) does not follow the
+  `X — Meridian Payroll` pattern the other three do.
+- The footer becomes the handoff's two-part row: `.footer__note` always, and a `footer_aside`
+  block that renders **Switch person** on portal pages, is overridden to **Back to paystubs** on
+  the switcher, and renders nothing on `/`.
+- The stylesheet link stays the literal `/static/cred.css`. The mockups' `href="cred.css"` and
+  their relative page links (`paystubs.html`, `paystub.html`) are artefacts of being browsable as
+  files; every one becomes a real route.
 
-Per app, from the app's own directory, as Loop 0 (`cd apps/wallet && uv run pytest`).
+`SITE` keeps what is genuinely per-app — theme, brand name, fonts, the marketing nav. It **loses
+`user`**: Rina Kapoor leaves the project here, as Avery Mullen did in Loop 2.
 
-**Wallet — verification**, the part worth testing hardest, against committed data:
+### Stylesheet
+
+`apps/payroll/app/static/cred.css` is replaced wholesale by `design/loop-3/cred.css`. That file's
+first 371 lines are byte-identical to the current one — verified, not assumed — so it is a strict
+superset and no existing page can change. The Wallet's and Benefits' copies are untouched: three
+independent files, no shared stylesheet, no sync script.
+
+## 6. Screens (#17, #18)
+
+Copy, class names and ARIA attributes come **verbatim from the mockups**, so Payroll's `cred.css`
+applies without edits.
+
+### Marketing home (#17) — `index.html`
+
+**One change.** The hard-coded `RK` `.initials` becomes `<a class="btn" href="/p/p01/paystubs">Sign
+in</a>`, in the same position, repeated as the last item of the `<details>` panel so the door
+exists below 40rem. The marketing nav, the heading, the purpose line and the Employer portal card
+are untouched. The footer gains the `.footer__note` markup, with no aside.
+
+There is no sign-in form, no session and no **Sign out**: the button is a door, and the footer's
+switcher link is how the demo moves between people.
+
+### Account landing (#18) — `paystubs.html`, `paystubs-p08.html`
+
+Eyebrow **Your pay**, `<h1>` the person's name, then `.ident` — "Flemington, NJ" and the
+`subjectId` in mono beneath it. The identifier is shown: the person is about to connect a wallet
+to this exact account in Loop 4, and one quiet mono line is what lets someone watching the demo
+match the two ends (handoff §6).
+
+Then `<hr class="rule">` and **one `.category` section per employer** (§4), each:
+
+- `<h2 class="category__title" id="e-{employerId}">` with the employer's name, the section
+  labelled by it via `aria-labelledby`;
+- a `.category__sub` line reading `{job title} · {employer city}, NJ` — the job title in the
+  data's own sentence case (§11, item 3);
+- a `.paylist` of that employer's stubs, newest pay date first: pay date in bold, pay period in
+  mono, a hairline chevron, the whole row a link to the detail view.
+
+Twenty of the twenty-five people see one section, and that is what the handoff's full-width
+section head is shaped for; nothing needs a different layout for the single-employer case.
+
+The page closes with the static Wallet card — `Coming soon` badge, "Send your pay to your wallet"
+— the held place Loop 4 replaces.
+
+### Paystub detail (#18) — `paystub.html`, `paystub-salary.html`
+
+`.back` reading **All paystubs**, eyebrow **Pay statement**, `<h1>` the pay period in long form.
+Then one `.panel` read top to bottom, exactly as the handoff's §1 sets it out: the two parties,
+the three-up period `<dl>`, the earnings and deductions tables in `.figures__pair`, the net pay
+band, and the withholding note once at the foot.
+
+**The figure area is a real table**: `<caption>` per table, `scope="col"` on the column heads,
+`scope="row"` on every line label, totals in `<tfoot>`. The amount column already carries a
+`This period` head, which exists only so #50 can add `Year to date` beside it without a
+relayout.
+
+**Hourly and salaried differ in one column and one row**, same template:
+
+| | Hourly | Salaried |
+| --- | --- | --- |
+| 3rd column head | `Hours` | `Installment` |
+| Row | `Regular` · `$20.00` · `55.00` · `$1,100.00` | `Salary` · `$92,000.00` · `18 of 24` · `$3,833.33` |
+
+Deductions, totals and net pay are identical in structure. The installment value is derived
+(§4, §11 item 4).
+
+The `<h1>` is the pay period, so a person with several employers has two stubs per period that
+share it. Kept verbatim: the employer is named in the panel's first line directly below, and the
+`.back` link says which list you came from. The `<title>` gains the employer name to keep browser
+history and tabs distinguishable (§11, item 5).
+
+### Person switcher (#17) — `person-switcher.html`
+
+Eyebrow **Demo control**, `<h1>Switch person</h1>`, and a flat `.people` list of all 25 rows in
+`p01`–`p25` order. Each row: `.initials--sm`, then name, the person's employer names joined by
+`&middot;`, and "Locality, ST". The employers line wraps rather than truncating, which is what
+holds p07's and p08's three names at narrow widths.
+
+**No badge**: there is no verification status in Payroll, and an empty badge column would imply
+one is coming. Ray Miller (p24) and Megan Doyle (p25) appear as ordinary employees — Meridian
+employs and pays them; what they lack first matters in Loop 4 (Intent 003).
+
+The viewed person's row is tinted and carries `aria-current="page"`. Every row links to that
+person's landing page, and the footer aside reads **Back to paystubs**. Loop 2's `?from=` machinery
+is not ported (§11, item 9).
+
+## 7. Finishing the peer-wake retry (#48)
+
+Three steps, in order, as the issue sets them out.
+
+1. **Retest against Render.** All three services genuinely idle (≥15 minutes), visit one, then
+   read the Wallet's `[peer-wake]` lines in Render's Logs tab and confirm both peers answer
+   without being visited directly. Ed runs this. Render returns the `429` only some of the time,
+   so it may take several attempts across separate sittings — **solved, not timeboxed** (Intent
+   003). If it still can't be reproduced, the next step is more instrumentation, not closing the
+   issue on the local test.
+2. **Remove the temporary diagnostic logging** from `apps/wallet/app/peers.py`: the `print`
+   calls in `_ping` and `wake_peers`, and the `TEMPORARY:` paragraph of the module docstring. The
+   retry, its two constants and the docstring's explanation of *why* a 429 is retried all stay —
+   that is the durable finding, not scaffolding.
+
+   Three of the Wallet's current `test_peers.py` cases assert on captured stdout
+   (`test_ping_logs_a_success_line`, `test_ping_logs_the_exception_when_a_peer_is_down`,
+   `test_wake_peers_logs_which_urls_are_configured`), and two more assert log lines alongside
+   behaviour. They are **rewritten to assert behaviour** — how many requests were made, and that
+   nothing raised — rather than deleted, so coverage doesn't fall with the logging.
+3. **Port the retry to Payroll and Benefits.** `_ping`'s retry loop plus `MAX_WAIT_SECONDS` and
+   `RETRY_INTERVAL_SECONDS` go into each app's own `app/peers.py`, each keeping its own
+   `PEER_ENV_VARS`. After this the three files differ in that tuple alone. They stay three
+   independent copies — no shared module, per the monorepo rule — and each app's `test_peers.py`
+   gains the 429 cases the Wallet already has, with `RETRY_INTERVAL_SECONDS` patched to `0` so
+   the suite never waits.
+
+Steps 2 and 3 ship in the PR that closes #48, after step 1 confirms the behaviour on Render.
+
+## 8. Dependencies, configuration and deployment
+
+**No app gains a dependency this loop, and neither does the generator.** Reconciled against
+CLAUDE.md's Intel Mac with no Homebrew — the check Loop 2's retro asked the plan step to make —
+there is nothing to install and nothing that could fall back to a source build. Loop 2's
+`cryptography<49` problem has no analogue here.
+
+| Unchanged | Why it is worth saying |
+| --- | --- |
+| `pyproject.toml` in all three apps | no new dependency (above) |
+| `.python-version`, `PYTHON_VERSION` in `render.yaml` | still in step |
+| `.github/workflows/ci.yml` | no `paths:` filters, no cancellation on `main`, `ci-passed` the one required check |
+| `render.yaml` peer URLs | set in Loop 2; #48 changes the code, not the configuration |
+| `tools/generate_sample_data.py` and its output | §3 |
+
+Deploy scope behaves as designed: #17 and #18 touch `apps/payroll/**` only, so Payroll redeploys
+alone; #48 touches all three `app/peers.py`, so all three redeploy; `docs/` and `tools/` redeploy
+none.
+
+## 9. Tests
+
+Per app, from the app's own directory (`cd apps/payroll && uv run pytest`). No test reaches the
+network, and none depends on the current date.
+
+**Payroll — the data slice:**
 
 | Case | Assertion |
 | --- | --- |
-| Every one of the 23 credentials | decodes, and its outcome is exactly the one the sample data implies |
-| p08 (and the other 20) | Verified |
-| p22, p23 | Tampered — failing at check 3, not flagged |
-| p24, p25 | no credentials at all |
-| Synthetic, throwaway keys | Expired, Not yet valid, Unrecognized issuer, and issuer-not-trusted-for-type |
-| Any credential with one payload byte altered | Tampered |
+| `people.json` | 25 records, `p01`–`p25`, each with `id`, `subjectId`, `initials`, `locality`, `region` |
+| every `subjectId` | matches `urn:uuid:` followed by a UUID |
+| the projection | no record carries `birthDate`, `street`, `county`, `postal_code`, `photo`, `identity` or `jobs` |
+| `paystubs.json`, `employers.json` | 64 and 15 records; every stub's `employerId` is in `employers.json` and its `personId` is one of the 25 |
+| every person | has at least one paystub — Payroll has no reachable empty state |
 
-**Wallet — routes:** each of the five screens returns 200 HTML for a person who has a credential
-and for one who does not; `/` redirects to `/p/p01/credentials`; an unknown person and a
-mismatched credential id return 404; the switcher lists 25 rows with one `aria-current="page"`;
-the detail page contains the badge label and the message for its outcome; every page links
-`/static/cred.css` and contains no `<script>`.
+**Payroll — routes and screens:**
 
-**All three apps:** `/health` still returns `{"status": "ok"}`; the footer contains the demo
-statement; startup with no peer URLs set performs no request.
+- `/` returns 200, carries **Sign in** pointing at `/p/p01/paystubs`, and no `.initials`.
+- `/p/p01/` returns 303 to `/p/p01/paystubs`.
+- `/p/p01/paystubs` has exactly one `.category` section with two `.paylist` rows;
+  `/p/p08/paystubs` has three, headed Shoreway Supermarkets, Brightpath Early Learning and
+  Ridgeline Home & Hardware in that order, two rows each; both show the person's `subjectId`.
+- `/p/p01/paystubs/{16–30 Sep id}` shows `$20.00`, `55.00`, `$1,100.00`, the four deduction lines,
+  `$144.13`, `$955.87`, an `Hours` column head, and the withholding note exactly once.
+- `/p/p09/paystubs/{16–30 Sep id}` shows `Salary`, `$92,000.00`, `18 of 24`, `$3,833.33` and an
+  `Installment` column head.
+- `/p/{id}/switch` lists 25 rows with exactly one `aria-current="page"`, p08's row naming three
+  employers, and every row linking to that person's landing page.
+- An unknown person id, and a paystub id belonging to a different person, both return 404.
+- Every page links the literal `/static/cred.css` and contains no `<script>`; every portal page's
+  footer carries the demo note, and the aside where the mockup has one.
 
-No test uses a real private key, and no test depends on the current date.
+**All three apps:** `/health` still returns `{"status": "ok"}`; `/static/cred.css` returns 200
+`text/css` from that app's own copy; the footer carries the demo statement; startup with no peer
+URLs set performs no request; `_ping` retries a 429 and succeeds on a later attempt, does not
+retry a non-429, and swallows a peer that is down.
 
-## 11. Build order
+## 10. Build order
 
-Six PRs to `main`, one per issue, merged as each finishes. A closing keyword goes only in the PR
-that finishes its issue.
+Three PRs to `main`, one branch per issue, merged as each finishes. A closing keyword goes only
+in the PR that finishes its issue.
 
-1. **#11** — footer and README. Touches all three apps, depends on nothing, and gets the demo
-   disclaimer live first.
-2. **#26** — peer wake. Also all three apps, also independent.
-3. **#10** — the generator's `people.json` output, the person-in-the-URL routes, `base.html`, the
-   switcher, and Connections/Activity-shaped placeholders only insofar as the nav needs them.
-4. **#12** — keys, signing, tampering, `trust.json`, verification, the credentials home, the
-   empty state and the detail screens. The loop's substance, and the only PR that needs #10 first.
-5. **#14** — Connections.
-6. **#15** — Activity.
+1. **#17 — Payroll is populated.** The generator and the data slice, the Loop 3 `cred.css`,
+   `base.html`'s two header states, the Sign in button, the person-in-the-URL routes, the landing
+   page's identity block and Wallet card, the switcher, and the footer. The landing page exists
+   and is reachable; it has no paystub sections yet.
+2. **#18 — Paystubs display.** The employer sections and `.paylist` on the landing page, and the
+   paystub detail view with its figure tables.
+3. **#48 — the peer-wake retry**, last, per §7 — the Render retest first, then the logging removal
+   and the port in the PR that closes it.
 
-#14 and #15 are small and independent; they come last so the nav they join is already real.
+#17 before #18 because #18's sections render #17's data through #17's routes. #48 is independent
+of both and goes last because the retest wants the deployed services idle, which is easiest once
+Payroll's own deploys have finished.
 
-## 12. Decisions and deviations
+## 11. Decisions and deviations
 
-Nothing here is left open; each item records what was settled and why.
+The reconciliation pass Intent 003 asks for — each mockup against the design text, each acceptance
+criterion against its mechanism, each new dependency against Ed's machine. Nothing here is left
+open.
 
-1. **Decided: the footer keeps the mockup's copy.** The question was whether "**This is a
-   demo.** For more info, view this repo." is enough, given that #11 asks the footer to say the
-   people, employers, agencies and credentials are invented and that the credentials naming real
-   states make that load-bearing (`decisions.md`). Ed decided on 2026-09-21 that it is: the
-   footer stays verbatim, and the weight moves to the README, which #11 also asks for and which
-   is the only place that spells out what is fictional (§7).
-2. **Decided: the tampered photo is not dimmed.** `design/loop-2/README.md` describes the
-   tampered photo at 72% opacity as a supplementary signal, but the handoff's
-   `credential-detail-tampered.html` and `cred.css` contain no such rule — the `<img>` carries
-   the same classes as the verified page. Ed decided on 2026-09-21 to drop it: photo quality
-   varies enough between people that a dimmed photo is not a reliable indicator of anything, and
-   a signal a reader can't calibrate is worse than none. The badge, its message and the
-   `.panel__note` row carry the meaning, which is what the handoff's own rule — opacity is never
-   the signal — already required. Nothing needs building: the delivered files behave this way.
-   The divergence is from the handoff README's prose only, and the handoff is a historical record
-   that is never edited to match the apps.
-3. **`:has()`** is used once, to hide the badge dot when a glyph is present. Kept — every target
-   browser has supported it since 2023. The handoff documents the fallback if that changes.
-4. **Deviation: `cryptography` is capped below 49.** `pyjwt[crypto]` pulls it in, and 49 and
-   later publish no wheel for Intel Macs, so `uv sync` in `apps/wallet` and
-   `uv run tools/generate_credentials.py` on Ed's machine fall back to a source build that needs
-   OpenSSL and `pkg-config`. Both carry `cryptography<49` (48.0.1 resolves), with a comment saying
-   why. Linux — CI and Render — is unaffected. Revisit when the machine changes or a newer
-   release ships an Intel wheel.
-5. **Deviation: the empty state shows Identity only.** §6 says the Identity category renders the
-   `.empty` slot for a person with no credential but is silent on the Income row.
-   `credentials-empty.html` has none, so `/p/p24/credentials` and `/p/p25/credentials` follow the
-   mockup: no Income category. The waiting row appears only once a person holds a credential.
-6. **Deviation: "the" before a state, not before Meridian Payroll.** §4's messages use `{issuer}`,
-   but the mockups read "since the State of New Jersey issued it" while the issuer's name is
-   "State of New Jersey". A small helper in `app/display.py` adds "the" to names beginning "State
-   of", so the sentences match the mockups and Loop 5's "Meridian Payroll" reads correctly.
-   Ed considered capitalizing it ("The") on 2026-09-21 and left it as is: every use is
-   mid-sentence.
-7. **Settled: how the switcher keeps the reader on the same kind of screen.** AC 9 asks for it and
-   §5 doesn't say how, since `/p/{id}/switch` carries no origin. The footer's **Switch person**
-   link is `/p/{id}/switch?from={screen}`, each row links to that screen for its person, and the
-   switcher's own footer link reads "Back to {screen}". Only the three screen names are accepted;
-   anything else falls back to Credentials, so the query string can't steer a link elsewhere. A
-   query parameter rather than the `Referer` header, so it survives a copied URL.
-8. **Settled: switcher badges landed with #12, not #10.** §11 puts the switcher in #10, but §2
-   derives each badge from verification, which #12 builds. #10 shipped the rows, links and
-   current-row marker; #12 added the badges.
-9. **The Wallet took the Loop 2 handoff's `cred.css` in #11.** `.footer__note` and
-   `.footer__aside` exist only there, and §7 assumes the Wallet's copy has them. It is a straight
-   copy of `design/loop-2/cred.css`; Payroll and Benefits keep theirs.
-10. **Changed after the build: the peer-wake ping retries on 429.** §8 originally specified a
-    single request with a short timeout. Two Render cold-start retests on 2026-09-22, with peer
-    URLs confirmed correct on both ends, still didn't wake the peers; diagnostic logging (Wallet
-    only, temporary) then showed the real cause: Render's free tier can answer a wake-up with
-    `429` and header `x-render-routing: hibernate-rate-limited` rather than queuing the request
-    and answering slowly — documented, expected behavior of the platform, not a bug in this app
-    or a timeout that was too short. (The 65s timeout from the first retest was a reasonable
-    step given what was known then, but didn't address the actual cause; it stays, since a
-    successful attempt can still be slow.) `_ping` now retries a 429 every `RETRY_INTERVAL_SECONDS`
-    (5s) for up to `MAX_WAIT_SECONDS` (120s) before giving up, still as a background task that
-    never delays startup. Confirmed locally against a fake server that returns 429 twice then 200.
-    Not yet confirmed on Render — deferred to Loop 3 so Loop 2 could close, rather than block on
-    a nice-to-have (faster cold starts, not a broken feature: each app already works once a
-    person visits it directly). [Loop 3 issue #48](https://github.com/edmullen/credentials-demo/issues/48)
-    covers the retest, removing the temporary diagnostic logging once confirmed, and porting the
-    retry to Payroll's and Benefits' `app/peers.py`, which #47 deliberately left on the older,
-    single-attempt version.
+1. **Divergence from Intent 003: one new script in `tools/`.** The intent lists `tools/` as
+   unchanged. The slice still has to be produced, and decisions.md requires each app to keep only
+   what it needs, so `people.json` has to be *projected*, not copied — by hand for 25 records, or
+   by a script. §3 chooses the script, because it makes the projection reviewable and repeatable
+   and mirrors exactly what `generate_credentials.py` did for the Wallet. It regenerates nothing:
+   the intent's substance — "the sample data already exists; nothing is regenerated" — holds.
+   Raised rather than assumed; Ed agreed on 2026-09-22, so the intent's `tools/` line is
+   superseded for this loop and the script is the design.
+2. **Route shape: `/p/{id}/paystubs`, not `/p/{id}/`.** Intent 003 and the handoff's known gap 1
+   both write `/p/p01/`. Mirroring the Wallet instead means the nav item "Paystubs" points at the
+   screen it names and carries `aria-current="page"` there, the detail view nests under it, and
+   Loop 4's Connections and Activity drop in beside it without a route change. `/p/{id}/`
+   303-redirects, so every URL the handoff names still resolves and nothing written down is wrong.
+   Agreed with Ed on 2026-09-22.
+3. **Job titles keep the data's sentence case.** The handoff's `.category__sub` reads "Home Health
+   Aide"; the committed title is "Home health aide", and the same handoff's `.stub__party-sub`
+   uses the data's case two screens away. Title-casing would need either `str.title()`, which
+   turns "QA engineer" into "Qa Engineer", or a hand-maintained map of 26 titles. Sentence case
+   everywhere, taking the data verbatim. Ed decided on 2026-09-22 that deviating from the mockup
+   on this point is fine; the paystub's own `.stub__party-sub` is the precedent to follow. This
+   changes one rendered string in two mockups and nothing else.
+4. **The salaried earnings row shows the installment this actually is.** The mockup reads
+   `1 of 24` on a 16–30 September statement; the data carries no installment number at all, and
+   those two periods are the 17th and 18th of 2026. Derived from the period start (§4), so the
+   page states a calendar position rather than inventing a figure — and a position is not a
+   running total, so #50's year-to-date deferral is untouched. The column heading
+   **Installment** is unchanged. Agreed with Ed on 2026-09-22.
+5. **The paystub's `<h1>` stays the pay period; the `<title>` gains the employer.** For p07, p08
+   and the three others with more than one job, two statements per period share the heading. The
+   heading is kept verbatim — the employer is the first thing in the panel below it — but the
+   document title becomes "Pay statement, Pinecrest Home Care, 16–30 September 2026 — Meridian
+   Payroll" so history and tabs distinguish them. A deviation from the mockups' `<title>` only;
+   nothing visible changes.
+6. **`jobs` is not carried into Payroll's data.** Employment has one home in this app: the
+   paystubs. Sections group by `employerId` in the order the person's stubs first mention each
+   one, which is the source's jobs order and matches both landing mockups and the switcher's rows
+   (Shoreway · Brightpath · Ridgeline for p08) — verified against the committed data for all five
+   multi-employer people.
+7. **No verification status anywhere in Payroll.** `identity` is not carried, the switcher has no
+   badge column (handoff §7), and nothing in the Loop 3 `cred.css` adds one. Payroll first
+   distinguishes people by credential in Loop 4.
+8. **", NJ" is a literal, in one place.** `employers.json` has a city and no region, and all
+   fifteen employers are in New Jersey (handoff, known gap 5). One constant in `display.py` with
+   a comment saying why, so the day a non-NJ employer appears it is a one-line change.
+9. **Loop 2's `?from=` switcher machinery is not ported.** Its point was keeping the reader on the
+   same kind of screen across a switch; Payroll has one real screen this loop, so rows link to the
+   landing page and the switcher's aside reads "Back to paystubs", verbatim from the mockup. Loop
+   4 adds the parameter when it adds a second destination.
+10. **`.panel__section:first-child { border-top: 0 }` lands in Payroll's copy only.** The handoff
+    amends this Loop 2 rule because the paystub panel opens with a section rather than a status
+    band. Payroll takes the handoff's `cred.css` whole; the Wallet's and Benefits' copies are not
+    touched, and the Wallet is not "fixed" to match.
+11. **Rina Kapoor leaves the project**, as Avery Mullen did in Loop 2. `SITE["user"]` goes, and
+    the header's identity element is the Sign in button on `/` and the viewed person's initials
+    inside the portal.
+12. **No new dependency, in any app or in the generator** (§8). This is the Intel-Mac check Loop
+    2's retro asked the plan step to make, and this loop passes it trivially.
+13. **Connections and Activity link to `#`**, styled identically to Paystubs — not dimmed, not
+    disabled, not badged. Loop 0's convention, settled on this loop's mockups in `7274c80`.
+14. **Printing is undesigned**, by decision (handoff, known gap 3). A browser print of the detail
+    page is legible and carries the header and footer. Not built, not tested; a print stylesheet
+    is a small self-contained addition whenever it is wanted.
+15. **No empty state is built**, because none is reachable: every one of the 25 people has at
+    least one job and two stubs per job. A test asserts that, so the day the data changes, the
+    missing state fails loudly rather than rendering a blank section.
 
-## 13. Acceptance criteria
+## 12. Acceptance criteria
 
-1. `uv run tools/generate_credentials.py` writes `keys/` (gitignored) and
-   `apps/wallet/app/data/{people.json,credentials.json,trust.json}`, and nothing runs it at build
-   or deploy time. Re-running it produces working credentials with the same credential ids and
-   the same detail-page URLs.
-2. The Wallet holds one signed identity credential for each of the 23 people whose sample-data
-   `identity` is not `none`, issued by that person's own state as a `did:example:` issuer, with
-   `alg: ES256`, `typ: vc+jwt`, a `kid` in the trust list, and the payload as the credential — no
-   `vc` wrapper and no `iss`/`sub`/`exp`.
-3. `trust.json` lists the four states, each `trustedFor: ["IdentityCredential"]` with its P-256
-   public key. No private key is committed anywhere in the repo.
-4. Verification runs credential-model §2's four checks in order and produces all five outcomes.
-   Verified and Tampered come from committed data; the other three are proven by tests using
-   throwaway keys. No code path reads a `tampered` field to decide a badge.
-5. `/p/p08/credentials` shows Nadia Haddad's credential with a **Verified** badge, her issuer,
-   photo, name, address and `Valid until` date, matching `design/loop-2/credentials.html`.
-6. `/p/p22/…` and `/p/p23/…` show **Tampered**, with the claims as received, the `.panel__note`
-   explanation, and the disclosure note naming the failed key. Victor Moreno's page shows the
-   Elizabeth NJ address on a credential issued by the State of New York; Carmen Diaz's shows her
-   own face. Editing any committed credential by hand flips its page to Tampered.
-7. `/p/p24/credentials` and `/p/p25/credentials` show the empty state: the dashed `.empty` slot
-   with a real `<button disabled>Add Identity</button>`.
-8. Each credential's photo is rendered from the credential's own `image` claim, with the person's
-   name as alt text. The Wallet serves no photo files.
-9. `/p/{id}/switch` lists all 25 people in `p01`–`p25` order with initials, name, "Locality, ST"
-   and a badge — 21 Verified, 2 Tampered, 2 No credential — the viewed person's row tinted and
-   carrying `aria-current="page"`. Every row is a link, and following one keeps the reader on the
-   same kind of screen for the new person.
-10. The footer on every page of all three apps reads "**This is a demo.** For more info, view
-    this repo." with the link live, and the Wallet's also carries **Switch person**. Because the
-    footer is deliberately brief, the repo README carries the full statement: what the project
-    is; that the people, employers, agencies, programs and credentials are invented; that nothing
-    here is a real government or payroll service; that the identity photos are AI-generated faces
-    of people who do not exist; and links to the three live apps and to `docs/decisions.md`.
-11. The Wallet's nav reads **Credentials · Connections · Activity** with no "Help", and the
-    active item carries `aria-current="page"` in both the inline nav and the `<details>` panel.
-    `/p/{id}/connections` shows the Connections heading and its disabled **Find your employer**
-    slot; `/p/{id}/activity` shows the **Activity** heading and one log item reading "New
-    connection to Meridian Payroll established".
-12. `GET /` redirects to `/p/p01/credentials`. An unknown person id, or a credential id that is
-    not that person's, returns 404.
-13. Each app pings the other two apps' `/health` on its own startup without waiting for a
-    response, fails silently when a peer is down, and does nothing when the peer URLs are unset.
-    `render.yaml` sets two peer URLs per service. Starting one app from cold leaves all three
-    responding.
-14. `GET /health` on each app still returns 200 `{"status": "ok"}`, and `GET /static/cred.css`
-    still returns 200 `text/css` from that app's own copy.
-15. `uv run pytest` passes in all three app directories; `ci-passed` is green; no test uses a real
-    private key, reaches the network, or depends on the current date.
-16. No app reads or imports anything outside its own directory, there is no shared stylesheet,
-    template package or sync script, and no page contains JavaScript or uses a bundler.
-17. Every screen matches its `design/loop-2/` mockup and screenshot at desktop width — copy,
-    class names and ARIA attributes verbatim — and switches to the `<details>` menu at 40rem and
-    below. Deviations are limited to those recorded in §2, §5 and §12.
-18. A merge touching only `apps/wallet/**` redeploys only the Wallet; the README and this document
-    redeploy nothing. All three live apps serve their pages fully styled over HTTPS with no
-    mixed-content warning.
+1. `uv run tools/generate_payroll_data.py` writes
+   `apps/payroll/app/data/{people.json,employers.json,paystubs.json}` and nothing else; it does
+   not modify `tools/sample_data/` or `docs/sample-data.md`, and nothing runs it at build or
+   deploy time. `employers.json` and `paystubs.json` are byte-identical to their
+   `tools/sample_data/generated/` originals.
+2. Payroll's `people.json` holds 25 records, `p01`–`p25`, each carrying the person's `subjectId`
+   as a `urn:uuid:` value, and none carrying `birthDate`, street address, county, postal code,
+   photo, identity status or `jobs`. No app reads or imports anything outside its own directory.
+3. `GET /` returns the Loop 0 marketing page with exactly one change: the identity element is
+   `<a class="btn" href="/p/p01/paystubs">Sign in</a>`, repeated as the last item of the
+   `<details>` panel. The marketing nav, heading, purpose line and Employer portal card are
+   unchanged, and there is no sign-in form, session or Sign out anywhere in the app.
+4. `GET /p/{id}/` redirects (303) to `GET /p/{id}/paystubs` for all 25 people.
+5. `/p/{id}/paystubs` shows the eyebrow **Your pay**, the person's name as the one `<h1>`, their
+   "Locality, ST", and their `subjectId` in mono.
+6. The landing page carries **one `.category` section per employer**, headed by the employer's
+   name with the section `aria-labelledby` it, a `.category__sub` reading
+   `{job title} · {city}, NJ` in the data's sentence case, and that employer's paystubs as
+   `.paylist` rows newest pay date first, each row a link. `/p/p01/paystubs` shows one section;
+   `/p/p08/paystubs` shows three, in the order Shoreway Supermarkets · Brightpath Early Learning ·
+   Ridgeline Home & Hardware; all 25 people render without an empty section.
+7. The landing page ends with the static Wallet card — `Coming soon` badge and "Send your pay to
+   your wallet" — which Loop 4 replaces without moving the rest of the page.
+8. `/p/{id}/paystubs/{paystub_id}` renders one statement in full: employer (name, city) and
+   employee (name, job title) as the two parties; pay period, pay date and **Semimonthly** as the
+   period row; earnings and deductions as two real `<table>`s with `<caption>`, `scope="col"`
+   heads, `scope="row"` line labels and `<tfoot>` totals; the four deduction lines federal income
+   tax, Social Security, Medicare and state income tax, always in that order; and the net pay band.
+9. The earnings table reads `Regular · $20.00 · 55.00 · $1,100.00` under a **Hours** head for an
+   hourly stub, and `Salary · $92,000.00 · 18 of 24 · $3,833.33` under an **Installment** head for
+   a salaried one, with the installment derived from the pay period and not stored. Figures match
+   the committed data exactly, from $240.00 to $4,916.67.
+10. The amount column carries a `This period` `<th scope="col">`, so #50 can add a
+    `Year to date` head and one cell per row with no CSS change and no relayout. No year-to-date
+    figure appears anywhere this loop.
+11. The withholding note appears **once**, at the foot of the statement, reading "Withholding on
+    this statement is estimated for the demo, using 2025 single-filer federal and New Jersey
+    rates. It is not a real tax calculation." No per-line marks, asterisks or badges.
+12. The detail page carries a `.back` link reading **All paystubs** that returns to that person's
+    landing page, and its `<h1>` is the pay period in long form.
+13. `/p/{id}/switch` lists all 25 people in `p01`–`p25` order with small initials, name, their
+    employer names joined by `&middot;`, and "Locality, ST" — no badge column. p07's and p08's
+    three employers wrap without truncating. The viewed person's row is tinted and carries
+    `aria-current="page"`, every row links to that person's landing page, and the switcher's footer
+    aside reads **Back to paystubs**. It is reached from **Switch person** in the footer of every
+    portal page.
+14. Inside the portal the header reads **Paystubs · Connections · Activity** with the viewed
+    person's `.initials` (`role="img"`, full name as `aria-label`); Connections and Activity are
+    ordinary links to `#`, styled identically; `aria-current="page"` is on Paystubs on the account
+    landing page only, in both the inline nav and the `<details>` panel.
+15. An unknown person id, and a paystub id that is not that person's, both return 404.
+16. Each app pings the other two apps' `/health` on its own startup, **retrying a 429 for up to
+    two minutes**, without waiting for a response, failing silently when a peer is down and doing
+    nothing when the peer URLs are unset. The Wallet's temporary diagnostic logging is gone and
+    its tests assert behaviour instead of stdout. A cold start on Render, with all three services
+    idle, leaves all three awake after visiting one — confirmed from Render's logs, not from the
+    local test.
+17. `GET /health` on each app returns 200 `{"status": "ok"}`; `GET /static/cred.css` returns 200
+    `text/css` from that app's own copy; `uv run pytest` passes in all three app directories and
+    `ci-passed` is green. No test reaches the network or depends on the current date, and no app
+    gained a dependency this loop.
+18. Every screen matches its `design/loop-3/` mockup and screenshot at desktop width — copy, class
+    names and ARIA attributes verbatim — and switches to the `<details>` menu at 40rem and below.
+    No page contains JavaScript and nothing uses a bundler. Deviations are limited to those
+    recorded in §11.
+19. A merge touching only `apps/payroll/**` redeploys only Payroll; #48 redeploys all three; `docs/`
+    and `tools/` redeploy none. All three live apps serve their pages fully styled over HTTPS with
+    no mixed-content warning.
