@@ -324,12 +324,13 @@ AI-generated faces of people who do not exist, links to the three live apps, and
 ## 8. Waking the other two apps (#26)
 
 Each app, on its own startup, fires a request at the other two apps' `/health` and does not wait
-for the answer.
+for the answer, retrying if the peer's platform rejects the wake-up rather than answering it.
 
 - **FastAPI `lifespan`**, one `asyncio.create_task` per peer, `httpx.AsyncClient` with a timeout
-  long enough for a sleeping peer to wake (about 65s; see §12, item 10). Every exception is
-  swallowed: a peer being down must never stop an app starting, and because the task is never
-  awaited, Render's health check never sees a slow startup.
+  long enough for a sleeping peer to wake (about 65s), retrying on a `429` response for up to two
+  minutes before giving up (see §12, item 10). Every exception is swallowed: a peer being down
+  must never stop an app starting, and because the task is never awaited, Render's health check
+  never sees a slow startup.
 - **Configuration** is two environment variables per app, naming the other two origins —
   `PAYROLL_URL` and `BENEFITS_URL` in the Wallet, and so on. Set as plain values in
   `render.yaml` (they are public URLs, not secrets). Loop 4 needs the Wallet → Payroll one
@@ -454,12 +455,19 @@ Nothing here is left open; each item records what was settled and why.
 9. **The Wallet took the Loop 2 handoff's `cred.css` in #11.** `.footer__note` and
    `.footer__aside` exist only there, and §7 assumes the Wallet's copy has them. It is a straight
    copy of `design/loop-2/cred.css`; Payroll and Benefits keep theirs.
-10. **Changed after the build: the peer-wake timeout is about 65s, not 5s.** §8 originally
-    specified a short timeout. In the first cold-start check on Render, the wake-up did not appear
-    to work, with the peer URLs confirmed set. A sleeping free-tier service can take up to a
-    minute to answer, and hanging up after 5s may abandon the wake-up. The ping is a background
-    task that never delays startup, so waiting longer costs nothing. Whether this was the cause
-    is not yet confirmed; the retest and the sleeping peers' logs will show.
+10. **Changed after the build: the peer-wake ping retries on 429.** §8 originally specified a
+    single request with a short timeout. Two Render cold-start retests on 2026-09-22, with peer
+    URLs confirmed correct on both ends, still didn't wake the peers; diagnostic logging (Wallet
+    only, temporary) then showed the real cause: Render's free tier can answer a wake-up with
+    `429` and header `x-render-routing: hibernate-rate-limited` rather than queuing the request
+    and answering slowly — documented, expected behavior of the platform, not a bug in this app
+    or a timeout that was too short. (The 65s timeout from the first retest was a reasonable
+    step given what was known then, but didn't address the actual cause; it stays, since a
+    successful attempt can still be slow.) `_ping` now retries a 429 every `RETRY_INTERVAL_SECONDS`
+    (5s) for up to `MAX_WAIT_SECONDS` (120s) before giving up, still as a background task that
+    never delays startup. Confirmed locally against a fake server that returns 429 twice then 200.
+    Not yet confirmed on Render; the next cold-start retest and the Wallet's own `[peer-wake]`
+    logs will show whether both peers get past the 429.
 
 ## 13. Acceptance criteria
 
