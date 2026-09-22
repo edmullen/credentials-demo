@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="design_doc_mode" content="canvas">
+<title>Loop 4 handoff — all screens</title>
+<style>
+  body { margin: 0; padding: 40px 48px; background: #EDECE9; color: #2a2825; font: 15px/1.5 "Public Sans", Helvetica, Arial, sans-serif; }
+  a { color: #7a4a10; } a:hover { color: #2a2825; }
+  h1 { margin: 0 0 6px; font-size: 26px; } h2 { margin: 40px 0 16px; font-size: 20px; }
+  p { margin: 0; max-width: 60rem; color: #5b5853; }
+  .grid { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+  figcaption { font: 13px ui-monospace, Menlo, monospace; color: #5b5853; }
+  iframe { border: 1px solid #d6d4cf; border-radius: 8px; background: #fff; }
+</style>
+</head>
+<body>
+<h1>Loop 4 · Wallet and Payroll Connect</h1>
+<p>Every page in the handoff, in flow order. Decisions and copy are in <a href="README.md">README.md</a>.</p>
+<h2>Wallet · 30rem</h2>
+<div class="grid"><figure><figcaption><a href="wallet/connections.html">wallet/connections.html</a> · Connections: no employer yet</figcaption><iframe src="wallet/connections.html" style="width:480px;height:1100px" title="Connections: no employer yet"></iframe></figure>
+<figure><figcaption><a href="wallet/employers.html">wallet/employers.html</a> · Employer lookup</figcaption><iframe src="wallet/employers.html" style="width:480px;height:1100px" title="Employer lookup"></iframe></figure>
+<figure><figcaption><a href="wallet/employers-p08.html">wallet/employers-p08.html</a> · Employer lookup: one added (p08)</figcaption><iframe src="wallet/employers-p08.html" style="width:480px;height:1100px" title="Employer lookup: one added (p08)"></iframe></figure>
+<figure><figcaption><a href="wallet/connections-chosen.html">wallet/connections-chosen.html</a> · Employer chosen</figcaption><iframe src="wallet/connections-chosen.html" style="width:480px;height:1100px" title="Employer chosen"></iframe></figure>
+<figure><figcaption><a href="wallet/pending.html">wallet/pending.html</a> · Pending: request</figcaption><iframe src="wallet/pending.html" style="width:480px;height:1100px" title="Pending: request"></iframe></figure>
+<figure><figcaption><a href="wallet/consent.html">wallet/consent.html</a> · Consent</figcaption><iframe src="wallet/consent.html" style="width:480px;height:1100px" title="Consent"></iframe></figure>
+<figure><figcaption><a href="wallet/consent-tampered.html">wallet/consent-tampered.html</a> · Consent: tampered (p23)</figcaption><iframe src="wallet/consent-tampered.html" style="width:480px;height:1100px" title="Consent: tampered (p23)"></iframe></figure>
+<figure><figcaption><a href="wallet/consent-missing.html">wallet/consent-missing.html</a> · Consent: missing credential (p24)</figcaption><iframe src="wallet/consent-missing.html" style="width:480px;height:1100px" title="Consent: missing credential (p24)"></iframe></figure>
+<figure><figcaption><a href="wallet/pending-verify.html">wallet/pending-verify.html</a> · Pending: verifying</figcaption><iframe src="wallet/pending-verify.html" style="width:480px;height:1100px" title="Pending: verifying"></iframe></figure>
+<figure><figcaption><a href="wallet/connections-connected.html">wallet/connections-connected.html</a> · Connected</figcaption><iframe src="wallet/connections-connected.html" style="width:480px;height:1100px" title="Connected"></iframe></figure>
+<figure><figcaption><a href="wallet/connections-connected-p08.html">wallet/connections-connected-p08.html</a> · Connected: three employers (p08)</figcaption><iframe src="wallet/connections-connected-p08.html" style="width:480px;height:1100px" title="Connected: three employers (p08)"></iframe></figure>
+<figure><figcaption><a href="wallet/connections-tampered.html">wallet/connections-tampered.html</a> · Outcome: couldn’t verify (p23)</figcaption><iframe src="wallet/connections-tampered.html" style="width:480px;height:1100px" title="Outcome: couldn’t verify (p23)"></iframe></figure>
+<figure><figcaption><a href="wallet/connections-not-employee.html">wallet/connections-not-employee.html</a> · Outcome: not an employee</figcaption><iframe src="wallet/connections-not-employee.html" style="width:480px;height:1100px" title="Outcome: not an employee"></iframe></figure>
+<figure><figcaption><a href="wallet/activity.html">wallet/activity.html</a> · Activity</figcaption><iframe src="wallet/activity.html" style="width:480px;height:1100px" title="Activity"></iframe></figure>
+<figure><figcaption><a href="wallet/activity-p23.html">wallet/activity-p23.html</a> · Activity: tampered (p23)</figcaption><iframe src="wallet/activity-p23.html" style="width:480px;height:1100px" title="Activity: tampered (p23)"></iframe></figure>
+<figure><figcaption><a href="wallet/activity-p24.html">wallet/activity-p24.html</a> · Activity: missing (p24)</figcaption><iframe src="wallet/activity-p24.html" style="width:480px;height:1100px" title="Activity: missing (p24)"></iframe></figure>
+<figure><figcaption><a href="wallet/credentials.html">wallet/credentials.html</a> · Credentials home: connected</figcaption><iframe src="wallet/credentials.html" style="width:480px;height:1100px" title="Credentials home: connected"></iframe></figure></div>
+<h2>Payroll · 62rem</h2>
+<div class="grid"><figure><figcaption><a href="payroll/connections.html">payroll/connections.html</a> · Connections: not connected</figcaption><iframe src="payroll/connections.html" style="width:992px;height:640px" title="Connections: not connected"></iframe></figure>
+<figure><figcaption><a href="payroll/connections-connected.html">payroll/connections-connected.html</a> · Connections: connected</figcaption><iframe src="payroll/connections-connected.html" style="width:992px;height:640px" title="Connections: connected"></iframe></figure>
+<figure><figcaption><a href="payroll/activity-empty.html">payroll/activity-empty.html</a> · Activity: empty</figcaption><iframe src="payroll/activity-empty.html" style="width:992px;height:640px" title="Activity: empty"></iframe></figure>
+<figure><figcaption><a href="payroll/activity.html">payroll/activity.html</a> · Activity</figcaption><iframe src="payroll/activity.html" style="width:992px;height:640px" title="Activity"></iframe></figure></div>
+</body>
+</html>
