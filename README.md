@@ -24,6 +24,9 @@ passed over simple REST APIs.
 ## Live apps
 
 Hosted on Render's free tier, so the first request after a quiet spell can take up to a minute.
+**Each app sleeps independently and does not wake the other two**, so if you're planning to try
+the demo, visit all three URLs first — one at a time, waiting for each to load — before you
+start.
 
 - Wallet: <https://cred-demo-wallet.onrender.com>
 - Payroll: <https://cred-demo-payroll.onrender.com>

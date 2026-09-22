@@ -164,6 +164,17 @@ directly, so nothing else depended on it. Part of AC 17 also stayed unchecked (t
 and verified-detail screenshots weren't compared, and mobile width was checked only on the
 credentials home).
 
+**Update from Loop 3 (2026-09-22): the paragraph above overstated what was known.** Calling the
+429 gate "Render-documented" turned out not to hold up — neither Render's own docs nor
+independent write-ups describe a `hibernate-rate-limited` response to a `/health` ping; that
+appears to be something this project found empirically, not something Render publishes. More to
+the point, [#48](https://github.com/edmullen/credentials-demo/issues/48)'s retest showed the
+retry-on-429 never actually works: the Wallet retried Benefits every five seconds for its full
+two-minute budget and gave up with every attempt still gated, and Benefits didn't wake until
+thirty seconds later, from Ed's own browser visit — not from the ping. #48 closed by removing
+the peer-wake feature from all three apps rather than fixing it further; full trace in
+[design.md §7](design.md#7-the-peer-wake-retest-and-a-correction-to-loop-2s-finding-48).
+
 **Process note.** Per-item PRs to `main` — the answer to Loop 1's branching question — worked as
 hoped. CI ran on every PR, closing keywords fired only in the PR that finished each issue, and
 Render deployed item by item. Committing per step and stopping before each push kept every PR
