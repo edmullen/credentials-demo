@@ -1,0 +1,227 @@
+[
+  {
+    "id": "p01",
+    "subjectId": "urn:uuid:031acde8-d4c0-5778-b6ab-84a4b612af70",
+    "givenName": "Grace",
+    "familyName": "Okafor",
+    "initials": "GO",
+    "locality": "Flemington",
+    "region": "NJ"
+  },
+  {
+    "id": "p02",
+    "subjectId": "urn:uuid:3341a32e-e1e7-5f75-943e-863cf4e7f910",
+    "givenName": "Rosa",
+    "familyName": "Medina",
+    "initials": "RM",
+    "locality": "Vineland",
+    "region": "NJ"
+  },
+  {
+    "id": "p03",
+    "subjectId": "urn:uuid:17c47e9b-f4d0-5504-aacd-4124d3fac696",
+    "givenName": "Tomasz",
+    "familyName": "Nowak",
+    "initials": "TN",
+    "locality": "Elizabeth",
+    "region": "NJ"
+  },
+  {
+    "id": "p04",
+    "subjectId": "urn:uuid:6c413a22-b670-5021-be2e-82ac59b485b8",
+    "givenName": "Aisha",
+    "familyName": "Rahman",
+    "initials": "AR",
+    "locality": "New Brunswick",
+    "region": "NJ"
+  },
+  {
+    "id": "p05",
+    "subjectId": "urn:uuid:710aaa9a-206a-572e-bb9e-40d75591488b",
+    "givenName": "Frank",
+    "familyName": "Russo",
+    "initials": "FR",
+    "locality": "Toms River",
+    "region": "NJ"
+  },
+  {
+    "id": "p06",
+    "subjectId": "urn:uuid:d62c0148-4cdf-5817-9019-f4294f8bb12f",
+    "givenName": "Tanya",
+    "familyName": "Brooks",
+    "initials": "TB",
+    "locality": "Camden",
+    "region": "NJ"
+  },
+  {
+    "id": "p07",
+    "subjectId": "urn:uuid:6688372d-3de5-5ec7-b8a2-a8f0590c599e",
+    "givenName": "Luis",
+    "familyName": "Ferreira",
+    "initials": "LF",
+    "locality": "Newark",
+    "region": "NJ"
+  },
+  {
+    "id": "p08",
+    "subjectId": "urn:uuid:43da9937-774a-58a7-ad99-df6c562f6319",
+    "givenName": "Nadia",
+    "familyName": "Haddad",
+    "initials": "NH",
+    "locality": "Paterson",
+    "region": "NJ"
+  },
+  {
+    "id": "p09",
+    "subjectId": "urn:uuid:4046893c-0b3e-598c-a9a7-d8ad0fbc1d8c",
+    "givenName": "Daniel",
+    "familyName": "Walsh",
+    "initials": "DW",
+    "locality": "Morristown",
+    "region": "NJ"
+  },
+  {
+    "id": "p10",
+    "subjectId": "urn:uuid:97577366-60b6-5693-9b08-d680665347e8",
+    "givenName": "Priya",
+    "familyName": "Shah",
+    "initials": "PS",
+    "locality": "Jersey City",
+    "region": "NJ"
+  },
+  {
+    "id": "p11",
+    "subjectId": "urn:uuid:f5eaabe2-e029-508e-ac55-1055daa74c06",
+    "givenName": "Kevin",
+    "familyName": "Tran",
+    "initials": "KT",
+    "locality": "Edison",
+    "region": "NJ"
+  },
+  {
+    "id": "p12",
+    "subjectId": "urn:uuid:5eb8ccc3-07bd-590f-9073-844f2039f794",
+    "givenName": "Helen",
+    "familyName": "Cho",
+    "initials": "HC",
+    "locality": "Somerville",
+    "region": "NJ"
+  },
+  {
+    "id": "p13",
+    "subjectId": "urn:uuid:4beb1748-0e97-5d98-b867-2488de4cac1d",
+    "givenName": "Marcus",
+    "familyName": "Reed",
+    "initials": "MR",
+    "locality": "Glassboro",
+    "region": "NJ"
+  },
+  {
+    "id": "p14",
+    "subjectId": "urn:uuid:ad0957bc-8ad8-5869-9179-a0ccc6f07d5c",
+    "givenName": "Andre",
+    "familyName": "Pierre",
+    "initials": "AP",
+    "locality": "Trenton",
+    "region": "NJ"
+  },
+  {
+    "id": "p15",
+    "subjectId": "urn:uuid:cd0a0acb-5313-5fe0-9e60-bbdad5a0407c",
+    "givenName": "Jenna",
+    "familyName": "Kowalski",
+    "initials": "JK",
+    "locality": "Asbury Park",
+    "region": "NJ"
+  },
+  {
+    "id": "p16",
+    "subjectId": "urn:uuid:5d58d99d-c5a5-5eb8-b751-d123ccb5a5d2",
+    "givenName": "Isaiah",
+    "familyName": "Coleman",
+    "initials": "IC",
+    "locality": "Willingboro",
+    "region": "NJ"
+  },
+  {
+    "id": "p17",
+    "subjectId": "urn:uuid:ff005e92-8d37-5c53-a488-6e7b42dcd2db",
+    "givenName": "Jun",
+    "familyName": "Park",
+    "initials": "JP",
+    "locality": "Fort Lee",
+    "region": "NJ"
+  },
+  {
+    "id": "p18",
+    "subjectId": "urn:uuid:311486e6-285e-5cdd-b262-c3496fe6080e",
+    "givenName": "Ana",
+    "familyName": "Reyes",
+    "initials": "AR",
+    "locality": "Atlantic City",
+    "region": "NJ"
+  },
+  {
+    "id": "p19",
+    "subjectId": "urn:uuid:bf402d54-4a34-5979-b386-01f5fc3ce172",
+    "givenName": "Emily",
+    "familyName": "Carter",
+    "initials": "EC",
+    "locality": "Livonia",
+    "region": "MI"
+  },
+  {
+    "id": "p20",
+    "subjectId": "urn:uuid:615bcf81-f148-5d47-8e9a-8457d07ed798",
+    "givenName": "Nikos",
+    "familyName": "Pappas",
+    "initials": "NP",
+    "locality": "Astoria",
+    "region": "NY"
+  },
+  {
+    "id": "p21",
+    "subjectId": "urn:uuid:7817ac99-4a1a-5407-beea-160be6bf9a5f",
+    "givenName": "Jamal",
+    "familyName": "Wright",
+    "initials": "JW",
+    "locality": "Cleveland",
+    "region": "OH"
+  },
+  {
+    "id": "p22",
+    "subjectId": "urn:uuid:e04a0d4d-2a48-5214-9fe1-c1922e6d36e8",
+    "givenName": "Victor",
+    "familyName": "Moreno",
+    "initials": "VM",
+    "locality": "Staten Island",
+    "region": "NY"
+  },
+  {
+    "id": "p23",
+    "subjectId": "urn:uuid:9c61aa59-9ecb-5b52-aeb3-98ef6e3097a5",
+    "givenName": "Carmen",
+    "familyName": "Diaz",
+    "initials": "CD",
+    "locality": "Union City",
+    "region": "NJ"
+  },
+  {
+    "id": "p24",
+    "subjectId": "urn:uuid:88fd9ae1-28dd-5750-adc1-90805fcce711",
+    "givenName": "Ray",
+    "familyName": "Miller",
+    "initials": "RM",
+    "locality": "Phillipsburg",
+    "region": "NJ"
+  },
+  {
+    "id": "p25",
+    "subjectId": "urn:uuid:7f085e7c-9e7f-5386-a9c5-978b8b5b61ed",
+    "givenName": "Megan",
+    "familyName": "Doyle",
+    "initials": "MD",
+    "locality": "Wildwood",
+    "region": "NJ"
+  }
+]

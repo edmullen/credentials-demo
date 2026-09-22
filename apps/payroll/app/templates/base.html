@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ site.title }}</title>
+  <title>{% block page_title %}{{ site.title }}{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="{{ site.fonts_url }}" rel="stylesheet">
@@ -13,22 +13,39 @@
   <a class="skip" href="#main">Skip to main content</a>
   <header class="header">
     <div class="header__inner">
-      <a class="header__brand" href="/">
+      <a class="header__brand" href="{% if person %}/p/{{ person.id }}/paystubs{% else %}/{% endif %}">
         <span class="header__mark" aria-hidden="true"></span>
         {{ site.name }}
       </a>
       <nav class="header__nav" aria-label="Main">
+        {% if person %}
+        {% for key, label, href in nav %}
+        <a href="{{ href }}"{% if key == active %} aria-current="page"{% endif %}>{{ label }}</a>
+        {% endfor %}
+        {% else %}
         {% for item in site.nav %}
         <a href="#">{{ item }}</a>
         {% endfor %}
+        {% endif %}
       </nav>
-      <span class="initials" role="img" aria-label="{{ site.user.name }}">{{ site.user.initials }}</span>
+      {% if person %}
+      <span class="initials" role="img" aria-label="{{ person.name }}">{{ person.initials }}</span>
+      {% else %}
+      <a class="btn" href="/p/p01/paystubs">Sign in</a>
+      {% endif %}
       <details class="nav-menu">
         <summary>Menu</summary>
         <div class="nav-menu__panel">
+          {% if person %}
+          {% for key, label, href in nav %}
+          <a href="{{ href }}"{% if key == active %} aria-current="page"{% endif %}>{{ label }}</a>
+          {% endfor %}
+          {% else %}
           {% for item in site.nav %}
           <a href="#">{{ item }}</a>
           {% endfor %}
+          <a href="/p/p01/paystubs">Sign in</a>
+          {% endif %}
         </div>
       </details>
     </div>
@@ -40,7 +57,8 @@
 
   <footer class="footer">
     <div class="wrap">
-      <span><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></span>
+      <p class="footer__note"><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></p>
+      {% block footer_aside %}{% if person %}<span class="footer__aside"><a href="/p/{{ person.id }}/switch">Switch person</a></span>{% endif %}{% endblock %}
     </div>
   </footer>
 </body>
