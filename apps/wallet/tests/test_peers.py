@@ -72,3 +72,39 @@ def test_ping_waits_long_enough_for_a_sleeping_peer_to_wake(monkeypatch) -> None
     monkeypatch.setattr(peers.httpx, "AsyncClient", client)
     _run(peers._ping("https://peer.example"))
     assert seen["timeout"] >= 60
+
+
+def test_ping_logs_a_success_line(monkeypatch, capsys) -> None:
+    transport = httpx.MockTransport(lambda r: httpx.Response(200))
+    real = httpx.AsyncClient
+    monkeypatch.setattr(peers.httpx, "AsyncClient", lambda **kw: real(transport=transport, **kw))
+    _run(peers._ping("https://peer.example"))
+    out = capsys.readouterr().out
+    assert "[peer-wake] pinging https://peer.example/health" in out
+    assert "[peer-wake] https://peer.example/health -> 200" in out
+
+
+def test_ping_logs_the_exception_when_a_peer_is_down(monkeypatch, capsys) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("down")
+
+    transport = httpx.MockTransport(handler)
+    real = httpx.AsyncClient
+    monkeypatch.setattr(peers.httpx, "AsyncClient", lambda **kw: real(transport=transport, **kw))
+    _run(peers._ping("https://peer.example"))
+    out = capsys.readouterr().out
+    assert "[peer-wake] https://peer.example/health failed:" in out
+    assert "ConnectError" in out
+
+
+def test_wake_peers_logs_which_urls_are_configured(monkeypatch, capsys) -> None:
+    monkeypatch.setenv("PAYROLL_URL", "https://payroll.example")
+    monkeypatch.setenv("BENEFITS_URL", "https://benefits.example")
+    monkeypatch.setattr(peers, "_ping", lambda origin: asyncio.sleep(0))
+
+    async def go():
+        await asyncio.gather(*peers.wake_peers())
+
+    _run(go())
+    out = capsys.readouterr().out
+    assert "[peer-wake] ('PAYROLL_URL', 'BENEFITS_URL') -> ['https://payroll.example', 'https://benefits.example']" in out
