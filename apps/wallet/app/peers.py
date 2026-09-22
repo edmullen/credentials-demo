@@ -2,6 +2,10 @@
 
 Render's free tier spins services down when idle, so each app pings its peers' /health once
 when it starts. Fire and forget: a peer being down must never stop this app starting.
+
+TEMPORARY: the ping isn't waking sleeping peers on Render and the cause isn't known yet
+(docs/design.md §12, item 10), so every attempt prints one line to stdout, which Render's Logs
+tab captures. Remove the prints once the cause is found and fixed.
 """
 
 import asyncio
@@ -16,11 +20,14 @@ TIMEOUT_SECONDS = 65
 
 
 async def _ping(origin: str) -> None:
+    target = origin.rstrip("/") + "/health"
+    print(f"[peer-wake] pinging {target}", flush=True)
     try:
         async with httpx.AsyncClient(timeout=TIMEOUT_SECONDS) as client:
-            await client.get(origin.rstrip("/") + "/health")
-    except Exception:
-        pass
+            response = await client.get(target)
+        print(f"[peer-wake] {target} -> {response.status_code}", flush=True)
+    except Exception as exc:
+        print(f"[peer-wake] {target} failed: {exc!r}", flush=True)
 
 
 def wake_peers() -> list[asyncio.Task]:
@@ -29,4 +36,6 @@ def wake_peers() -> list[asyncio.Task]:
     A peer whose environment variable is unset is skipped, so locally and in CI nothing runs.
     """
     origins = [os.environ.get(name, "").strip() for name in PEER_ENV_VARS]
-    return [asyncio.create_task(_ping(origin)) for origin in origins if origin]
+    configured = [o for o in origins if o]
+    print(f"[peer-wake] {PEER_ENV_VARS} -> {configured or 'none configured'}", flush=True)
+    return [asyncio.create_task(_ping(origin)) for origin in configured]
