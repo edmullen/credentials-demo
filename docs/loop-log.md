@@ -125,12 +125,12 @@ six issues closed on merge. Checked live: the three services answer `/health`, t
 **What went wrong.** Nothing broke in production, but two kinds of thing were found late.
 
 - *The design left four things open that only the build exposed*, and they are now
-  [design §12](design.md#12-decisions-and-deviations) items 5–8. AC 9 asked the switcher to keep
-  the reader on the same kind of screen without saying how. The switcher's badges depended on
-  verification, which the design built a PR after the switcher. The empty-state mockup has no
-  Income row, and the design's message table used `{issuer}` where the mockups say "the State of
-  New Jersey". Two of the four (the badge ordering and the mechanism) were spotted while writing
-  the build plan; the other two surfaced while building.
+  [design/loop-2/design.md §12](design/loop-2/design.md#12-decisions-and-deviations) items 5–8. AC 9
+  asked the switcher to keep the reader on the same kind of screen without saying how. The
+  switcher's badges depended on verification, which the design built a PR after the switcher. The
+  empty-state mockup has no Income row, and the design's message table used `{issuer}` where the
+  mockups say "the State of New Jersey". Two of the four (the badge ordering and the mechanism) were
+  spotted while writing the build plan; the other two surfaced while building.
 - *A dependency the machine couldn't install.* `pyjwt[crypto]` pulls in `cryptography`, whose 49
   and later releases publish no Intel-Mac wheel, and a source build needs OpenSSL and
   `pkg-config`. It surfaced at the first run of the generator, not at design time, and is fixed
