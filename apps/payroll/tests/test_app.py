@@ -56,7 +56,7 @@ def test_unknown_person_is_404() -> None:
     assert client.get("/p/p99/switch").status_code == 404
 
 
-def test_paystubs_page_shows_identity_and_no_employer_sections_yet() -> None:
+def test_paystubs_page_shows_identity_and_the_wallet_card() -> None:
     response = client.get("/p/p01/paystubs")
     assert response.status_code == 200
     body = response.text
@@ -66,8 +66,6 @@ def test_paystubs_page_shows_identity_and_no_employer_sections_yet() -> None:
     assert "Flemington, NJ" in body
     assert "urn:uuid:031acde8-d4c0-5778-b6ab-84a4b612af70" in body
     assert "Send your pay to your wallet" in body
-    # #18 adds the employer sections; this PR's landing page has none yet.
-    assert 'class="category"' not in body
     assert '<script' not in body
 
 

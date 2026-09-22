@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.paystubs import employers_for
+from app.paystubs import employers_for, landing_groups, paystub_view
 from app.peers import wake_peers
 from app.people import all_people, get_person
 
@@ -77,8 +77,21 @@ async def person_root(person_id: str, person: dict = Depends(viewed_person)) -> 
 
 @app.get("/p/{person_id}/paystubs", response_class=HTMLResponse)
 async def paystubs(request: Request, person: dict = Depends(viewed_person)) -> HTMLResponse:
-    # #18 adds the employer sections; this PR's landing page is identity plus the Wallet card.
-    return render(request, "paystubs.html", person, "paystubs")
+    groups = landing_groups(person["id"])
+    return render(request, "paystubs.html", person, "paystubs", groups=groups)
+
+
+@app.get("/p/{person_id}/paystubs/{paystub_id}", response_class=HTMLResponse)
+async def paystub(
+    request: Request, paystub_id: str, person: dict = Depends(viewed_person)
+) -> HTMLResponse:
+    # A paystub id that isn't this person's is a 404, not a redirect: the URL shape shouldn't
+    # imply one employee can address another's record.
+    view = paystub_view(person["id"], paystub_id)
+    if view is None:
+        raise HTTPException(status_code=404)
+    # No nav item is current on the detail page, as in Loop 2's credential detail (design §5).
+    return render(request, "paystub.html", person, "", stub=view)
 
 
 @app.get("/p/{person_id}/switch", response_class=HTMLResponse)
