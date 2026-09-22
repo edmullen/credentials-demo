@@ -16,7 +16,10 @@ and Phase 2 (Connect to Payroll):
    Connections screen with a **Connect payroll** button, remove it, Activity records both.
 2. **Payroll — Receive connection request and verify identity credential** (#16): an inbound
    endpoint, signature and trust-list verification, linking to the existing employee record by
-   subject identifier — refusing with a specific reason on each failure.
+   subject identifier — refusing with a specific reason on each failure. Payroll's own
+   Connections and Activity pages, inert since Loop 3, become real: they show the established
+   connection and log the event, reusing the Wallet's existing empty-state and activity-log
+   patterns.
 3. **Wallet — Consent screen for a verification request** (#22): a pending state while waiting
    on Payroll, the requested credential and every claim it contains, approve/deny (all-or-
    nothing), a missing-credential state, Activity and Connections updated on approval.
@@ -29,16 +32,16 @@ Design comes before build: a *medium* Claude Design pass, reusing the switcher a
 components; the lookup and consent-screen states are the new pieces.
 
 Done means: for any of the 25 people, choosing an employer and approving the request either
-connects them to Payroll (visible on Connections, logged in Activity) or shows the one correct
-failure reason — and the two people without an identity credential hit the missing-credential
-state cleanly.
+connects them to Payroll — visible on **both apps'** Connections and Activity pages — or shows
+the one correct failure reason, and the two people without an identity credential hit the
+missing-credential state cleanly.
 
 ## Affected users/systems
 - **Ed**: reviews the design handoff; owns the persistence call below and can revisit it later;
   re-tests the Render-origin traffic question once #16's real endpoint exists.
 - **`apps/wallet`**: employer lookup, consent screen, Connections and Activity updates.
 - **`apps/payroll`**: inbound connection endpoint, verification, employee-record link, failure
-  responses.
+  responses, and its own Connections and Activity screens going from inert to real.
 - **`apps/benefits`**: unaffected this loop.
 - **`tools/`**: unaffected — no new or changed sample data.
 
