@@ -89,13 +89,28 @@ Four, all under the payroll theme.
 
 ### 5.1 Meridian Payroll home — stays at `/`
 Loop 0's marketing page survives as the provider's public front page: a payroll company has one,
-and Loop 4's employer lookup needs somewhere to land. Minimal change — but the **header nav must
-change**, since "Product · Issuance · Documentation · Support" belongs to a marketing site and
-the portal beneath it needs its own. Propose both, and how a person gets from the public page
-into an account in a demo with **no sign-in and no session**.
+and Loop 4's employer lookup needs somewhere to land. **Change one thing only.**
 
-The header's identity element is currently a hard-coded "Rina Kapoor". It becomes the selected
-person, or disappears on the public page — your call, stated in the README.
+- **The nav links stay exactly as they are** — "Product · Issuance · Documentation · Support".
+  They belong to a marketing site and that is what this page is. Don't propose a replacement.
+- **The header's identity element becomes a "Sign In" button.** Today it is a hard-coded "Rina
+  Kapoor" in `.initials`; that goes. The button leads **straight to the account landing page** —
+  `/p/p01/`, following the Wallet, which redirects `/` to `p01` and moves between people through
+  the switcher.
+
+**There is no sign-in experience**: no form, no credentials, no session, nothing stored. The
+button is a door, not an authentication flow, and it should look like an ordinary product sign-in
+rather than a demo control — the demo's honesty lives in the footer note, not in hedged button
+copy. Use a real `<a>` styled as a button, since it navigates.
+
+Two things follow that the README should settle:
+
+- **What the header carries inside the portal.** The natural counterpart is the selected person's
+  `.initials` where Sign In sits on the public page, so the header is one component in two states.
+  Propose it if you agree; say what else you'd do if not.
+- **Whether there is a way back out** — a "Sign out" returning to `/`. Nothing requires one, and
+  the footer's switcher link already moves between people, but a portal with no exit is
+  conspicuous. Your call, stated either way.
 
 ### 5.2 Employee account landing — the portal's home
 The person's own pay, at `/p/<id>/`. **A section per employer**, headed with the employer name,
