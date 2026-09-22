@@ -122,13 +122,11 @@ This deliberately mirrors the Wallet's **Credentials · Connections · Activity*
 different products with the same three-part shape, and Loop 4 gives Payroll a real Connections
 screen when the Wallet connects to it.
 
-**Connections and Activity are inactive, and how they're rendered needs deciding here.** An `<a>`
-cannot be disabled: `aria-disabled="true"` on a link is advisory, leaving it focusable and
-clickable, and a screen reader announces a link that does nothing. Loop 2's rule — disabled
-actions are real `<button disabled>`, never disabled links — doesn't reach nav items. Propose the
-treatment, including whether the item is a non-focusable element rather than a link at all, and
-how it reads as *coming later* rather than *broken*. Whatever you choose applies equally in the
-mobile `<details>` nav panel, which repeats the same items.
+**Connections and Activity are ordinary links to `#`**, styled exactly like Paystubs — not
+disabled, not dimmed, not marked as coming later. This is what the Loop 0 pages already do for
+every destination that doesn't exist yet, in the nav and in the marketing page's buttons, and
+these two follow that convention until Loop 4 gives them somewhere to go. The same applies in the
+mobile `<details>` nav panel, which repeats the items.
 
 ### 5.2 Employee account landing — the portal's home
 The person's own pay, at `/p/<id>/`. **A section per employer**, headed with the employer name,
