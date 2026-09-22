@@ -193,3 +193,81 @@ Before building, compare each mockup against the design text, each acceptance cr
 the mechanism that would satisfy it, and each new dependency against Ed's machine (does it
 install here, without a compiler?). Five of this loop's six design deviations (§12 items 4–8) were
 gaps of that kind, and the plan already caught two of them.
+
+## Loop 3 — Payroll Stands Up
+
+**Built.** Payroll went from Loop 0's placeholder to a per-person, server-rendered portal, in
+three per-item PRs to `main` —
+[#54](https://github.com/edmullen/credentials-demo/pull/54) (#17, sample accounts and the
+switcher), [#55](https://github.com/edmullen/credentials-demo/pull/55) (#18, paystub display) and
+[#56](https://github.com/edmullen/credentials-demo/pull/56) (#48, retest the peer-wake retry, then
+remove it). `tools/generate_payroll_data.py` copies employers and paystubs verbatim from the Loop
+1 data and projects `people.json` to what a screen shows. Four screens: the marketing home with
+one change (Sign In), the per-employer account landing page, the paystub detail view (hourly and
+salaried share one template), and the person switcher. All three issues closed on merge, checked
+against `docs/design/loop-3/screenshots/` in the browser tool at desktop and mobile widths.
+Payroll's suite went 10 → 24 (#17) → 35 (#18) → 29 (#48, which removed six now-obsolete peer-wake
+tests); Wallet's dropped 79 → 67 and Benefits' 10 → 4, both from #48 alone. Full trace in
+[design.md](design.md).
+
+**What went wrong.** Two things, different sizes.
+
+- *The reconciliation pass (Loop 2's improvement) worked, twice over.* While writing the design,
+  it surfaced four places where the intent, the mockups and the committed data disagreed — the
+  generator script Intent 003 didn't expect, the route shape, job-title casing, and the salaried
+  installment figure — all settled with Ed before any code, recorded in
+  [design.md §11](design.md#11-decisions-and-deviations) items 1–4. At the actual plan step it
+  caught one more: §4 tagged `employers_for()` as "(#18)" work, but the switcher — built in #17 —
+  needed it, a tagging slip the design text itself got wrong.
+- *Loop 2's design record was wrong, and nothing caught it for a whole loop.* Its own
+  `design.md` called the peer-wake 429 "documented, expected behavior of the platform... not
+  a bug." That framing survived Loop 2's build, its own retro, and into this loop's design doc,
+  which planned #48 as a retest to *confirm* a fix already believed to work. It took Ed actually
+  running the retest on Render and reading two logs side by side — the Wallet's retry attempts and
+  Benefits' own startup log, correlated by timestamp — to show the retry never got through in the
+  whole idle-to-wake window, and a browser visit, not a ping, was what actually woke Benefits. A
+  search for independent documentation of the specific `hibernate-rate-limited` behavior turned up
+  nothing outside this project's own issues, either — the "documented" claim looks like an
+  assertion made once, in Loop 2, that nothing rechecked before repeating it. Full correction in
+  [design.md §7](design.md#7-the-peer-wake-retest-and-a-correction-to-loop-2s-finding-48).
+
+**Slow or expensive.** The design pass stayed cheap, as Loop 2's retro asked — a medium pass with
+one proposal per screen, no options explored. The peer-wake diagnosis was the loop's real cost,
+and it wasn't a single check: the intent's own warning that Render returns the 429 "only some of
+the time" held, and it took Ed re-running the idle-to-wake retest and pasting two separate logs
+before the pattern (a ping that never succeeds, distinct from a browser visit that reliably does)
+was visible. Neither log alone would have shown it. Ed also hit Claude's usage limit again this
+session, from Claude Design and Claude Code combined — the second loop in a row this happened
+(Loop 2's retro names the same thing). Expected to keep recurring rather than be a one-off. His
+own mitigation: open a short message an hour or so before he actually starts working, so the
+5-hour usage window resets earlier in the day rather than mid-session.
+
+**Not verified at the time of writing.** Deploy scope (AC 19) is now confirmed: Ed checked
+Render's events log and found no deploy for Benefits or Wallet around when #54 and #55 merged, so
+those Payroll-only PRs redeployed Payroll alone, as design.md §8 predicts. The env var removal is
+**not** confirmed — the opposite, in fact: `WALLET_URL`, `PAYROLL_URL` and `BENEFITS_URL` are
+still listed on all three live services. That's Render's documented Blueprint behavior, not a bug
+in #56 — "the resource retains any existing environment variable values that aren't overwritten
+by the Blueprint"
+([Render: Infrastructure as Code](https://render.com/docs/infrastructure-as-code)). Removing an
+`envVars` entry from `render.yaml` stops it from being *set*; it doesn't get an
+existing value *unset* on a resync. Clearing it needs a manual delete in the Render dashboard, six
+clicks (two vars × three services) — outside git, so nothing in this repo can do it or verify it
+was done.
+
+**Process note.** Per-item PRs continued to work cleanly — three branches, three PRs, one per
+issue, closing keyword only in the PR that finished it. New this loop: the #48 investigation was a
+live back-and-forth with Ed — pasted log screenshots, follow-up questions, a correction to Claude's
+own read of the evidence — rather than a single tool call producing a verdict. Worth naming as its
+own kind of outcome: a "retest" step can turn into a finding that changes the design, not just a
+confirmation or a "still can't reproduce."
+
+**Last loop's improvement.** *Make the plan step a reconciliation pass, not just a breakdown.* Held
+twice over — while writing the design (§11 items 1–4, all settled with Ed before build) and again
+at the implementation plan step (the `employers_for()` tagging slip, caught before any code).
+
+**One improvement for Loop 4.** Loop 4 is the first loop where Wallet and Payroll make a real
+service-to-service call to each other — the inbound connection and verification request — not a
+cosmetic wake ping. Confirm early, before building that flow, whether the same kind of request
+pattern hits the automated-traffic gate #48 found. A demo whose actual feature silently fails on
+Render's free tier would be a far bigger problem than a slow cold start.
