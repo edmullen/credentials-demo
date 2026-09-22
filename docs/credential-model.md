@@ -518,6 +518,7 @@ whether a gap is deliberate.
 | Key discovery | DID resolution, or keys published by the issuer | Hard-coded per-app trust lists; issuing apps also publish `/.well-known/jwks.json` | Subset |
 | Status and revocation | `credentialStatus` (e.g. Bitstring Status List) | None — credentials stay valid until `validUntil` | Subset (§5) |
 | Schema validation | `credentialSchema` | None | Subset |
+| Display rendering | `renderMethod` — issuer-supplied display hints, signed into the credential | None yet; a card's color is the Wallet's own, not the issuer's | Deferred (#19) |
 | Issuance protocol | OpenID for Verifiable Credential Issuance (OpenID4VCI) | REST: "give me the credentials I haven't received" | Stand-in |
 | Presentation protocol | OpenID for Verifiable Presentations (OpenID4VP) | REST: a JSON request, a POSTed presentation | Stand-in |
 | Wallet invocation | `openid4vp://` deep link or QR code | A redirect from the Benefits app to the Wallet | Stand-in |
