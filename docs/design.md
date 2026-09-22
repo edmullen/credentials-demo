@@ -466,8 +466,12 @@ Nothing here is left open; each item records what was settled and why.
     successful attempt can still be slow.) `_ping` now retries a 429 every `RETRY_INTERVAL_SECONDS`
     (5s) for up to `MAX_WAIT_SECONDS` (120s) before giving up, still as a background task that
     never delays startup. Confirmed locally against a fake server that returns 429 twice then 200.
-    Not yet confirmed on Render; the next cold-start retest and the Wallet's own `[peer-wake]`
-    logs will show whether both peers get past the 429.
+    Not yet confirmed on Render — deferred to Loop 3 so Loop 2 could close, rather than block on
+    a nice-to-have (faster cold starts, not a broken feature: each app already works once a
+    person visits it directly). [Loop 3 issue #48](https://github.com/edmullen/credentials-demo/issues/48)
+    covers the retest, removing the temporary diagnostic logging once confirmed, and porting the
+    retry to Payroll's and Benefits' `app/peers.py`, which #47 deliberately left on the older,
+    single-attempt version.
 
 ## 13. Acceptance criteria
 
