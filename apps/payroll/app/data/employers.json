@@ -1,0 +1,92 @@
+[
+  {
+    "id": "northfield",
+    "name": "Northfield Pharmaceuticals",
+    "industry": "Pharmaceuticals",
+    "city": "Bridgewater"
+  },
+  {
+    "id": "palisade",
+    "name": "Palisade Financial Group",
+    "industry": "Financial services",
+    "city": "Jersey City"
+  },
+  {
+    "id": "raritan",
+    "name": "Raritan Valley Health",
+    "industry": "Hospital system",
+    "city": "New Brunswick"
+  },
+  {
+    "id": "harborline",
+    "name": "Harborline Logistics",
+    "industry": "Warehousing and distribution",
+    "city": "Elizabeth"
+  },
+  {
+    "id": "shoreway",
+    "name": "Shoreway Supermarkets",
+    "industry": "Grocery retail",
+    "city": "Toms River"
+  },
+  {
+    "id": "pinecrest",
+    "name": "Pinecrest Home Care",
+    "industry": "Home health care",
+    "city": "Trenton"
+  },
+  {
+    "id": "libertycrest",
+    "name": "Liberty Crest Insurance",
+    "industry": "Insurance",
+    "city": "Morristown"
+  },
+  {
+    "id": "boardwalk",
+    "name": "Boardwalk Hospitality Group",
+    "industry": "Hotels and casinos",
+    "city": "Atlantic City"
+  },
+  {
+    "id": "ridgeline",
+    "name": "Ridgeline Home & Hardware",
+    "industry": "Home improvement retail",
+    "city": "Paramus"
+  },
+  {
+    "id": "crossroads",
+    "name": "Crossroads Diner Group",
+    "industry": "Restaurants",
+    "city": "Clifton"
+  },
+  {
+    "id": "ironbound",
+    "name": "Ironbound Builders",
+    "industry": "Construction",
+    "city": "Newark"
+  },
+  {
+    "id": "coastal",
+    "name": "Coastal Tech Solutions",
+    "industry": "IT services",
+    "city": "Edison"
+  },
+  {
+    "id": "brightpath",
+    "name": "Brightpath Early Learning",
+    "industry": "Child care",
+    "city": "Cherry Hill"
+  },
+  {
+    "id": "beacon",
+    "name": "Beacon Security Services",
+    "industry": "Security services",
+    "city": "Hamilton"
+  },
+  {
+    "id": "clearview",
+    "name": "Clearview Pharmacy",
+    "industry": "Pharmacy retail",
+    "city": "Hackensack"
+  }
+]
