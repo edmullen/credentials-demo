@@ -1,6 +1,5 @@
 from fastapi.testclient import TestClient
 
-from app import peers
 from app.main import app
 
 client = TestClient(app)
@@ -35,13 +34,6 @@ def test_footer_states_this_is_a_demo() -> None:
     assert "<strong>This is a demo.</strong>" in body
     assert 'href="https://github.com/edmullen/credentials-demo"' in body
     assert "<script" not in body
-
-
-def test_startup_with_no_peer_urls_still_serves_health(monkeypatch) -> None:
-    for name in peers.PEER_ENV_VARS:
-        monkeypatch.delenv(name, raising=False)
-    with TestClient(app) as started:
-        assert started.get("/health").json() == {"status": "ok"}
 
 
 def test_person_root_redirects_to_paystubs() -> None:

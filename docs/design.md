@@ -5,7 +5,7 @@ Technical design for [Intent 003](intents/003-payroll-stands-up.md), following
 Design handoff in [design/loop-3/](design/loop-3/README.md).
 
 Covers the loop's three issues, one PR each: #17 (populate Payroll), #18 (display paystubs) and
-#48 (finish the peer-wake retry).
+#48 (retest the peer-wake retry, then remove it).
 
 **Link, don't restate.** The people, employers and paystubs are defined in `sample-data.md`;
 component names, tokens, copy and accessibility rules are defined in
@@ -29,8 +29,8 @@ Three things arrive:
   Loop 4.
 - **Four screens**: the marketing home with one change, the account landing page, the paystub
   detail view, and the person switcher.
-- **#48 finishes**: the Wallet's temporary diagnostic logging comes out and the retry-on-429
-  lands in Payroll's and Benefits' copies of `app/peers.py`.
+- **#48 finishes**: a Render retest shows the retry-on-429 never actually wakes a sleeping
+  peer, so the whole peer-wake feature comes out of all three apps rather than being extended.
 
 **Nothing is signed, verified or connected this loop.** Payroll's keys, `/.well-known/jwks.json`
 and credential issuance are Loop 5; the Wallet connection and consent flow are Loop 4. Paystubs
@@ -276,53 +276,89 @@ The viewed person's row is tinted and carries `aria-current="page"`. Every row l
 person's landing page, and the footer aside reads **Back to paystubs**. Loop 2's `?from=` machinery
 is not ported (§11, item 9).
 
-## 7. Finishing the peer-wake retry (#48)
+## 7. The peer-wake retest, and a correction to Loop 2's finding (#48)
 
-Three steps, in order, as the issue sets them out.
+**The retest ran on 2026-09-22 and disproved the premise it was meant to confirm.** All three
+services idle, Wallet visited directly. The Wallet's `[peer-wake]` log showed attempts 21–24
+against Benefits, five seconds apart (01:49:08–01:49:23 PM), every one a `429
+hibernate-rate-limited` — consistent with what design/loop-2/design.md §12 item 10 predicted,
+*if* retrying just needed a longer runway. It didn't: that attempt sequence started around
+01:47:53 PM, so its 120-second budget expired around 01:49:53 PM with no 200 ever received.
+Benefits' own log confirms it: no sign of life (`Waiting for application startup`) until
+**01:50:23 PM** — thirty seconds after the Wallet's retry had already given up — and the request
+that woke it, visible four seconds later, was a browser `GET /` from Ed's own IP, not a peer
+ping. Across the whole idle-to-wake window, not one of the Wallet's automated attempts got
+through.
 
-1. **Retest against Render.** All three services genuinely idle (≥15 minutes), visit one, then
-   read the Wallet's `[peer-wake]` lines in Render's Logs tab and confirm both peers answer
-   without being visited directly. Ed runs this. Render returns the `429` only some of the time,
-   so it may take several attempts across separate sittings — **solved, not timeboxed** (Intent
-   003). If it still can't be reproduced, the next step is more instrumentation, not closing the
-   issue on the local test.
-2. **Remove the temporary diagnostic logging** from `apps/wallet/app/peers.py`: the `print`
-   calls in `_ping` and `wake_peers`, and the `TEMPORARY:` paragraph of the module docstring. The
-   retry, its two constants and the docstring's explanation of *why* a 429 is retried all stay —
-   that is the durable finding, not scaffolding.
+**Loop 2's design.md §12 item 10 called the 429 "documented, expected behavior of the
+platform... not a bug," citing Render's docs and community reports.** That claim doesn't hold
+up: neither Render's own documentation nor independent write-ups describe a
+`hibernate-rate-limited` gate on `/health`-style pings, and the retry built to work around it
+(§7 originally, this section before this rewrite) was designed on the assumption that retrying
+for longer would eventually get through — which this retest shows is false, not merely
+untested. The historical record at `design/loop-2/design.md` is left as written, per
+`decisions.md`'s rule that an archived design isn't edited to match what was learned later; this
+section is where the correction belongs, since it surfaced during this loop's own build.
 
-   Three of the Wallet's current `test_peers.py` cases assert on captured stdout
-   (`test_ping_logs_a_success_line`, `test_ping_logs_the_exception_when_a_peer_is_down`,
-   `test_wake_peers_logs_which_urls_are_configured`), and two more assert log lines alongside
-   behaviour. They are **rewritten to assert behaviour** — how many requests were made, and that
-   nothing raised — rather than deleted, so coverage doesn't fall with the logging.
-3. **Port the retry to Payroll and Benefits.** `_ping`'s retry loop plus `MAX_WAIT_SECONDS` and
-   `RETRY_INTERVAL_SECONDS` go into each app's own `app/peers.py`, each keeping its own
-   `PEER_ENV_VARS`. After this the three files differ in that tuple alone. They stay three
-   independent copies — no shared module, per the monorepo rule — and each app's `test_peers.py`
-   gains the 429 cases the Wallet already has, with `RETRY_INTERVAL_SECONDS` patched to `0` so
-   the suite never waits.
+**The better-supported explanation is that Render's free tier declines to wake a sleeping
+service for requests that look like automated inter-service polling, specifically because
+that pattern is how people defeat the spin-down that funds the free tier** — a `robots.txt`
+request to a sleeping Render service gets an automatic disallow-all with no wake at all, which
+is at least precedent for the platform special-casing bot-shaped traffic at the edge. A genuine
+browser visit, by contrast, reliably wakes it (CLAUDE.md's own "retry before diagnosing" note,
+and every successful wake observed so far). Whether the signal is the source (another
+Render service's network), the client (`httpx`'s default headers, no browser `Accept`/`User-Agent`),
+or the frequency, no combination tried during this loop got a ping through — and deliberately
+disguising one as a browser to get past the gate would be evading a free-tier anti-abuse
+mechanism on purpose, not fixing a bug, so it isn't attempted here.
 
-Steps 2 and 3 ship in the PR that closes #48, after step 1 confirms the behaviour on Render.
+**#48 closes by removing the feature, not by fixing it.** A mechanism that never once woke a
+peer across a full idle-to-wake window isn't a courtesy worth the code it costs to carry — every
+app has a background task, two env vars and a test file whose only job is a ping that doesn't
+ping anything awake. Removing it is simpler than keeping a known-inert code path around and
+explaining why it's there. Concretely:
+
+1. **`app/peers.py` and `tests/test_peers.py` are deleted in all three apps.** `wake_peers()`,
+   `_ping()`, the retry loop and its constants, `PEER_ENV_VARS` — gone, not deprecated in place.
+2. **Each app's `lifespan` hook goes with it.** `FastAPI(lifespan=lifespan)` reverts to plain
+   `FastAPI()`; there is nothing left to run at startup or cancel at shutdown.
+3. **`WALLET_URL`, `PAYROLL_URL` and `BENEFITS_URL` come out of `render.yaml`.** Only
+   `PYTHON_VERSION` remains per service. Nothing reads these env vars anymore, so leaving them
+   configured would be a stale hint that the feature still exists.
+4. **`httpx` moves back to each app's dev dependency group.** It was promoted to runtime in
+   Loop 2 solely for the peer-wake ping (§8); nothing at runtime uses it now.
+   `fastapi.testclient.TestClient` still needs it for `uv run pytest`, so it stays, just in
+   `dependency-groups.dev` where Loop 0 originally had it.
+5. **Each app's `test_startup_with_no_peer_urls_still_serves_health` test is removed**, along
+   with its `from app import peers` import — there's no peer-URL behavior left to assert.
+6. **The documented workaround is a person visiting each app directly**, which the README's
+   "Live apps" section now says plainly: visit all three before starting a demo, since no app
+   can wake the others for you anymore.
 
 ## 8. Dependencies, configuration and deployment
 
-**No app gains a dependency this loop, and neither does the generator.** Reconciled against
-CLAUDE.md's Intel Mac with no Homebrew — the check Loop 2's retro asked the plan step to make —
-there is nothing to install and nothing that could fall back to a source build. Loop 2's
+**No app gains a dependency this loop; #48 removes one from each app's runtime instead**, per
+§7 — `httpx` moves back to `dependency-groups.dev` in all three `pyproject.toml`, where Loop 0
+originally had it, now that nothing at runtime calls it. #17 and #18 add nothing. Reconciled
+against CLAUDE.md's Intel Mac with no Homebrew — the check Loop 2's retro asked the plan step to
+make — there is nothing to install and nothing that could fall back to a source build. Loop 2's
 `cryptography<49` problem has no analogue here.
+
+| Change | Where | Why |
+| --- | --- | --- |
+| `httpx` moves dev ← runtime | `pyproject.toml`, all three apps | Loop 2 promoted it for the peer-wake ping (§8 then); #48 removes that ping (§7) |
+| `WALLET_URL`, `PAYROLL_URL`, `BENEFITS_URL` removed | `render.yaml`, two per service | Nothing reads them once `app/peers.py` is gone |
 
 | Unchanged | Why it is worth saying |
 | --- | --- |
-| `pyproject.toml` in all three apps | no new dependency (above) |
 | `.python-version`, `PYTHON_VERSION` in `render.yaml` | still in step |
 | `.github/workflows/ci.yml` | no `paths:` filters, no cancellation on `main`, `ci-passed` the one required check |
-| `render.yaml` peer URLs | set in Loop 2; #48 changes the code, not the configuration |
 | `tools/generate_sample_data.py` and its output | §3 |
 
 Deploy scope behaves as designed: #17 and #18 touch `apps/payroll/**` only, so Payroll redeploys
-alone; #48 touches all three `app/peers.py`, so all three redeploy; `docs/` and `tools/` redeploy
-none.
+alone; #48 touches all three apps' `app/main.py` and `pyproject.toml` (plus `render.yaml`, which
+Render reads on every deploy but which doesn't itself gate `buildFilter`), so all three
+redeploy; `docs/` and `tools/` redeploy none.
 
 ## 9. Tests
 
@@ -357,9 +393,8 @@ network, and none depends on the current date.
   footer carries the demo note, and the aside where the mockup has one.
 
 **All three apps:** `/health` still returns `{"status": "ok"}`; `/static/cred.css` returns 200
-`text/css` from that app's own copy; the footer carries the demo statement; startup with no peer
-URLs set performs no request; `_ping` retries a 429 and succeeds on a later attempt, does not
-retry a non-429, and swallows a peer that is down.
+`text/css` from that app's own copy; the footer carries the demo statement. No test imports
+`app.peers` — that module no longer exists in any of the three apps (§7).
 
 ## 10. Build order
 
@@ -372,8 +407,9 @@ in the PR that finishes its issue.
    and is reachable; it has no paystub sections yet.
 2. **#18 — Paystubs display.** The employer sections and `.paylist` on the landing page, and the
    paystub detail view with its figure tables.
-3. **#48 — the peer-wake retry**, last, per §7 — the Render retest first, then the logging removal
-   and the port in the PR that closes it.
+3. **#48 — the peer-wake retest**, last, per §7 — confirmed the retry doesn't wake a sleeping
+   peer, and the PR that closes it removes the whole feature from all three apps rather than
+   extending it further.
 
 #17 before #18 because #18's sections render #17's data through #17's routes. #48 is independent
 of both and goes last because the retest wants the deployed services idle, which is easiest once
@@ -450,6 +486,17 @@ open.
 15. **No empty state is built**, because none is reachable: every one of the 25 people has at
     least one job and two stubs per job. A test asserts that, so the day the data changes, the
     missing state fails loudly rather than rendering a blank section.
+16. **Corrected: the peer-wake retry does not reliably wake a sleeping peer, and the whole
+    feature is removed rather than extended.** `design/loop-2/design.md` §12 item 10 treated the
+    `429 hibernate-rate-limited` response as a queueing delay a retry could wait out; this loop's
+    retest (§7) showed the retry exhausting its full budget with every attempt gated, and the
+    peer waking thirty seconds later from a direct browser visit instead. The archived Loop 2
+    record is left as written — it reflects what was believed and built at the time — and the
+    correction lives here, where it surfaced. Per §7: `app/peers.py`, its tests, each app's
+    `lifespan` hook, and the peer URL env vars in `render.yaml` are all removed, and `httpx`
+    moves back to a dev dependency in all three apps. The README now tells a person to visit each
+    app directly before a demo, which is the only wake mechanism this loop found that reliably
+    works.
 
 ## 12. Acceptance criteria
 
@@ -504,12 +551,13 @@ open.
     ordinary links to `#`, styled identically; `aria-current="page"` is on Paystubs on the account
     landing page only, in both the inline nav and the `<details>` panel.
 15. An unknown person id, and a paystub id that is not that person's, both return 404.
-16. Each app pings the other two apps' `/health` on its own startup, **retrying a 429 for up to
-    two minutes**, without waiting for a response, failing silently when a peer is down and doing
-    nothing when the peer URLs are unset. The Wallet's temporary diagnostic logging is gone and
-    its tests assert behaviour instead of stdout. A cold start on Render, with all three services
-    idle, leaves all three awake after visiting one — confirmed from Render's logs, not from the
-    local test.
+16. **No app pings its peers on startup.** `app/peers.py` and `tests/test_peers.py` are gone from
+    all three apps; each `main.py` constructs `FastAPI()` with no `lifespan`; `render.yaml`
+    carries no `WALLET_URL`/`PAYROLL_URL`/`BENEFITS_URL`; `httpx` is a dev dependency only, in
+    all three `pyproject.toml`. This loop's Render retest showed the retry never woke a sleeping
+    peer within its budget (§7) — a platform limitation, not a bug the retry could be tuned
+    past. The README's "Live apps" section tells a person to visit each app directly before a
+    demo, which is the only wake mechanism this loop found that reliably works.
 17. `GET /health` on each app returns 200 `{"status": "ok"}`; `GET /static/cred.css` returns 200
     `text/css` from that app's own copy; `uv run pytest` passes in all three app directories and
     `ci-passed` is green. No test reaches the network or depends on the current date, and no app

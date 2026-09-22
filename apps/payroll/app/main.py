@@ -1,4 +1,3 @@
-from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Request
@@ -7,21 +6,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.paystubs import employers_for, landing_groups, paystub_view
-from app.peers import wake_peers
 from app.people import all_people, get_person
 
 BASE_DIR = Path(__file__).parent
 
-
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-    tasks = wake_peers()
-    yield
-    for task in tasks:
-        task.cancel()
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
