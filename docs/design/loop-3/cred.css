@@ -1,0 +1,613 @@
+/* ============================================================
+   Cred Demo — minimal shared design system
+   One stylesheet, three app themes. No build step.
+   Theme is set with a data-app attribute on <html>:
+     data-app="wallet" | "payroll" | "benefit"
+   ============================================================ */
+
+/* --- tokens ------------------------------------------------ */
+:root {
+  --font-ui: "Public Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --bg:       oklch(0.98 0.004 70);
+  --surface:  oklch(1 0 0);
+  --ink:      oklch(0.24 0.012 70);   /* 13.4:1 on --bg */
+  --ink-2:    oklch(0.45 0.012 70);   /* 5.7:1  on --bg */
+  --line:     oklch(0.89 0.006 70);
+  --line-2:   oklch(0.80 0.006 70);
+
+  /* accent: one hue per app, same lightness + chroma */
+  --hue: 70;
+  --accent:        oklch(0.46 0.11 var(--hue));  /* button / bar fill, white text */
+  --accent-text:   oklch(0.42 0.11 var(--hue));  /* accent text on light surfaces */
+  --accent-tint:   oklch(0.955 0.022 var(--hue));
+  --accent-line:   oklch(0.86 0.045 var(--hue));
+
+  --radius: 6px;
+  --radius-lg: 10px;
+  --space: 8px;
+  --measure: 34rem;
+  --tap: 44px;
+
+  --shadow: 0 1px 2px oklch(0.24 0.012 70 / 0.06),
+            0 4px 14px oklch(0.24 0.012 70 / 0.05);
+}
+
+/* re-declare the accent tokens wherever --hue is overridden below :root
+   (var() in a :root declaration can't see a descendant's --hue) */
+.theme {
+  --accent:      oklch(0.46 0.11 var(--hue));
+  --accent-text: oklch(0.42 0.11 var(--hue));
+  --accent-tint: oklch(0.955 0.022 var(--hue));
+  --accent-line: oklch(0.86 0.045 var(--hue));
+}
+
+html[data-app="wallet"]  { --hue: 52;  }   /* warm amber */
+html[data-app="payroll"] {
+  --hue: 255; --bg: #F2F2F2;                /* corporate blue */
+  --font-display: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+html[data-app="benefit"] {
+  --hue: 172; --bg: #F2F9FA;                /* civic teal */
+  --font-display: "Libre Franklin", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* wallet reads warmer and rounder; it is a personal, mobile-first app */
+html[data-app="wallet"] {
+  --bg: #F7F7F5;
+  --radius: 10px;
+  --radius-lg: 16px;
+}
+
+/* benefit program: plainer, squarer, higher-contrast */
+html[data-app="benefit"] {
+  --radius: 4px;
+  --radius-lg: 6px;
+  --ink: oklch(0.20 0.01 200);
+}
+
+/* --- base -------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 17px;
+  line-height: 1.55;
+  text-wrap: pretty;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+h1, h2, h3 { margin: 0; line-height: 1.15; font-weight: 600; text-wrap: balance; }
+
+a { color: var(--accent-text); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { color: var(--ink); }
+
+:focus-visible {
+  outline: 3px solid var(--accent-text);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* skip link */
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+}
+.skip:focus {
+  left: calc(var(--space) * 2);
+  top: var(--space);
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0 calc(var(--space) * 2);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: var(--shadow);
+}
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+/* --- layout ------------------------------------------------ */
+.wrap {
+  width: 100%;
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 0 calc(var(--space) * 3);
+}
+html[data-app="wallet"] .wrap { max-width: 30rem; }
+
+.main { flex: 1; padding: calc(var(--space) * 7) 0 calc(var(--space) * 9); }
+
+.stack   { display: flex; flex-direction: column; gap: calc(var(--space) * 3); }
+.stack-s { display: flex; flex-direction: column; gap: var(--space); }
+.row     { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--space) * 2); }
+
+/* --- header ------------------------------------------------ */
+.header {
+  position: relative;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--space) * 2);
+  min-height: 64px;
+  padding: var(--space) calc(var(--space) * 3);
+  width: 100%;
+  max-width: 62rem;
+  margin: 0 auto;
+}
+html[data-app="wallet"] .header__inner { max-width: 30rem; }
+
+.header__brand {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--space) * 1.5);
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-decoration: none;
+}
+.header__mark {
+  width: 22px; height: 22px;
+  border-radius: 999px;
+  background: var(--accent);
+  flex: none;
+}
+html[data-app="benefit"] .header__mark { border-radius: 2px; }
+
+.header__nav { display: flex; gap: calc(var(--space) * 3); }
+.header__nav a {
+  font-size: 0.9375rem;
+  color: var(--ink-2);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+}
+.header__nav a:hover { color: var(--ink); text-decoration: underline; }
+/* small-screen disclosure menu (no JS: <details> / <summary>) */
+.nav-menu { flex: none; }
+.nav-menu > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space);
+  min-height: var(--tap);
+  padding: 0 calc(var(--space) * 1.5);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.nav-menu > summary::-webkit-details-marker { display: none; }
+.nav-menu > summary::after {
+  content: "";
+  width: 7px; height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+}
+.nav-menu[open] > summary::after { transform: translateY(2px) rotate(225deg); }
+
+.nav-menu__panel {
+  position: absolute;
+  left: 0; right: 0;
+  top: 100%;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space) calc(var(--space) * 3) calc(var(--space) * 2);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.nav-menu__panel a {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 1rem;
+  text-decoration: none;
+}
+.nav-menu__panel a:first-child { border-top: 0; }
+.nav-menu__panel a:hover { text-decoration: underline; }
+
+@media (min-width: 40.0625rem) { .nav-menu { display: none; } }
+@media (max-width: 40rem) { .header__nav { display: none; } }
+
+/* --- user initials ---------------------------------------- */
+.initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: 999px;
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-line);
+  color: var(--accent-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  flex: none;
+}
+.initials--sm { width: 32px; height: 32px; font-size: 0.75rem; }
+html[data-app="benefit"] .initials { border-radius: 4px; }
+
+/* --- card -------------------------------------------------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: calc(var(--space) * 3);
+  box-shadow: var(--shadow);
+}
+.card--flat { box-shadow: none; }
+.card__title { font-size: 1.0625rem; font-weight: 600; }
+.card__meta {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.card__body { color: var(--ink-2); margin: 0; }
+
+/* --- button ------------------------------------------------ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space);
+  min-height: var(--tap);
+  padding: 0 calc(var(--space) * 2.5);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: oklch(1 0 0);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn:hover { background: oklch(0.38 0.11 var(--hue)); color: oklch(1 0 0); }
+.btn:active { background: oklch(0.33 0.10 var(--hue)); }
+.btn[aria-disabled="true"], .btn:disabled {
+  background: var(--line);
+  border-color: var(--line-2);
+  color: var(--ink-2);
+  cursor: not-allowed;
+}
+.btn--secondary {
+  background: var(--surface);
+  border-color: var(--line-2);
+  color: var(--ink);
+}
+.btn--secondary:hover { background: var(--bg); color: var(--ink); }
+.btn--block { width: 100%; }
+
+/* --- status badge ----------------------------------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--space) * 0.75);
+  padding: 2px 10px 2px 8px;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.badge::before {
+  content: "";
+  width: 7px; height: 7px;
+  border-radius: 999px;
+  background: currentColor;
+  flex: none;
+}
+html[data-app="benefit"] .badge { border-radius: 3px; }
+
+.badge--neutral  { background: oklch(0.955 0.004 70);  border-color: oklch(0.86 0.006 70);  color: oklch(0.42 0.012 70); }
+.badge--verified { background: oklch(0.955 0.035 158); border-color: oklch(0.84 0.07 158);  color: oklch(0.40 0.10 158); }
+.badge--error    { background: oklch(0.965 0.025 25);  border-color: oklch(0.86 0.06 25);   color: oklch(0.45 0.16 25); }
+
+/* --- page intro ------------------------------------------- */
+.intro__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.intro__title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.intro__purpose {
+  max-width: var(--measure);
+  font-size: clamp(1.0625rem, 2.4vw, 1.25rem);
+  color: var(--ink-2);
+  margin: 0;
+}
+.rule { height: 1px; background: var(--line); border: 0; margin: 0; }
+
+/* --- footer ------------------------------------------------ */
+.footer {
+  border-top: 1px solid var(--line);
+  padding: calc(var(--space) * 3) 0;
+  font-size: 0.875rem;
+  color: var(--ink-2);
+}
+.footer .wrap { display: flex; flex-wrap: wrap; gap: var(--space) calc(var(--space) * 3); justify-content: space-between; }
+
+
+/* ============================================================
+   Loop 3 additions — Payroll
+   Everything below is new to Payroll's copy. No Loop 0 component
+   is redefined, with one documented exception: .panel__section
+   drops its top border when it is the panel's first child.
+   Components marked (Loop 2) are lifted verbatim from the
+   Wallet's copy; the rest are new in Loop 3.
+   ============================================================ */
+
+/* --- tokens, inside the payroll theme block ---------------- */
+html[data-app="payroll"] {
+  --surface-2:   oklch(0.99 0.002 70);
+  --accent-wash: oklch(0.985 0.012 var(--hue));
+  --figure-gap:  calc(var(--space) * 4);
+}
+
+/* --- page furniture (Loop 2) ------------------------------- */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space);
+  min-height: var(--tap);
+  font-size: 0.9375rem;
+  color: var(--accent-text);
+}
+.back::before {
+  content: "";
+  width: 7px; height: 7px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  flex: none;
+}
+
+.footer__note  { margin: 0; flex: 3; min-width: 0; }
+.footer__aside { flex: 1; min-width: 0; text-align: right; }
+
+/* --- section heading (Loop 2) ------------------------------ */
+.category { display: flex; flex-direction: column; gap: calc(var(--space) * 1.5); }
+.category__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: calc(var(--space) * 1.5);
+}
+.category__title { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; }
+/* new in Loop 3: the job this section's paystubs come from */
+.category__sub { margin: -6px 0 0; font-size: 0.9375rem; color: var(--ink-2); }
+
+/* --- panel (Loop 2) ---------------------------------------- */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) * 1.5);
+  padding: calc(var(--space) * 3);
+  border-top: 1px solid var(--line);
+}
+.panel__section:first-child { border-top: 0; }
+.panel__note {
+  margin: 0;
+  padding: calc(var(--space) * 2) calc(var(--space) * 3);
+  border-top: 1px solid var(--line);
+  background: var(--surface-2);
+  font-size: 0.875rem;
+  color: var(--ink-2);
+}
+
+/* --- person switcher (Loop 2, with an employers line) ------ */
+.people {
+  margin: 0; padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.people__row {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--space) * 1.5);
+  min-height: 60px;
+  padding: 10px calc(var(--space) * 2);
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+}
+.people li:first-child .people__row { border-top: 0; }
+.people__row:hover { background: var(--bg); color: var(--ink); }
+.people__row[aria-current="page"] { background: var(--accent-wash); }
+.people__meta { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.people__name { font-weight: 600; }
+.people__place { font-size: 0.875rem; color: var(--ink-2); }
+/* new in Loop 3: employers line, holds up to three names */
+.people__employers { font-size: 0.875rem; color: var(--ink-2); text-wrap: pretty; }
+
+/* --- who you are, on the account landing page (Loop 3) ----- */
+.ident { display: flex; flex-direction: column; gap: 2px; }
+.ident__place { color: var(--ink-2); }
+.ident__id {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+  word-break: break-all;
+}
+
+/* --- list of paystubs, one per pay period (Loop 3) --------- */
+.paylist {
+  margin: 0; padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.paylist__row {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--space) * 2);
+  min-height: 60px;
+  padding: 10px calc(var(--space) * 2.5);
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+}
+.paylist li:first-child .paylist__row { border-top: 0; }
+.paylist__row:hover { background: var(--bg); color: var(--ink); }
+.paylist__date { font-weight: 600; flex: none; }
+.paylist__period {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+}
+.paylist__go {
+  width: 8px; height: 8px;
+  border-right: 2px solid var(--line-2);
+  border-top: 2px solid var(--line-2);
+  transform: rotate(45deg);
+  flex: none;
+}
+.paylist__row:hover .paylist__go { border-color: var(--accent-text); }
+
+/* --- the pay statement (Loop 3) ---------------------------- */
+.stub__head {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: calc(var(--space) * 4);
+}
+.stub__party { display: flex; flex-direction: column; gap: 2px; min-width: 12rem; flex: 1; }
+.stub__party-name { margin: 0; font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; letter-spacing: -0.01em; }
+.stub__party-sub  { margin: 0; font-size: 0.9375rem; color: var(--ink-2); }
+
+.stub__meta {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: calc(var(--space) * 2);
+}
+.stub__meta dt { margin-bottom: 2px; }
+.stub__meta dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* earnings and deductions sit side by side; each can gain a
+   second figure column (year to date) without relayout */
+.figures__pair {
+  display: grid;
+  align-items: start;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: var(--figure-gap);
+}
+.figures {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.figures caption {
+  text-align: left;
+  padding-bottom: var(--space);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.figures th, .figures td {
+  padding: 9px 0 9px calc(var(--space) * 2);
+  text-align: right;
+  font-size: 0.9375rem;
+  white-space: nowrap;
+}
+.figures th:first-child, .figures td:first-child {
+  padding-left: 0;
+  text-align: left;
+  font-weight: 400;
+  white-space: normal;
+}
+.figures thead th {
+  padding-top: 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+}
+.figures tbody tr + tr th, .figures tbody tr + tr td { border-top: 1px solid var(--line); }
+.figures tfoot th, .figures tfoot td {
+  border-top: 2px solid var(--line-2);
+  font-weight: 600;
+}
+.figures__amount { width: 1%; }
+
+/* net pay, set apart from the lines that make it */
+.stub__net {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space) calc(var(--space) * 2);
+  background: var(--accent-wash);
+}
+.stub__net-label { font-weight: 600; }
+.stub__net-sub { margin: 0; font-size: 0.875rem; color: var(--ink-2); }
+.stub__net-amount {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
