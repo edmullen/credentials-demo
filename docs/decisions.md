@@ -76,11 +76,14 @@
   the reset. Within a session, removing a provider in the Wallet returns that person to the
   start, and reconnecting overwrites Payroll's record. Worth rechecking at Loop 6, where holding
   benefit credentials is the first state change with no in-app way back.
-- **JavaScript is allowed sparingly** (Ed, 2026-09-22, amending "no JavaScript"): only where a
-  no-JS option is insufficient, as progressive enhancement over a page that already works
-  without it. No framework, no library, no bundler. The first and only use is the Wallet's
-  pending pages (docs/design/loop-4/README.md §6), where a `<meta refresh>` would fail WCAG
-  (F41) and holding the POST open would show nothing but the browser's spinner.
+- **JavaScript is allowed sparingly** (Ed, 2026-09-22, amending "no JavaScript"; extended
+  2026-09-23 to the Credentials page): only where a no-JS option is insufficient, as
+  progressive enhancement over a page that already works without it. No framework, no library,
+  no bundler. It started on the Wallet's pending pages (docs/design/loop-4/README.md §6), where
+  a `<meta refresh>` would fail WCAG (F41) and holding the POST open would show nothing but the
+  browser's spinner. The Credentials page (docs/design.md §9) is the second use: polling for
+  income credentials that arrive after the page loads, in place with no page reload, and
+  announced through a live region rather than only redrawing silently.
 - **Payroll's issuer id is its deployed origin,** `https://cred-demo-payroll.onrender.com`, not a
   `did:example:` placeholder like the four states (Ed, 2026-09-23, docs/design.md §3 and §13 item
   1). The states' `did:example:` ids stand for real government issuers that don't expose a

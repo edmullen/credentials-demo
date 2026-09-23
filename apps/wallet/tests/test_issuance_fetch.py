@@ -10,7 +10,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from jwt.algorithms import ECAlgorithm
 
 from app import clock, credentials, outbound, state
-from app.issuance import fetch
+from app.issuance import CHECK_COOLDOWN, check_status, fetch, maybe_start_check
 
 ISSUER_ID = "https://cred-demo-payroll.onrender.com"
 PERSON_ID = "p01"
@@ -185,3 +185,96 @@ def test_a_stale_answer_is_dropped(connected_link, monkeypatch) -> None:
     # The stale write didn't happen: the check is still the superseding one, still "checking".
     check = state.get_check(PERSON_ID, PROVIDER_ID)
     assert check.token == "superseding" and check.state == "checking"
+
+
+# ---- maybe_start_check: the 30-second window (docs/design.md §9, §13 item 7) -------------------
+
+
+def test_starts_a_check_when_none_has_run(connected_link, monkeypatch) -> None:
+    spawned = []
+    monkeypatch.setattr(outbound, "spawn", lambda coro: spawned.append(coro))
+    maybe_start_check(PERSON_ID, PROVIDER_ID)
+    assert len(spawned) == 1
+    spawned[0].close()  # avoid an "unawaited coroutine" warning
+
+
+def test_does_not_start_a_second_check_while_one_is_running(connected_link, monkeypatch) -> None:
+    state.set_check(PERSON_ID, PROVIDER_ID, state.Check(state="checking", token="t"))
+    spawned = []
+    monkeypatch.setattr(outbound, "spawn", lambda coro: spawned.append(coro))
+    maybe_start_check(PERSON_ID, PROVIDER_ID)
+    assert spawned == []
+
+
+def test_does_not_restart_within_the_cooldown(connected_link, monkeypatch) -> None:
+    state.set_check(
+        PERSON_ID, PROVIDER_ID,
+        state.Check(state="done", token="t", result="none", finished_at=clock.now()),
+    )
+    spawned = []
+    monkeypatch.setattr(outbound, "spawn", lambda coro: spawned.append(coro))
+    maybe_start_check(PERSON_ID, PROVIDER_ID)
+    assert spawned == []
+
+
+def test_restarts_once_the_cooldown_has_passed(connected_link, monkeypatch) -> None:
+    finished = clock.now() - CHECK_COOLDOWN
+    state.set_check(
+        PERSON_ID, PROVIDER_ID,
+        state.Check(state="done", token="t", result="none", finished_at=finished),
+    )
+    spawned = []
+    monkeypatch.setattr(outbound, "spawn", lambda coro: spawned.append(coro))
+    maybe_start_check(PERSON_ID, PROVIDER_ID)
+    assert len(spawned) == 1
+    spawned[0].close()
+
+
+def test_never_starts_a_check_when_not_connected(monkeypatch) -> None:
+    state.add_employer(PERSON_ID, PROVIDER_ID, "pinecrest")  # never connected
+    spawned = []
+    monkeypatch.setattr(outbound, "spawn", lambda coro: spawned.append(coro))
+    maybe_start_check(PERSON_ID, PROVIDER_ID)
+    assert spawned == []
+
+
+# ---- check_status: the four answers (docs/design.md §9) ----------------------------------------
+
+
+def test_status_checking_while_running(connected_link) -> None:
+    state.set_check(PERSON_ID, PROVIDER_ID, state.Check(state="checking", token="t"))
+    assert check_status(PERSON_ID) == {"state": "checking"}
+
+
+def test_status_none_with_no_check_yet(connected_link) -> None:
+    assert check_status(PERSON_ID) == {"state": "none"}
+
+
+def test_status_new_with_an_announcement(connected_link) -> None:
+    state.set_check(
+        PERSON_ID, PROVIDER_ID,
+        state.Check(state="done", token="t", result="new", count=2, finished_at=clock.now()),
+    )
+    assert check_status(PERSON_ID) == {
+        "state": "new",
+        "announce": "2 new income credentials from Meridian Payroll.",
+    }
+
+
+def test_status_lost_reports_new_with_no_announcement(connected_link) -> None:
+    state.set_check(
+        PERSON_ID, PROVIDER_ID,
+        state.Check(state="done", token="t", result="lost", finished_at=clock.now()),
+    )
+    assert check_status(PERSON_ID) == {"state": "new"}
+
+
+def test_status_error_with_an_announcement(connected_link) -> None:
+    state.set_check(
+        PERSON_ID, PROVIDER_ID,
+        state.Check(state="done", token="t", result="error", finished_at=clock.now()),
+    )
+    assert check_status(PERSON_ID) == {
+        "state": "error",
+        "announce": "Couldn't reach Meridian Payroll to check for new credentials.",
+    }

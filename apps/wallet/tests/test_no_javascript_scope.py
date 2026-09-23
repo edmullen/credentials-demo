@@ -1,14 +1,15 @@
-"""Only the two pending pages contain a <script>, and no page loads one from a URL
-(docs/design.md §8)."""
+"""Only the two pending pages and the Credentials page (when connected) contain a <script>,
+and no page loads one from a URL (docs/design.md §9, §15 item 10)."""
 
 from fastapi.testclient import TestClient
 
+from app import clock, state
 from app.main import app
 
 client = TestClient(app)
 
 PLAIN_PAGES = [
-    "/p/p01/credentials",
+    "/p/p01/credentials",  # not connected: no script
     "/p/p01/connections",
     "/p/p01/connections/employers",
     "/p/p01/activity",
@@ -19,6 +20,15 @@ PLAIN_PAGES = [
 def test_no_script_on_ordinary_pages() -> None:
     for page in PLAIN_PAGES:
         assert "<script" not in client.get(page).text, page
+
+
+def test_credentials_page_has_a_script_once_connected() -> None:
+    link = state.add_employer("p01", "meridian", "pinecrest")
+    link.connected_at = clock.now()
+    link.connection_id = "conn-1"
+    body = client.get("/p/p01/credentials").text
+    assert body.count("<script") == 1
+    assert "<script src" not in body
 
 
 def test_check_again_works_as_a_plain_get_without_javascript() -> None:

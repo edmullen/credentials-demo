@@ -20,11 +20,12 @@ from app.attempt import (
     where_is_the_attempt,
 )
 from app.connections import (
-    add_employer, connections_title, income_note, provider_panels, remove_link,
+    add_employer, connections_title, income_check_view, income_note, provider_panels, remove_link,
 )
 from app.credentials import credentials_for, find_credential, identity_status
+from app.issuance import check_status, maybe_start_check
 from app.people import all_people, get_person
-from app.providers import all_employers, get_provider
+from app.providers import all_employers, all_providers, get_provider
 from app.verify import Outcome
 
 BASE_DIR = Path(__file__).parent
@@ -80,6 +81,8 @@ async def landing(request: Request) -> HTMLResponse:
 
 @app.get("/p/{person_id}/credentials", response_class=HTMLResponse)
 async def credentials(request: Request, person: dict = Depends(viewed_person)) -> HTMLResponse:
+    for provider_id in all_providers():
+        maybe_start_check(person["id"], provider_id)
     all_credentials = credentials_for(person["id"])
     identity = [c for c in all_credentials if c.category == "Identity"]
     income = [c for c in all_credentials if c.category == "Income"]
@@ -92,9 +95,15 @@ async def credentials(request: Request, person: dict = Depends(viewed_person)) -
         identity=identity, note=income_note(person["id"]),
         income_total=len(income), drawn=drawn, over=over,
         stack_n=len(drawn) + (1 if over else 0) - 1, new_count=new_count, seen=seen,
+        check=income_check_view(person["id"]),
     )
     state.mark_seen(person["id"], (c.id for c in drawn))
     return response
+
+
+@app.get("/p/{person_id}/credentials/check")
+async def credentials_check(person: dict = Depends(viewed_person)) -> dict:
+    return check_status(person["id"])
 
 
 @app.get("/p/{person_id}/credentials/income", response_class=HTMLResponse)

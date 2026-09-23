@@ -11,7 +11,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from fastapi.testclient import TestClient
 from jwt.algorithms import ECAlgorithm
 
-from app import credentials, state
+from app import clock, credentials, state
 from app.main import app
 
 client = TestClient(app)
@@ -183,3 +183,63 @@ def test_income_detail_tampered_variant_shows_the_note(payroll_trust) -> None:
     assert ">Tampered<" in body
     assert "The rest of this credential is shown as it was received." in body
     assert 'cred--issuer' in body  # the issuer bar still colors on the detail page, per the handoff
+
+
+# ---- The check state below the cards (docs/design.md §9) ---------------------------------------
+
+
+def _connect(person_id: str) -> None:
+    link = state.add_employer(person_id, "meridian", "pinecrest")
+    link.connected_at = clock.now()
+    link.connection_id = "conn-1"
+
+
+def test_finished_with_new_cards_shows_neither_form_nor_error(payroll_trust) -> None:
+    _connect("p01")
+    state.set_check(
+        "p01", "meridian",
+        state.Check(state="done", token="t", result="new", count=1, finished_at=clock.now()),
+    )
+    _receive("p01", _income(payroll_trust, n=1))
+    body = client.get("/p/p01/credentials").text
+    assert '<form class="category__check"' not in body
+    assert "Couldn&rsquo;t reach" not in body
+    assert 'data-check=""' in body
+
+
+def test_running_shows_the_status_url_and_the_no_js_form(payroll_trust) -> None:
+    _connect("p01")
+    state.set_check("p01", "meridian", state.Check(state="checking", token="t"))
+    credential_id, token = _income(payroll_trust, n=1)
+    _receive("p01", (credential_id, token))
+    state.mark_seen("p01", [credential_id.removeprefix("urn:uuid:")])  # new_count 0, keeps the form
+    body = client.get("/p/p01/credentials").text
+    assert 'data-check="/p/p01/credentials/check"' in body
+    form_start = body.index('class="category__check"')
+    form_tag = body[form_start - 20 : form_start + 80]
+    assert "hidden" not in form_tag
+    assert 'action="/p/p01/credentials"' in form_tag
+
+
+def test_error_shows_the_note_and_check_again(payroll_trust) -> None:
+    _connect("p01")
+    state.set_check(
+        "p01", "meridian", state.Check(state="done", token="t", result="error", finished_at=clock.now())
+    )
+    _receive("p01", _income(payroll_trust, n=1))
+    body = client.get("/p/p01/credentials").text
+    assert "Couldn&rsquo;t reach Meridian Payroll to check for new credentials." in body
+    assert ">Check again<" in body
+    assert '<form class="category__check"' not in body
+
+
+def test_lost_connection_keeps_the_cards_and_offers_finish_connecting(payroll_trust) -> None:
+    _connect("p01")
+    state.get_link("p01", "meridian").connected_at = None  # fetch() already cleared it
+    state.get_link("p01", "meridian").connection_id = None
+    _receive("p01", _income(payroll_trust, n=1))
+    body = client.get("/p/p01/credentials").text
+    assert "Pinecrest Home Care" in body  # the card is still shown
+    assert "Connect to Meridian Payroll again to keep receiving your pay as credentials." in body
+    assert '<a class="btn btn--secondary" href="/p/p01/connections">Finish connecting</a>' in body
+    assert "<script" not in body  # not connected: no live check to run
