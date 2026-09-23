@@ -1,0 +1,11 @@
+{
+  "meridian": {
+    "name": "Meridian Payroll",
+    "url": "https://cred-demo-payroll.onrender.com",
+    "employers": [
+      "beacon", "boardwalk", "brightpath", "clearview", "coastal", "crossroads",
+      "harborline", "ironbound", "libertycrest", "northfield", "palisade",
+      "pinecrest", "raritan", "ridgeline", "shoreway"
+    ]
+  }
+}
