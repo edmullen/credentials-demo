@@ -466,3 +466,94 @@ other, with the measuring script ready. Then treat a clean side-by-side table as
 condition, alongside green CI. Loop 4a showed both halves: skipping the design, and letting the
 plan slip, cost a rebuild and a mid-build pause. Loop 5 adds the Wallet's first income-credential
 screens, so it needs both.
+
+## Loop 5 — Payroll Issues Credentials
+
+**Built.** Payroll becomes an issuer: one signed `PaystubCredential` per paystub, and the Wallet
+fetches, verifies, stores and displays them. One issue,
+[#19](https://github.com/edmullen/credentials-demo/issues/19) (#9 closed earlier as superseded).
+The plan step held both halves of Loop 4a's improvement:
+[#95](https://github.com/edmullen/credentials-demo/pull/95) wrote the reconciliation
+(design.md §15, every handoff page and all 24 acceptance criteria checked against the design,
+no gaps found) and the side-by-side setup (§16), dry-run confirmed identical against the current
+app before any Loop 5 code existed. Six build PRs followed, per §12, all hands-off merges once
+CI was green:
+
+- [#96](https://github.com/edmullen/credentials-demo/pull/96): Payroll's signing key,
+  `issuer.json`, `/health`, JWKS, the Wallet's trust entry for `PaystubCredential`.
+- [#97](https://github.com/edmullen/credentials-demo/pull/97): Payroll issues — the credential
+  builder, `connectionId`, call 3, Activity.
+- [#98](https://github.com/edmullen/credentials-demo/pull/98): Payroll's paystub page gains the
+  credential panel.
+- [#99](https://github.com/edmullen/credentials-demo/pull/99): the Wallet receives on connect —
+  state, `fetch()`, the income stack, issuer color, New, the income list and detail pages.
+- [#100](https://github.com/edmullen/credentials-demo/pull/100): the Wallet checks on open — the
+  background check, the status endpoint, the script, the no-JS fallback, the lost-connection
+  note. Closed #19.
+- [#101](https://github.com/edmullen/credentials-demo/pull/101): the live pass on Render (docs
+  only).
+
+Each app's `cred.css` is the Loop 5 handoff file, byte for byte, pinned by length and SHA-256.
+Every UI PR carried a side-by-side table against the handoff, and every one came out identical;
+PR 5 added no new CSS, so it reused PR 4's already-checked classes rather than measuring again.
+The Wallet's suite grew 182 → 204 → 219 (PRs 4, 5), Payroll's 71 → 76 → 92 → 97 (PRs 1–3),
+Benefits stayed at 4. The design and its reconciliation are in [design.md](design.md).
+
+**What went wrong.**
+
+- *A real secret leaked, briefly, in a public place.* PR 1's description put
+  `PAYROLL_SIGNING_KEY`'s full private JWK in plain text, framed as "the value to paste into
+  Render" — and Ed pasted it in as the real production secret. At that moment a demo throwaway
+  key became a genuine leak on a public repo. Caught before the PR merged: the key was rotated
+  (the generator re-run, which re-keys the four states too), the PR description scrubbed, and
+  the new value handed to Ed in chat instead. GitHub keeps edit history on public repos, so
+  scrubbing the text didn't undo the exposure — only rotating the key did. Written up as a
+  standing rule in CLAUDE.md and Claude's memory: a secret's value never goes in a PR
+  description, issue, commit message or code comment, regardless of how disposable it looks
+  going in.
+- *A hue bug shipped in #99 and was caught live by Ed, after merge, on the deployed Wallet.*
+  `issuer_hue` was gated on the full `VERIFIED` outcome, so a `NOT_YET_VALID` or `EXPIRED`
+  credential fell back to sand even though its signature was genuine — design.md §4 only
+  excludes a tampered credential or an unreadable color, not the temporal window. It surfaced
+  because p08's real pay dates (16–30 Sep 2026) are after today's real date, a state the fixed
+  test clock never reaches. Fixed in
+  [#102](https://github.com/edmullen/credentials-demo/pull/102) with a regression test. The
+  broader lesson: a display rule gated on "verified" needs a second look at which of the *other*
+  outcomes should still pass it, not just whether verification failed outright — and fixed-clock
+  tests can't stand in for checking real, moving-clock states before they ship.
+- *Local dev-server state got wiped mid-verification, twice.* `uvicorn --reload` restarts on any
+  file save, and in-memory state doesn't survive a restart (by design, decisions.md). Redoing a
+  live connect flow through the browser after an edit cost a few minutes each time. Worth
+  finishing edits before starting a from-scratch local verification pass, not interleaving them.
+
+**Slow or expensive.** Nothing structural. The whole loop — plan step, six PRs, three live
+verification passes (local against a real Payroll, then Render, then the hue-bug fix) — ran in
+one session. No PR needed more than one round of test fixes before going green.
+
+**Confirmed this time, where Loop 4a's retro had to leave it open.** *Deploy scope per PR.* Ed
+checked Render's events log after PR 6 merged and confirmed every PR redeployed only the
+services §12 said it should: PR 1 both Wallet and Payroll (the re-key), PRs 2–3 Payroll only,
+PRs 4–5 Wallet only, the docs PRs neither.
+
+**Process note.** Hands-off merges held for every build PR. Ed stepped in at the two points that
+needed his own action or judgment: setting `PAYROLL_SIGNING_KEY` in Render (twice, after the
+rotation), and catching the hue bug by looking at his own deployed wallet — something no test
+suite running against a fixed clock could have surfaced. Live verification happened three times
+this loop, not once: locally against a real local Payroll (real keys, real signatures) mid-build,
+then again on Render after the last build PR, then a third time chasing the hue-bug fix. Doing
+the real end-to-end check locally, before ever touching Render, is what made both Render passes
+uneventful.
+
+**Last loop's improvement.** Held. The reconciliation and side-by-side setup were finished
+before PR 1, and every UI PR's side-by-side table was clean before it merged — no rebuild, no
+mid-build pause, unlike Loop 4a.
+
+**One improvement for Loop 6.** When a display property depends on a verification outcome,
+enumerate every outcome the type-check allows and decide each one explicitly — don't gate on
+"the happy-path outcome" and assume everything else should fall back together. `Outcome` has
+five values; a card's hue this loop only needed to exclude two of them (`TAMPERED` and
+`UNRECOGNIZED_ISSUER`), and gating on the single positive case instead of naming those two
+negatives is what let the other two (`EXPIRED`, `NOT_YET_VALID`) get swept in by accident. Loop
+6 adds Benefits' own eligibility outcomes alongside the identity and income ones already in
+play — the same trap is easy to hit again with more outcomes around, and it's cheap to check by
+writing out the full outcome table before deciding what each display rule keys on.
