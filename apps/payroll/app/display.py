@@ -5,13 +5,19 @@ Money is parsed with Decimal, never float, because the committed figures are exa
 strings.
 """
 
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 
 # employers.json carries a city and no region, and all fifteen employers are in New Jersey
 # (design/loop-3/README.md, known gap 5). One constant means a non-NJ employer is a one-line
 # change rather than a search through templates.
 EMPLOYER_REGION = "NJ"
+
+# Every employer is in New Jersey (docs/design.md §6).
+EASTERN = ZoneInfo("America/New_York")
+
+DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 MONTHS = [
     "January", "February", "March", "April", "May", "June",
@@ -73,3 +79,27 @@ def installment(stub: dict) -> str:
 def employer_place(employer: dict) -> str:
     """'Trenton, NJ'"""
     return f"{employer['city']}, {EMPLOYER_REGION}"
+
+
+def time_of_day(moment: datetime) -> str:
+    """'2:14 PM' in America/New_York, no leading zero on the hour."""
+    d = moment.astimezone(EASTERN)
+    hour = int(d.strftime("%I"))
+    return f"{hour}:{d.strftime('%M %p')}"
+
+
+def when(moment: datetime) -> str:
+    """'22 Sep 2026, 2:14 PM' in America/New_York."""
+    d = moment.astimezone(EASTERN)
+    return f"{d.day} {MONTHS[d.month - 1][:3]} {d.year}, {time_of_day(moment)}"
+
+
+def day_heading(moment: datetime) -> str:
+    """'Tuesday 22 September' in America/New_York."""
+    d = moment.astimezone(EASTERN)
+    return f"{DAYS[d.weekday()]} {d.day} {MONTHS[d.month - 1]}"
+
+
+def issuer_phrase(name: str) -> str:
+    """How a sentence refers to an issuer: 'the State of New Jersey', but 'Meridian Payroll'."""
+    return f"the {name}" if name.startswith("State of ") else name

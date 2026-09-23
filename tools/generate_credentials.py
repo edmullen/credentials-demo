@@ -11,6 +11,7 @@ Run by hand from the repo root:
 Reads   tools/sample_data/generated/people.json, tools/sample_data/photos/pNN.jpg
 Writes  keys/{nj,mi,ny,oh}-1.jwk.json    private keys, gitignored
         apps/wallet/app/data/{people,credentials,trust}.json
+        apps/payroll/app/data/trust.json
 
 A one-shot generator with committed output, as docs/decisions.md allows: nothing runs it at
 build or deploy time. Keys are disposable (docs/credential-model.md §2): every run replaces
@@ -42,6 +43,7 @@ SAMPLE_PEOPLE = ROOT / "tools" / "sample_data" / "generated" / "people.json"
 PHOTOS = ROOT / "tools" / "sample_data" / "photos"
 KEYS_DIR = ROOT / "keys"
 WALLET_DATA = ROOT / "apps" / "wallet" / "app" / "data"
+PAYROLL_DATA = ROOT / "apps" / "payroll" / "app" / "data"
 
 # Same namespace the sample data uses for name-based ids (tools/generate_sample_data.py).
 NAMESPACE = uuid.UUID("6f1c2a4e-2d7b-5c1e-9a3f-0b8d4e7c1a52")
@@ -222,9 +224,9 @@ def wallet_person(person: dict) -> dict:
     }
 
 
-def write_json(name: str, data) -> None:
-    WALLET_DATA.mkdir(parents=True, exist_ok=True)
-    (WALLET_DATA / name).write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+def write_json(name: str, data, directory: Path = WALLET_DATA) -> None:
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / name).write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
 
 
 def main() -> None:
@@ -241,6 +243,9 @@ def main() -> None:
     write_json("people.json", [wallet_person(p) for p in people])
     write_json("credentials.json", credentials)
     write_json("trust.json", trust_list(keys))
+    # Payroll trusts the same four states, until it gets its own keys in Loop 5
+    # (docs/design.md §7). Kept in step with the Wallet's, so a re-run can't leave one behind.
+    write_json("trust.json", trust_list(keys), directory=PAYROLL_DATA)
 
     tampered = [p["id"] for p in holders if p.get("tamper")]
     print(f"Keys:        {len(keys)} written to keys/ (gitignored)")

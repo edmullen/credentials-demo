@@ -611,3 +611,71 @@ html[data-app="payroll"] {
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
+
+
+/* ============================================================
+   Loop 4 additions — Payroll
+   Everything below is new to Payroll's copy. Components marked
+   (Loop 2) or (Loop 4, Wallet) are lifted verbatim from the
+   Wallet's copy; .connlist is new here.
+   ============================================================ */
+
+/* --- badge glyph (Loop 2) ---------------------------------- */
+.badge__icon { font-size: 0.75rem; line-height: 1; }
+.badge:has(.badge__icon)::before { display: none; }
+
+/* --- empty slot (Loop 2) ----------------------------------- */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--space) * 2);
+  min-height: 186px;
+  padding: calc(var(--space) * 3.5) calc(var(--space) * 2.5);
+  border: 1px dashed var(--line-2);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  text-align: center;
+}
+.empty p { margin: 0; }
+
+/* --- activity log (Loop 2) --------------------------------- */
+.log { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.log__item { display: flex; gap: calc(var(--space) * 1.5); padding: calc(var(--space) * 2) 0; border-top: 1px solid var(--line); }
+.log__dot {
+  width: 9px; height: 9px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: oklch(0.80 0.07 var(--hue));
+  flex: none;
+}
+.log__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.log__time { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--ink-2); }
+
+/* --- activity marker: status palette (Loop 4, Wallet) ------- */
+.log__dot--neutral  { background: oklch(0.80 0.006 70); }
+.log__dot--verified { background: oklch(0.62 0.12 158); }
+.log__dot--caution  { background: oklch(0.75 0.13 85); }
+.log__dot--error    { background: oklch(0.60 0.17 25); }
+
+/* --- the connected wallet, one row (new in Loop 4) ---------- */
+.connlist {
+  margin: 0; padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.connlist__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space) calc(var(--space) * 2);
+  min-height: 72px;
+  padding: 12px calc(var(--space) * 2.5);
+}
+.connlist__meta { display: flex; flex-direction: column; min-width: 12rem; flex: 1; }
