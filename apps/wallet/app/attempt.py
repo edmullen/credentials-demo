@@ -7,6 +7,7 @@ an answer arriving after Try again, Remove or Disconnect is dropped.
 from app import clock, outbound, state
 from app.credentials import CATEGORIES, credentials_for, find_credential
 from app.display import join_and
+from app.issuance import fetch
 from app.outcomes import CONNECTION_STATES, connection_sentences
 from app.providers import all_providers, get_employer
 
@@ -203,9 +204,16 @@ async def run_call_two(person_id: str, provider_id: str, token: str) -> None:
     if outcome == "connected":
         link.connected_at = clock.now()
         link.outcome = None
+        link.connection_id = body["connectionId"]
         state.log(
             person_id, "verified", f"New connection to {provider['name']} established", clock.now()
         )
+        # The pending-verify page is still polling, so the extra second or two is hidden
+        # there; Payroll is warm at this moment (docs/design.md §9).
+        await fetch(person_id, provider_id)
+        check = state.get_check(person_id, provider_id)
+        if check is not None and check.result == "new":
+            link.arrived = check.count
     else:
         link.outcome = reason
         band = CONNECTION_STATES[reason]

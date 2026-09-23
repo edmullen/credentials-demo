@@ -47,9 +47,11 @@ def band_for(person_id: str, provider_name: str, link: state.Link) -> dict | Non
     if link.connected_at:
         s = CONNECTION_STATES["connected"]
         sentences = connection_sentences("connected", provider_name, when(link.connected_at))
+        arrived = link.arrived
+        link.arrived = None  # the line shows once; this GET is what "once" means (§9)
         return {
             "variant": s.variant, "glyph": s.glyph, "label": s.label,
-            "sentences": sentences, "credential_link": None,
+            "sentences": sentences, "credential_link": None, "arrived": arrived,
         }
     if link.outcome:
         s = CONNECTION_STATES[link.outcome]

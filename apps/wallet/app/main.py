@@ -80,10 +80,30 @@ async def landing(request: Request) -> HTMLResponse:
 
 @app.get("/p/{person_id}/credentials", response_class=HTMLResponse)
 async def credentials(request: Request, person: dict = Depends(viewed_person)) -> HTMLResponse:
-    identity = [c for c in credentials_for(person["id"]) if c.category == "Identity"]
-    return render(
+    all_credentials = credentials_for(person["id"])
+    identity = [c for c in all_credentials if c.category == "Identity"]
+    income = [c for c in all_credentials if c.category == "Income"]
+    seen = state.seen_for(person["id"])
+    over = len(income) > 5
+    drawn = income[:5]
+    new_count = sum(1 for c in drawn if c.id not in seen)
+    response = render(
         request, "credentials.html", person, "credentials",
         identity=identity, note=income_note(person["id"]),
+        income_total=len(income), drawn=drawn, over=over,
+        stack_n=len(drawn) + (1 if over else 0) - 1, new_count=new_count, seen=seen,
+    )
+    state.mark_seen(person["id"], (c.id for c in drawn))
+    return response
+
+
+@app.get("/p/{person_id}/credentials/income", response_class=HTMLResponse)
+async def income_credentials(request: Request, person: dict = Depends(viewed_person)) -> HTMLResponse:
+    # Declared ahead of the detail route below, so "income" isn't read as a credential id.
+    income = [c for c in credentials_for(person["id"]) if c.category == "Income"]
+    return render(
+        request, "income.html", person, "credentials",
+        income=income, seen=state.seen_for(person["id"]),
     )
 
 
@@ -96,10 +116,12 @@ async def credential(
     found = find_credential(person["id"], credential_id)
     if found is None:
         raise HTTPException(status_code=404)
-    return render(
-        request, "credential.html", person, "credentials",
-        c=found, tampered=found.outcome is Outcome.TAMPERED,
-    )
+    tampered = found.outcome is Outcome.TAMPERED
+    if found.category == "Income":
+        return render(
+            request, "income-credential.html", person, "credentials", c=found, tampered=tampered
+        )
+    return render(request, "credential.html", person, "credentials", c=found, tampered=tampered)
 
 
 @app.get("/p/{person_id}/connections", response_class=HTMLResponse)

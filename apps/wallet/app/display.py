@@ -1,6 +1,7 @@
 """Display text the Wallet composes. None of it is signed by an issuer (docs/design.md §6)."""
 
 from datetime import date, datetime
+from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 # Every employer and almost every credential is in New Jersey (docs/design.md §6).
@@ -52,6 +53,32 @@ def numeric_date(value: str | None) -> str:
     """'03/11/82' (MM/DD/YY), the DOB line on a credentials card."""
     d = parse_date(value)
     return d.strftime("%m/%d/%y") if d else ""
+
+
+def period_short(start: str, end: str) -> str:
+    """'16–30 Sep 2026'. Collapses a single month with an en dash (docs/design.md §8)."""
+    d1, d2 = parse_date(start), parse_date(end)
+    if d1.year == d2.year and d1.month == d2.month:
+        return f"{d1.day}–{d2.day} {MONTHS[d2.month - 1][:3]} {d2.year}"
+    return f"{short_date(start)} – {short_date(end)}"
+
+
+def period_long(start: str, end: str) -> str:
+    """'1–15 September 2026'. Same collapsing rule as period_short, full month names."""
+    d1, d2 = parse_date(start), parse_date(end)
+    if d1.year == d2.year and d1.month == d2.month:
+        return f"{d1.day}–{d2.day} {MONTHS[d2.month - 1]} {d2.year}"
+    return f"{long_date(start)} – {long_date(end)}"
+
+
+def money(amount: dict) -> str:
+    """A MonetaryAmount claim, '$1,100.00'. USD only, per credential-model §3 — the demo's."""
+    return f"${Decimal(str(amount['value'])):,.2f}"
+
+
+def frequency_label(value: str) -> str:
+    """'semimonthly' -> 'Semimonthly'."""
+    return value.capitalize() if value else ""
 
 
 def time_of_day(moment: datetime) -> str:
