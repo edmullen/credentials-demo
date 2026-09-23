@@ -16,7 +16,6 @@
             <span class="people__meta">
               <span class="people__name">{{ p.name }}</span>
               <span class="people__place">{{ p.place }}</span>
-              <span class="people__place">{{ "Employer" if p.employerNames|length == 1 else "Employers" }}: {{ p.employerNames|join(", ") }}</span>
             </span>
             <span class="badge badge--{{ p.status.variant }}"><span class="badge__icon" aria-hidden="true">{{ p.status.glyph|safe }}</span>{{ p.status.label }}</span>
           </a>
