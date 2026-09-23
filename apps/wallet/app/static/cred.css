@@ -70,7 +70,7 @@ html[data-app="wallet"] {
 
 /* wallet screens sit closer to the header than the Loop 0 page did:
    top padding now reads level with .wrap's 24px sides */
-html[data-app="wallet"] .main { padding: calc(var(--space) * 1.75) 0 calc(var(--space) * 8); }
+html[data-app="wallet"] .main { padding: calc(var(--space) * 3.5) 0 calc(var(--space) * 8); }
 
 /* benefit program: plainer, squarer, higher-contrast */
 html[data-app="benefit"] {
@@ -360,7 +360,7 @@ html[data-app="benefit"] .badge { border-radius: 3px; }
 }
 .intro__title {
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: clamp(2rem, 6vw, 3rem);
   font-weight: 600;
   letter-spacing: -0.02em;
 }
@@ -873,31 +873,3 @@ a.cred:hover { border-color: var(--line-2); color: var(--ink); }
 .log__dot--verified { background: oklch(0.62 0.12 158); }
 .log__dot--caution  { background: oklch(0.75 0.13 85); }
 .log__dot--error    { background: oklch(0.60 0.17 25); }
-
-/* ============================================================
-   Loop 4a additions — Wallet (docs/design.md §3)
-   No handoff this loop: #69 is the spec. The page name and back
-   link share one compact line; the step line below it keeps
-   .intro__title's look on a <p>.
-   ============================================================ */
-
-/* --- page head --------------------------------------------- */
-.pagehead {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 var(--space);
-}
-.pagehead .back { font-size: 0.875rem; }
-.pagehead__sep { color: var(--line-2); }
-.pagehead__name {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink);
-}
-/* the step line was an <h1>; keep the heading rhythm it had */
-p.intro__title { margin: 0; line-height: 1.15; text-wrap: balance; }

@@ -88,8 +88,7 @@ def test_switcher_for_an_unknown_person_is_404() -> None:
 @pytest.mark.parametrize("person_id", ["p08", "p24"])
 def test_connections_shows_the_heading_and_a_live_find_your_employer(person_id: str) -> None:
     body = client.get(f"/p/{person_id}/connections").text
-    assert '<h1 class="pagehead__name">Connections</h1>' in body
-    assert '<p class="intro__title">You have 0 connections</p>' in body
+    assert '<h1 class="intro__title">Connections</h1>' in body
     assert "Connections are the services allowed to send credentials" in body
     assert f'<a class="btn" href="/p/{person_id}/connections/employers">Find your employer</a>' in body
     assert 'class="empty"' in body
@@ -98,6 +97,6 @@ def test_connections_shows_the_heading_and_a_live_find_your_employer(person_id: 
 @pytest.mark.parametrize("person_id", ["p08", "p24"])
 def test_activity_is_empty_for_a_fresh_person(person_id: str) -> None:
     body = client.get(f"/p/{person_id}/activity").text
-    assert '<h1 class="pagehead__name">Activity</h1>' in body
+    assert '<h1 class="intro__title">Activity</h1>' in body
     assert "class=\"log__item\"" not in body
     assert "Nothing has happened in your wallet yet. Finding your employer will be the first entry." in body

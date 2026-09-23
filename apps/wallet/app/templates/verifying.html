@@ -1,12 +1,10 @@
 {% extends "base.html" %}
-{% set page_title = "Connecting to " ~ provider.name %}
+{% set page_title = "Checking your identity" %}
 {% block main %}
     <div class="wrap stack">
       <div class="stack-s">
-        <div class="pagehead">
-          <h1 class="pagehead__name">Connecting to {{ provider.name }}</h1>
-        </div>
-        <p class="intro__title">Checking your identity</p>
+        <p class="intro__eyebrow">Connecting to {{ provider.name }}</p>
+        <h1 class="intro__title">Checking your identity</h1>
       </div>
       <div class="pending" role="status" data-poll="/p/{{ person.id }}/connections/{{ provider.id }}/status?page=verifying">
         <div class="progress" aria-hidden="true"></div>

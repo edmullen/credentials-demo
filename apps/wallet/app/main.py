@@ -19,7 +19,7 @@ from app.attempt import (
     start_connect,
     where_is_the_attempt,
 )
-from app.connections import add_employer, connections_title, provider_panels, remove_link
+from app.connections import add_employer, provider_panels, remove_link
 from app.credentials import credentials_for, find_credential, identity_status
 from app.people import all_people, get_person
 from app.providers import all_employers, get_provider
@@ -95,10 +95,7 @@ async def credential(
 @app.get("/p/{person_id}/connections", response_class=HTMLResponse)
 async def connections(request: Request, person: dict = Depends(viewed_person)) -> HTMLResponse:
     panels = provider_panels(person["id"])
-    return render(
-        request, "connections.html", person, "connections",
-        panels=panels, title=connections_title(panels),
-    )
+    return render(request, "connections.html", person, "connections", panels=panels)
 
 
 @app.get("/p/{person_id}/connections/employers", response_class=HTMLResponse)

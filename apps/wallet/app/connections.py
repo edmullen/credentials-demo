@@ -16,14 +16,6 @@ def employer_names(employer_ids: list[str]) -> list[str]:
     return sorted(get_employer(e)["name"] for e in employer_ids)
 
 
-def connections_title(panels: list[dict]) -> str:
-    """The Connections step line (docs/design.md §3): the next step, or the count so far."""
-    if any(not panel["connected"] for panel in panels):
-        return "Now connect your payroll"
-    count = len(panels)
-    return f"You have {count} connection{'' if count == 1 else 's'}"
-
-
 def band_for(person_id: str, provider_name: str, link: state.Link) -> dict | None:
     """The provider panel's status band, or None when there's nothing to say yet."""
     if link.connected_at:
