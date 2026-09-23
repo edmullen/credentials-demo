@@ -8,6 +8,7 @@ from fastapi.templating import Jinja2Templates
 from app import state
 from app.activity import grouped_events
 from app.attempt import (
+    approve,
     close,
     deny,
     matching_credential,
@@ -188,11 +189,29 @@ async def decide_request(
 ) -> RedirectResponse:
     if get_provider(provider_id) is None:
         raise HTTPException(status_code=404)
-    if decision == "deny":
+    if decision == "approve":
+        approve(person["id"], provider_id)
+    elif decision == "deny":
         deny(person["id"], provider_id)
     elif decision == "close":
         close(person["id"], provider_id)
     return RedirectResponse(where_is_the_attempt(person["id"], provider_id), status_code=303)
+
+
+@app.get("/p/{person_id}/connections/{provider_id}/verifying", response_class=HTMLResponse)
+async def verifying_page(
+    request: Request, provider_id: str, person: dict = Depends(viewed_person)
+) -> HTMLResponse:
+    provider = get_provider(provider_id)
+    if provider is None:
+        raise HTTPException(status_code=404)
+    link = state.get_link(person["id"], provider_id)
+    if link is None or link.request is None or link.request.phase != "verifying":
+        return RedirectResponse(where_is_the_attempt(person["id"], provider_id), status_code=303)
+    return render(
+        request, "verifying.html", person, "",
+        provider={"id": provider_id, "name": provider["name"]},
+    )
 
 
 @app.get("/p/{person_id}/connections/{provider_id}/status")
