@@ -1,11 +1,14 @@
 {% extends "base.html" %}
-{% set page_title = provider.name ~ " is asking for " ~ entries|length ~ " credential" ~ ("s" if entries|length != 1 else "") %}
+{% set page_title = "Request from " ~ provider.name %}
 {% block main %}
     <div class="wrap stack">
-      <a class="back" href="/p/{{ person.id }}/connections">Connections</a>
       <div class="stack-s">
-        <p class="intro__eyebrow">Request from {{ provider.name }}</p>
-        <h1 class="intro__title">{{ provider.name }} is asking for {{ entries|length }} credential{{ "s" if entries|length != 1 }}</h1>
+        <div class="pagehead">
+          <a class="back" href="/p/{{ person.id }}/connections">Connections</a>
+          <span class="pagehead__sep" aria-hidden="true">|</span>
+          <h1 class="pagehead__name">Request from {{ provider.name }}</h1>
+        </div>
+        <p class="intro__title">Do you want to share {{ entries|length }} credential{{ "s" if entries|length != 1 }} with {{ provider.name }}?</p>
       </div>
       <p class="intro__purpose">{{ purpose }}</p>
       <ol class="request">

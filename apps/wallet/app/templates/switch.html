@@ -1,10 +1,12 @@
 {% extends "base.html" %}
-{% set page_title = "Switch person" %}
+{% set page_title = "Demo control" %}
 {% block main %}
     <div class="wrap stack">
       <div class="stack-s">
-        <p class="intro__eyebrow">Demo control</p>
-        <h1 class="intro__title">Switch person</h1>
+        <div class="pagehead">
+          <h1 class="pagehead__name">Demo control</h1>
+        </div>
+        <p class="intro__title">Switch person</p>
       </div>
       <ul class="people">
         {% for p in people %}
