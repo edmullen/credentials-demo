@@ -582,6 +582,7 @@ for:
 | `pyjwt[crypto]>=2.9`, `cryptography<49` | Payroll, runtime | Yes: the same pins the Wallet has installed since Loop 2 |
 | `httpx` dev → runtime | Wallet | Yes: already locked; Loop 3 only moved its group |
 | `tzdata` | Wallet and Payroll, runtime | Yes: pure Python, a universal wheel |
+| `python-multipart` | Wallet, runtime | Yes: pure Python. Not foreseen here — added at build time (§13 item 18) |
 
 `tzdata` is there because `zoneinfo` needs a time zone database, and nothing checked here
 establishes that Render's Python runtime ships one. With `tzdata` installed, that stops mattering.
@@ -693,8 +694,26 @@ reasons, and can be overruled.
     2:14 PM" is a New York afternoon.
 16. **No automatic retry** on either call (§3). Loop 2's retry never succeeded, and a retried POST
     needs idempotency arguments the demo doesn't need to have.
-17. **The Render gate result goes here** when §9 has run: warm and cold, pass or gated, with the
-    date.
+17. **The Render gate result, run 2026-09-22/23 (§9).** **Warm: pass, twice.** With both
+    services already warm (visited directly first, per the test's own procedure), pressing
+    **Connect payroll** as Grace Okafor reached the consent screen immediately, run twice in a
+    row. Server-to-server calls between warm Render free-tier services are not gated.
+    **Cold: gated, fast.** With the Wallet woken but Payroll left idle past 15 minutes, the
+    same attempt ended as `no_response` in about **two seconds** — not the 60-second timeout,
+    and far short of the ~22-second cold start a direct visit to Payroll's own `/health` took
+    moments later. That gap is the signal: the request never reached a slowly waking Payroll,
+    it was refused fast, the same shape Loop 3's peer-wake pings hit (design/loop-3/design.md
+    §7). Nothing here contradicts §9's decision to build server-to-server regardless — the
+    warm path is what the demo actually uses, since the README already asks a visitor to open
+    all three apps first. The cold case is the honest, undramatic outcome the design chose:
+    `no_response`, "Try again in a minute," and the demo's existing advice covers the rest. Not
+    engineered around, per §9.
+18. **Two build-time gaps the reconciliation pass missed, both caught while building #13.**
+    §4 says the Wallet's `MERIDIAN_PAYROLL_URL` override is documented in "the README's
+    local-run section" — the README had no such section yet. #13 adds a short one. Separately,
+    §11's dependency table didn't foresee `python-multipart`, which FastAPI's `Form()` needs
+    for every POST the employer lookup and connection flow use; it installs cleanly on this
+    Intel Mac (pure Python), so the gap was in the check, not the dependency.
 
 ## 14. Acceptance criteria
 
