@@ -40,7 +40,7 @@
       <form class="decision" method="post" action="/p/{{ person.id }}/connections/{{ provider.id }}/request">
         <p class="decision__lead">This applies to the whole request.</p>
         <div class="actions">
-          <button class="btn" type="button">Approve and share</button>
+          <button class="btn" type="submit" name="decision" value="approve">Approve and share</button>
           <button class="btn btn--secondary" type="submit" name="decision" value="deny">Deny</button>
         </div>
       </form>

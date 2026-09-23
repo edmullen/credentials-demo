@@ -5,8 +5,9 @@ an answer arriving after Try again, Remove or Disconnect is dropped.
 """
 
 from app import clock, outbound, state
-from app.credentials import CATEGORIES, credentials_for
+from app.credentials import CATEGORIES, credentials_for, find_credential
 from app.display import join_and
+from app.outcomes import CONNECTION_STATES, connection_sentences
 from app.providers import all_providers, get_employer
 
 MISSING_MESSAGE = "Connection to Meridian Payroll not made: you don’t have an Identity credential to share."
@@ -139,3 +140,76 @@ def close(person_id: str, provider_id: str) -> None:
     if link is None or link.request is None or link.request.phase != "missing":
         return
     link.request = None
+
+
+def _build_presentation(token: str) -> dict:
+    return {
+        "@context": ["https://www.w3.org/ns/credentials/v2"],
+        "type": ["VerifiablePresentation"],
+        "verifiableCredential": [
+            {
+                "@context": "https://www.w3.org/ns/credentials/v2",
+                "type": "EnvelopedVerifiableCredential",
+                "id": f"data:application/vc+jwt,{token}",
+            }
+        ],
+    }
+
+
+def approve(person_id: str, provider_id: str) -> None:
+    """Approve and share: phase verifying, logged, and call 2 spawned on the same token."""
+    link = state.get_link(person_id, provider_id)
+    if link is None or link.request is None or link.request.phase != "consent":
+        return
+    provider = all_providers()[provider_id]
+    entries = link.request.dcql_query.get("credentials", [])
+    credential = matching_credential(person_id, request_type(entries[0]))
+    link.shared_credential_id = credential.id
+    link.request.phase = "verifying"
+    state.log(
+        person_id, "neutral", f"Identity credential shared with {provider['name']}", clock.now()
+    )
+    outbound.spawn(run_call_two(person_id, provider_id, link.request.token))
+
+
+async def run_call_two(person_id: str, provider_id: str, token: str) -> None:
+    provider = all_providers()[provider_id]
+    link = _still_current(person_id, provider_id, token)
+    if link is None:
+        return
+    credential = find_credential(person_id, link.shared_credential_id)
+    try:
+        response = await outbound.post_json(
+            link.request.response_uri, _build_presentation(credential.token)
+        )
+        if response.status_code != 200:
+            raise ValueError(f"unexpected status {response.status_code}")
+        body = response.json()
+        outcome = body["outcome"]
+        if outcome == "refused":
+            reason = body["reason"]
+            if reason not in ("credential_invalid", "not_an_employee"):
+                raise ValueError(f"unknown reason {reason!r}")
+        elif outcome != "connected":
+            raise ValueError(f"unknown outcome {outcome!r}")
+    except Exception:
+        _end_as_no_response(person_id, provider_id, token)
+        return
+
+    link = _still_current(person_id, provider_id, token)
+    if link is None:
+        return
+    link.request = None
+    if outcome == "connected":
+        link.connected_at = clock.now()
+        link.outcome = None
+        state.log(
+            person_id, "verified", f"New connection to {provider['name']} established", clock.now()
+        )
+    else:
+        link.outcome = reason
+        band = CONNECTION_STATES[reason]
+        first_sentence = connection_sentences(reason, provider["name"])[0]
+        state.log(
+            person_id, band.dot, f"Connection to {provider['name']} refused: {first_sentence}", clock.now()
+        )

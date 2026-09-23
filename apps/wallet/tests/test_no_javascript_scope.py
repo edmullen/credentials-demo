@@ -36,3 +36,14 @@ def test_asking_page_has_exactly_one_script_and_no_external_source() -> None:
     body = client.get("/p/p01/connections/meridian/asking").text
     assert body.count("<script") == 1
     assert "<script src" not in body
+
+
+def test_only_the_two_pending_pages_have_a_script() -> None:
+    from app import state
+
+    person_id = "p01"
+    link = state.add_employer(person_id, "meridian", "pinecrest")
+    link.request = state.PendingRequest(token="t", phase="verifying")
+    body = client.get(f"/p/{person_id}/connections/meridian/verifying").text
+    assert body.count("<script") == 1
+    assert "<script src" not in body
