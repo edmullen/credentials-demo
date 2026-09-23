@@ -450,10 +450,10 @@ padding and gap must match. Each UI PR records the table. There are no screensho
 3. **The Wallet sends `have`** (§2), settling the intent's open question as Phase 3 describes.
 4. **The lost-connection state** (§9, §10) is new. It follows Loop 4's rule that a lost connection
    looks like no connection, and it's built from existing components. It's reachable when
-   Payroll restarts while the Wallet doesn't, for example a Payroll-only redeploy. **Ed to
-   confirm.**
+   Payroll restarts while the Wallet doesn't, for example a Payroll-only redeploy. **Confirmed
+   (Ed, 2026-09-23).**
 5. **`renderMethod` uses a demo type,** `CredDemoIssuerColor`, with one `oklch()` color, and the
-   Wallet uses only its hue (§4). **Ed to confirm.**
+   Wallet uses only its hue (§4). **Confirmed (Ed, 2026-09-23).**
 6. **Removing an employer keeps received credentials** (§7). They're valid signed credentials the
    person holds, and the Wallet has no "delete credential" feature. A later reconnect sends their
    ids in `have`, so nothing duplicates.
@@ -464,7 +464,7 @@ padding and gap must match. Each UI PR records the table. There are no screensho
    trust list yet; the generator adds Payroll to it when Loop 6 creates one.
 10. **The script and the JavaScript rule:** the Credentials page becomes the second page with a
     script (§9). The rule is unchanged; the two sentences that say "only the pending pages" are
-    updated. **This amends decisions.md, so Ed to confirm.**
+    updated. **This amends decisions.md; confirmed (Ed, 2026-09-23).**
 
 ## 14. Acceptance criteria
 
@@ -522,3 +522,77 @@ padding and gap must match. Each UI PR records the table. There are no screensho
     each UI PR.
 24. All three apps' test suites pass in CI, and a live pass on Render connects a person, receives
     their credentials, and shows the matching credential on Payroll's paystub page.
+
+## 15. Reconciliation (plan step)
+
+This is the plan step's reconciliation pass (Loop 2's improvement, kept since — see Loop 4a's
+retro, [loop-log.md](loop-log.md)). It checks each handoff page against this design, each
+acceptance criterion against the mechanism that satisfies it, and each dependency against Ed's
+machine. It was written before any PR, with the side-by-side setup (§16). No findings below
+change what §1–14 already say; everything confirms this design as written, with one deviation
+already on record (item 1 below) and one small addition to CLAUDE.md.
+
+### Handoff pages against the design
+
+Each page was diffed against the current committed template or stylesheet, whitespace ignored.
+
+| Handoff page | PR | Diff from current | Design | Finding |
+|---|---|---|---|---|
+| `payroll/cred.css` | 3 | strict superset: 77 new lines (`.record`/`.records`, `.panel--cred`, `.claimlist`, `.disclosure`, `.jwt`) after the Loop 4a baseline | §6 | As designed. |
+| `wallet/cred.css` | 4 | strict superset: 100 new lines (stack retunes, `.cred--issuer`, `.cred--income`, `.cred__new`, `.panel__issuer`, `.category__status`/`.spinner`) after the Loop 4a baseline | §4, §8, §9 | As designed. |
+| `payroll/activity.html` | 2 | two new `log__item`s ("N income credentials sent…", `neutral` dot; "New connection…", `verified` dot, already built in Loop 4) | §5 | Only the send entry is new; the connection entry already exists. |
+| `payroll/paystub.html` | 3 | adds the `.records` two-column grid, the `.record` wrapper around the existing paystub `<section>`, and the whole `.panel--cred` credential section with its `.disclosure` | §6 | As designed. The existing paystub markup is untouched, just wrapped. |
+| `wallet/activity.html` | 4 | template-only diff (static page vs. Jinja loop); no new markup shapes beyond the three new entry types in §9's table | §9, §10 | As designed. |
+| `connections-connected.html` | 4 | one new line in the Connected band: "N income credentials received. View credentials." | §10 | As designed. |
+| `credentials-p01.html`, `credentials-waiting.html`, `credentials-nojs.html`, `credentials-new.html`, `credentials-checking.html`, `credentials-error.html`, `credentials-p08.html` | 4, 5 | new pages: none/one/stack states, the four `data-check` rows, the inline script | §8, §9 | As designed. Checked the stack math directly: p08's page has `--n: 5`, ledge at `--i: 0` ("View all Income credentials (6)"), five cards `--i: 1`..`--i: 5` — matches §8's "`--n` equal to the highest `--i`" exactly. |
+| `income-p08.html` | 4 | new page: full `.cred.cred--income.cred--issuer` cards, newest first | §8 | As designed. |
+| `income-credential.html`, `income-credential-tampered.html` | 4 | new page: issuer bar, status band, claims, "Valid from"/"Doesn't expire", disclosure | §8 | As designed. The disclosure's `Issuer` line reads the handoff's placeholder `did:example:meridian-payroll`; the built page renders the real issuer id per item 1 below — not a new finding, already decided. |
+
+### Acceptance criteria against their mechanisms
+
+| Criterion (§14) | Mechanism | Test | Check |
+|---|---|---|---|
+| 1 | generator's `ISSUERS`/`make_keys`/`trust_list` (§3) | new generator test, or a diff of committed output | — |
+| 2, 3 | `app/signing.py`, `/health`, `/.well-known/jwks.json` (§3) | new `test_signing.py` | Render `/health` after PR 1 |
+| 4, 5 | `app/issuance.py` payload builder (§4) | spec-example test (§11) + field tests | — |
+| 6, 7 | `connections.py` connection id, `POST /api/credentials`, Activity (§5) | new `test_issuance_api.py` | — |
+| 8 | `paystub.html`'s `.panel--cred` (§6) | new `test_paystub_credential.py` | paystub pair, 375/992px |
+| 9 | `run_call_two` → `fetch()`, `link.arrived` (§9) | `test_attempt_call_two.py` additions | credentials-waiting, connections-connected pairs |
+| 10, 11, 12 | `credentials.py`, Income section rendering (§8) | new `test_credentials_income.py` | credentials-p01/-p08/-new pairs |
+| 13, 14, 15, 16 | `fetch()`, the 30s window, `/credentials/check`, the script (§9) | new `test_issuance_fetch.py`, `test_credentials_check.py` | credentials-checking/-error/-nojs pairs |
+| 17 | the `unknown_connection` branch, lost-connection note (§9, §10) | `test_issuance_fetch.py` | — |
+| 18 | `income-credential.html` template (§8) | `test_credentials_income.py` | income-credential(-tampered) pairs |
+| 19 | Activity entries in `fetch()` (§9) | `test_activity_log.py` additions | activity pair |
+| 20 | trust check in `credentials.py`/`verify.py` (§8) | `test_credentials.py`/`test_verify.py` additions | — |
+| 21 | script scope (§9) | `test_no_javascript_scope.py` extended | — |
+| 22 | adopted `cred.css` files (this section) | `test_stylesheet.py` in both apps | — |
+| 23 | all of the above | — | the side-by-side table in each UI PR (§16) |
+| 24 | everything | all three suites in CI | live pass on Render (PR 6) |
+
+### Dependencies against Ed's machine
+
+- **No new packages** in any app: Payroll already has `pyjwt[crypto]>=2.9` and
+  `cryptography<49`; the generator's inline deps (same two) are unchanged.
+- `uv 0.12.15` is on this machine; both apps pin Python 3.12, matching `render.yaml`'s
+  `PYTHON_VERSION`.
+- **New finding:** uvicorn's `--env-file .env` (§3, "Configuration") fails to start if the file
+  doesn't exist. Locally, `apps/payroll/.env` is only written by the generator (§3), so
+  CLAUDE.md's "Commands" section gains a line: run the generator once before starting Payroll
+  locally for the first time, or after cloning fresh. `.claude/launch.json`'s `payroll` entry is
+  unaffected — the file exists once the generator has run, same as `keys/`.
+- **Side-by-side tooling only:** `python3 -m http.server` (already in `launch.json`'s `handoff`
+  entry) and a browser measuring script (§16), nothing new.
+
+## 16. Side-by-side setup
+
+Set up once, reused by every UI PR (3, 4, 5), per Loop 4a's retro:
+
+- `wallet` (:8001), `payroll` (:8002, pointed at `wallet`) and `handoff` (:8010) run together
+  from `.claude/launch.json`.
+- A measuring script (kept with the working files, not committed) reads, for a built page and
+  its handoff counterpart: the page head's top and height, the Income category (or the
+  `.records` panel) and its first card's top and height, and the computed font-size, padding and
+  gap of each. Run at 375px and 480px for Wallet pages, 375px and 992px for the paystub, per
+  §12. A dry run against the current `credentials.html`/`credentials-p01.html` pair (both
+  showing 1 identity credential, no income yet) confirms the script reads matching numbers
+  before any Loop 5 code exists.
