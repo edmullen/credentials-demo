@@ -271,3 +271,87 @@ service-to-service call to each other — the inbound connection and verificatio
 cosmetic wake ping. Confirm early, before building that flow, whether the same kind of request
 pattern hits the automated-traffic gate #48 found. A demo whose actual feature silently fails on
 Render's free tier would be a far bigger problem than a slow cold start.
+
+## Loop 4 — Wallet and Payroll Connect
+
+**Built.** For the first time, two apps in the demo talk to each other. Wallet and Payroll went
+from parallel and unlinked to connected, in five per-item PRs to `main` —
+[#63](https://github.com/edmullen/credentials-demo/pull/63) (#13, employer lookup, Connections
+and Activity go live), [#64](https://github.com/edmullen/credentials-demo/pull/64) (#16, Payroll
+becomes a verifier: its trust list, the two API calls, its own Connections and Activity),
+[#65](https://github.com/edmullen/credentials-demo/pull/65) and
+[#66](https://github.com/edmullen/credentials-demo/pull/66) (#22, split in two around the §9
+Render-origin test: call 1 and consent in #65, call 2 and every outcome in #66, which closed
+#22), and [#67](https://github.com/edmullen/credentials-demo/pull/67) (docs only, the §9
+result). The Wallet's `app/attempt.py` drives an attempt through its phases on a token that
+makes a stale background answer harmless; Payroll's `app/presentation.py` runs the verifier's
+checks against its own trust list, copied byte-identical from the Wallet's. Every one of the 25
+sample people reaches its designed outcome — 21 Verified holders connect, p22/p23 (Tampered) are
+refused `credential_invalid`, p24/p25 (no credential) hit the missing-credential state, and a
+wrong-employer choice is refused `not_an_employee` — checked against a locally running pair of
+apps and, for a representative subset, live on Render. Wallet's suite grew 67 → 102 (#63) → 127
+(#65) → 140 (#66); Payroll's grew 29 → 69 (#64) and held there; Benefits, untouched, stayed at 4.
+Full trace in [design.md](design.md).
+
+**What went wrong.** Nothing reached `main` broken — every PR's CI passed on the first push,
+caught first by the local suite each time — but three things took more than one attempt to get
+right.
+
+- *A Verifiable Presentation's `type` is a list, not a string.* credential-model.md's own example
+  shows `"type": ["VerifiablePresentation"]`, but `app/presentation.py`'s first draft checked
+  `vp.get("type") != "VerifiablePresentation"` — an exact-string comparison that failed every
+  valid presentation, including the ones the test suite built straight from that same example.
+  Eight of ten `test_presentation.py` cases failed on the first run. The fix was one line;
+  finding it took re-reading the example the code was meant to match, not spotting it in review.
+- *Three apostrophe encodings coexist in this codebase, and tests kept guessing wrong between
+  them* — a literal curly `’` in Python strings passed unescaped through Jinja
+  (`app/outcomes.py`, `app/attempt.py`), an `&rsquo;` HTML entity hardcoded in template copy
+  (`credentials.html`, `request.html`), and a plain ASCII `'` that's easy to type by habit but
+  matches neither. `test_connection_bands.py`, `test_attempt_call_one.py` and
+  `test_attempt_call_two.py` each hit at least one assertion that failed from guessing an
+  encoding instead of reading the actual source string.
+- *`httpx.AsyncClient.__init__` can only be monkeypatched once per test, the way this project
+  patches it.* `test_attempt_call_two.py` first patched a call-1-only handler to reach the
+  consent screen, then patched a second, richer handler for call 2 — and the second patch's
+  captured `real_init` was the *first* patch's wrapper, which unconditionally reset the
+  transport back to the first handler on every call. Every call-2 scenario silently exercised
+  the wrong mock and came back `no_response`. Found with a standalone debug script outside
+  pytest, printing which handler actually ran; fixed by building one two-stage handler and
+  patching the transport a single time per test.
+
+**Slow or expensive.** Nothing on Ed's side — this loop ran in about 80 minutes of active build,
+first commit to final merge, with every PR's CI green on the first push. The one built-in wait
+was design §9's own: the cold half of the Render-origin test needs Payroll idle for a genuine 15
+minutes, which doesn't compress. Rather than block the session on it, that ran as a scheduled
+wakeup while other prep continued, and the check itself, once due, took under a minute.
+
+**Not verified at the time of writing.** Deploy scope, per PR: #63 should have redeployed only
+the Wallet, #64 only Payroll, #65 and #66 only the Wallet again, #67 nothing. Consistent with
+every live check run right after each merge, but confirming it needs Render's events log, which
+only Ed can see — the same gap Loop 2 and Loop 3's retros each noted. Payroll's own Render log,
+showing the inbound `POST /api/connections/requests` the warm test produced, is likewise outside
+what Claude can see.
+
+**Process note.** Ed asked to try running this loop's build hands-off: Claude merges each PR
+itself once `ci-passed` is green, rather than waiting for a manual "merge it" after each one — a
+step Loop 2's retro already named as safe to take. It held cleanly across all five PRs: no CI
+failure to navigate, no force-push, nothing needing the Render dashboard mid-build, and the one
+designed stopping point — the §9 warm test, which would have meant pausing to redesign with Ed
+had it failed — was a clean pass rather than a gate that actually fired. Worth trying again.
+
+**Last loop's improvement.** *Confirm early whether the same request pattern hits the
+automated-traffic gate #48 found.* Held, exactly as designed: #22 split into two PRs at the
+protocol's two calls specifically so the test could run between them (design §9), and it did —
+warm passed twice, live, before the second PR was written. The cold half added a finding Loop 3
+didn't have: the gate isn't just slow-and-eventually-succeeds, it's a *fast refusal* — about two
+seconds to `no_response`, against the roughly 22-second cold start a direct visit takes moments
+later. Same shape as #48's peer-wake pings, now confirmed for real request traffic, recorded in
+[design.md §13 item 17](design.md#13-decisions-and-deviations).
+
+**One improvement for Loop 5.** Loop 5 gives Payroll its own keys and has it issue credentials —
+new signed payloads matched against a spec example, the same shape as this loop's `type`-as-list
+bug. Before writing a parser or a builder for anything credential-model.md gives an example of,
+copy that example verbatim into a test first, and write the code to satisfy it — not the other
+way around. And for copy: when adding a new user-facing string, check how the *nearest* existing
+string in that same file is encoded (raw curly quote vs. HTML entity) and match it, rather than
+picking a convention and finding out at test time it disagrees with its neighbors.
