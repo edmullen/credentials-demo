@@ -58,3 +58,30 @@ def sign(payload: dict) -> str:
 
 def issue(stub: dict) -> str:
     return sign(credential_payload(stub))
+
+
+def credential_view(stub: dict, view: dict) -> dict:
+    """The signed credential, formatted for the paystub page's panel (docs/design.md §6).
+
+    `view` is that same paystub's own `paystub_view()` output: reusing its already-formatted
+    `period_short`, `pay_date`, `frequency`, `gross` and `net` is what makes the two records
+    visibly agree, since both panels then show output from the very same helper calls.
+    """
+    payload = credential_payload(stub)
+    # Without a valid key the panel still shows every claim; only the signed JWT is left out
+    # (docs/design.md §3).
+    token = sign(payload) if signing.status().ok else None
+    subject = payload["credentialSubject"]
+    return {
+        "id": payload["id"],
+        "employer_name": subject["employer"]["name"],
+        "period_short": view["period_short"],
+        "pay_date": view["pay_date"],
+        "frequency": view["frequency"],
+        "gross": view["gross"],
+        "net": view["net"],
+        "issuer_id": payload["issuer"]["id"],
+        "type_line": ", ".join(payload["type"]),
+        "valid_from": payload["validFrom"],
+        "jwt": token,
+    }

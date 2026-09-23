@@ -704,3 +704,80 @@ html[data-app="payroll"] {
 /* keep the description column readable rather than crushed */
 .figures__scroll .figures tbody th,
 .figures__scroll .figures tfoot th { min-width: 8.5rem; }
+
+
+/* ============================================================
+   Loop 5 additions — Payroll
+   Everything below is new. The paystub and the income credential
+   Payroll issues for it sit side by side from 62rem, as two
+   panels on one grid: each panel's sections are subgrid rows, so
+   the credential's dates, gross pay and net pay line up with the
+   paystub rows they come from. Narrower, the credential follows
+   the paystub. Payroll's .panel and paystub rules are unchanged.
+   ============================================================ */
+
+.record { display: flex; flex-direction: column; gap: calc(var(--space) * 1.5); min-width: 0; }
+.record__head { display: flex; flex-direction: column; gap: 2px; }
+.record__title { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; }
+.record__sub { margin: 0; font-size: 0.9375rem; color: var(--ink-2); }
+.records { display: flex; flex-direction: column; gap: calc(var(--space) * 5); }
+
+@media (min-width: 60rem) {
+  .records {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto auto auto;
+    column-gap: calc(var(--space) * 3);
+    row-gap: 0;
+  }
+  .record { display: grid; grid-row: 1 / span 6; grid-template-rows: subgrid; gap: 0; }
+  .record__head { padding-bottom: calc(var(--space) * 1.5); }
+  .record > .panel { grid-row: 2 / span 5; display: grid; grid-template-rows: subgrid; }
+}
+
+/* --- the credential panel ---------------------------------- */
+.panel--cred { border-color: oklch(0.86 0.045 var(--hue)); }
+.cred-panel__id {
+  background: var(--accent);
+  color: oklch(1 0 0);
+}
+.cred-panel__id .card__meta { color: oklch(0.93 0.03 var(--hue)); }
+.cred-panel__type { margin: 0; font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; letter-spacing: -0.01em; }
+.cred-panel__urn { margin: 0; font-family: var(--font-mono); font-size: 0.8125rem; word-break: break-all; }
+.claimlist { margin: 0; display: flex; flex-direction: column; gap: calc(var(--space) * 2); }
+.claimlist dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.claimlist dt { margin-bottom: 2px; }
+.panel--cred .stub__meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.claim__key { display: block; margin-top: 2px; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 400; color: var(--ink-2); }
+.cred-panel__gross { justify-content: flex-start; }
+.cred-panel__net { background: var(--accent-wash); }
+.cred-panel__amount { font-family: var(--font-display); font-size: 2rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.cred-panel__omits { margin: 0; font-size: 0.875rem; color: var(--ink-2); }
+
+/* signed JWT disclosure, as the Wallet's (Loop 2, lifted) */
+.disclosure { padding: calc(var(--space) * 2) calc(var(--space) * 3); border-top: 1px solid var(--line); }
+.disclosure > summary {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: calc(var(--space) * 1.5); min-height: var(--tap);
+  color: var(--accent-text); font-weight: 600; cursor: pointer; list-style: none;
+}
+.disclosure > summary::-webkit-details-marker { display: none; }
+.disclosure__chev {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; flex: none;
+  border: 1px solid var(--accent-line); border-radius: 999px; background: var(--accent-tint);
+}
+.disclosure__chev::before {
+  content: ""; width: 7px; height: 7px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+}
+.disclosure[open] > summary .disclosure__chev::before { transform: translateY(2px) rotate(225deg); }
+.disclosure__body { margin: calc(var(--space) * 1.5) 0 0; display: flex; flex-direction: column; gap: calc(var(--space) * 1.5); }
+.disclosure__body dt { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-2); }
+.disclosure__body dd { margin: 0; font-family: var(--font-mono); font-size: 0.8125rem; word-break: break-all; }
+.jwt {
+  padding: calc(var(--space) * 1.5); background: var(--bg);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  line-height: 1.45; max-height: 8.5em; overflow: auto;
+}

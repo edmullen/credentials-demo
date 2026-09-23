@@ -7,6 +7,12 @@
         <p class="intro__eyebrow">Pay statement</p>
         <h1 class="intro__title">{{ stub.period }}</h1>
       </div>
+      <div class="records">
+      <section class="record" aria-labelledby="rec-paystub">
+      <div class="record__head">
+        <h2 class="record__title" id="rec-paystub">Paystub</h2>
+        <p class="record__sub">Meridian Payroll&rsquo;s full record of this pay period.</p>
+      </div>
       <article class="panel">
         <div class="panel__section stub__head">
           <div class="stub__party">
@@ -32,7 +38,7 @@
             </div>
             <div>
               <dt class="card__meta">Frequency</dt>
-              <dd>Semimonthly</dd>
+              <dd>{{ stub.frequency }}</dd>
             </div>
           </dl>
         </div>
@@ -103,5 +109,80 @@
         </div>
         <p class="panel__note">Withholding on this statement is estimated for the demo, using 2025 single-filer federal and New Jersey rates. It is not a real tax calculation.</p>
       </article>
+      </section>
+      <section class="record" aria-labelledby="rec-cred">
+      <div class="record__head">
+        <h2 class="record__title" id="rec-cred">Credential for this paystub</h2>
+        <p class="record__sub">A separate record, signed by Meridian Payroll, holding only these claims from the paystub.</p>
+      </div>
+      <div class="panel panel--cred">
+        <div class="panel__section cred-panel__id">
+          <p class="card__meta">Employer</p>
+          <p class="stub__party-name">{{ cred.employer_name }}</p>
+          <p class="cred-panel__urn">{{ cred.id }}</p>
+        </div>
+        <div class="panel__section">
+          <dl class="stub__meta">
+            <div>
+              <dt class="card__meta">Pay period</dt>
+              <dd>{{ cred.period_short }}<span class="claim__key">payPeriodStart, payPeriodEnd</span></dd>
+            </div>
+            <div>
+              <dt class="card__meta">Pay date</dt>
+              <dd>{{ cred.pay_date }}<span class="claim__key">payDate</span></dd>
+            </div>
+            <div>
+              <dt class="card__meta">Frequency</dt>
+              <dd>{{ cred.frequency }}<span class="claim__key">payFrequency</span></dd>
+            </div>
+          </dl>
+        </div>
+        <div class="panel__section cred-panel__gross">
+          <dl class="claimlist">
+            <div>
+              <dt class="card__meta">Gross pay</dt>
+              <dd><span class="cred-panel__amount">{{ cred.gross }}</span><span class="claim__key">grossPay</span></dd>
+            </div>
+          </dl>
+          <p class="cred-panel__omits">Earnings lines, deductions and tax aren&rsquo;t in the credential.</p>
+        </div>
+        <div class="panel__section cred-panel__net">
+          <dl class="claimlist">
+            <div>
+              <dt class="card__meta">Net pay</dt>
+              <dd><span class="cred-panel__amount">{{ cred.net }}</span><span class="claim__key">netPay</span></dd>
+            </div>
+          </dl>
+        </div>
+        {% if cred.jwt %}
+        <details class="disclosure">
+          <summary>View signed credential<span class="disclosure__chev" aria-hidden="true"></span></summary>
+          <dl class="disclosure__body">
+            <div>
+              <dt>Credential id</dt>
+              <dd>{{ cred.id }}</dd>
+            </div>
+            <div>
+              <dt>Issuer</dt>
+              <dd>{{ cred.issuer_id }}</dd>
+            </div>
+            <div>
+              <dt>Type</dt>
+              <dd>{{ cred.type_line }}</dd>
+            </div>
+            <div>
+              <dt>validFrom</dt>
+              <dd>{{ cred.valid_from }} (no validUntil)</dd>
+            </div>
+            <div>
+              <dt>Signed JWT</dt>
+              <dd class="jwt">{{ cred.jwt }}</dd>
+            </div>
+          </dl>
+        </details>
+        {% endif %}
+      </div>
+      </section>
+      </div>
     </div>
 {% endblock %}

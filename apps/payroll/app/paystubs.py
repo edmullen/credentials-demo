@@ -9,7 +9,16 @@ from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
 
-from app.display import employer_place, hours, installment, money, period_long, period_short, short_date
+from app.display import (
+    employer_place,
+    frequency_label,
+    hours,
+    installment,
+    money,
+    period_long,
+    period_short,
+    short_date,
+)
 
 DATA_DIR = Path(__file__).parent / "data"
 
@@ -119,6 +128,7 @@ def paystub_view(person_id: str, paystub_id: str) -> dict | None:
         "period": period_long(stub["payPeriodStart"], stub["payPeriodEnd"]),
         "period_short": period_short(stub["payPeriodStart"], stub["payPeriodEnd"]),
         "pay_date": short_date(stub["payDate"]),
+        "frequency": frequency_label(stub["payFrequency"]),
         "is_hourly": is_hourly,
         "earnings_label": "Regular" if is_hourly else "Salary",
         "rate": money(stub["hourlyRate"] if is_hourly else stub["annualSalary"]),

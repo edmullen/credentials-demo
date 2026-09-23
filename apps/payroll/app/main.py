@@ -8,8 +8,15 @@ from fastapi.templating import Jinja2Templates
 from app import clock, connections, signing
 from app.activity import grouped_events
 from app.display import issuer_phrase, when
-from app.issuance import credential_id, issue
-from app.paystubs import all_employer_ids, employers_for, landing_groups, paystub_view, paystubs_for
+from app.issuance import credential_id, credential_view, issue
+from app.paystubs import (
+    all_employer_ids,
+    employers_for,
+    find_paystub,
+    landing_groups,
+    paystub_view,
+    paystubs_for,
+)
 from app.people import all_people, get_person
 from app.presentation import verify_presentation
 from app.trust import trust_list
@@ -88,8 +95,11 @@ async def paystub(
     view = paystub_view(person["id"], paystub_id)
     if view is None:
         raise HTTPException(status_code=404)
+    # Every paystub shows its credential, connected or not, with no delivery status (§6).
+    stub = find_paystub(person["id"], paystub_id)
+    cred = credential_view(stub, view)
     # No nav item is current on the detail page, as in Loop 2's credential detail (design §5).
-    return render(request, "paystub.html", person, "", stub=view)
+    return render(request, "paystub.html", person, "", stub=view, cred=cred)
 
 
 @app.get("/p/{person_id}/connections", response_class=HTMLResponse)
