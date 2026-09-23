@@ -1,4 +1,4 @@
-"""Payroll's cred.css is the Loop 4a handoff's file, byte for byte (docs/design.md §2, §14). The
+"""Payroll's cred.css is the Loop 5 handoff's file, byte for byte (docs/design.md §6, §15). The
 handoff lives outside this app, so its length and hash are pinned here rather than read."""
 
 import hashlib
@@ -6,9 +6,9 @@ from pathlib import Path
 
 CSS = Path(__file__).resolve().parent.parent / "app" / "static" / "cred.css"
 
-# docs/design/loop-4a/payroll/cred.css
-HANDOFF_BYTES = 21686
-HANDOFF_SHA256 = "f05fe18226af4241a4103403ea3fde9843ec7288b082e47835f2548e1a1c70a7"
+# docs/design/loop-5/payroll/cred.css
+HANDOFF_BYTES = 25989
+HANDOFF_SHA256 = "6e2e0eb2379a161071cdaadba0bd0275cdd62593b4e234eda2bc31ebdbf511d4"
 
 
 def test_cred_css_is_the_handoff_file() -> None:

@@ -64,6 +64,12 @@ def hours(value: str) -> str:
     return f"{Decimal(value):.2f}"
 
 
+def frequency_label(value: str) -> str:
+    """'semimonthly' -> 'Semimonthly'. Same word the paystub and its credential both show
+    (docs/design.md §6), from `paystubs.json`'s payFrequency rather than hard-coded."""
+    return value.capitalize()
+
+
 def installment(stub: dict) -> str:
     """'18 of 24' — derived from the period start, not stored (design.md §4, §11 item 4).
 
