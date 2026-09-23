@@ -13,6 +13,15 @@
       </div>
       <h2 class="intro__title">{{ page_title }}</h2>
       <p class="intro__purpose">{{ purpose }}</p>
+      {% if phase != "missing" %}
+      <form class="decision" method="post" action="/p/{{ person.id }}/connections/{{ provider.id }}/request">
+        <p class="decision__lead">This applies to the whole request.</p>
+        <div class="actions">
+          <button class="btn" type="submit" name="decision" value="approve">Approve and share</button>
+          <button class="btn btn--secondary" type="submit" name="decision" value="deny">Deny</button>
+        </div>
+      </form>
+      {% endif %}
       <ol class="request">
         {% for entry in entries %}
         <li class="request__item">
@@ -26,6 +35,7 @@
             {%- set tampered = entry.tampered -%}
             {%- set heading_tag = "h3" -%}
             {%- set id_prefix = "r" ~ loop.index ~ "-" -%}
+            {%- set status_style = "plain" -%}
             {% include "_credential_panel.html" %}
           </div>
           {% else %}
@@ -39,14 +49,6 @@
         <p class="decision__lead">Without it, this request can&rsquo;t be completed, and nothing is shared.</p>
         <div class="actions">
           <button class="btn btn--secondary" type="submit" name="decision" value="close">Close request</button>
-        </div>
-      </form>
-      {% else %}
-      <form class="decision" method="post" action="/p/{{ person.id }}/connections/{{ provider.id }}/request">
-        <p class="decision__lead">This applies to the whole request.</p>
-        <div class="actions">
-          <button class="btn" type="submit" name="decision" value="approve">Approve and share</button>
-          <button class="btn btn--secondary" type="submit" name="decision" value="deny">Deny</button>
         </div>
       </form>
       {% endif %}

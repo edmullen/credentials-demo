@@ -24,6 +24,24 @@ def connections_title(panels: list[dict]) -> str:
     return f"You have {count} connection{'' if count == 1 else 's'}"
 
 
+def income_note(person_id: str) -> dict:
+    """Which Income note the credentials page shows (docs/design.md §6): "start" with no link,
+    "chosen" with an employer added but not connected (including after a failed attempt), or
+    "connected". "chosen" names the most recently added employer."""
+    for provider_id, provider in all_providers().items():
+        link = state.get_link(person_id, provider_id)
+        if link is None:
+            continue
+        if link.connected_at is not None:
+            return {"state": "connected", "provider": provider["name"]}
+        return {
+            "state": "chosen",
+            "provider": provider["name"],
+            "employer": get_employer(link.employers[-1])["name"],
+        }
+    return {"state": "start"}
+
+
 def band_for(person_id: str, provider_name: str, link: state.Link) -> dict | None:
     """The provider panel's status band, or None when there's nothing to say yet."""
     if link.connected_at:

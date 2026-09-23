@@ -270,3 +270,40 @@ def test_missing_consent_says_what_is_missing(monkeypatch, collector) -> None:
     step = "You do not have the credential Meridian Payroll is requesting."
     assert f'<h2 class="intro__title">{step}</h2>' in body
     assert f"<title>{step} — Wallet</title>" in body
+
+
+def _consent_body(monkeypatch, collector, person_id: str, employer: str) -> str:
+    _patch_transport(monkeypatch, lambda r: httpx.Response(201, json=_dcql_response()))
+    client.post(f"/p/{person_id}/connections/employers", data={"employer": employer})
+    client.post(f"/p/{person_id}/connections/meridian/connect")
+    collector.run()
+    return client.get(f"/p/{person_id}/connections/meridian/request").text
+
+
+def test_consent_puts_the_decision_before_the_credential(monkeypatch, collector) -> None:
+    body = _consent_body(monkeypatch, collector, "p01", "pinecrest")
+    assert body.index('class="intro__purpose"') < body.index('value="approve"') < body.index('<ol class="request">')
+
+
+def test_consent_status_is_plain_with_the_issuer_and_a_tinted_badge(monkeypatch, collector) -> None:
+    body = _consent_body(monkeypatch, collector, "p01", "pinecrest")
+    status = body[body.index('<div class="panel__status panel__status--plain">'):body.index("panel__section--id")]
+    assert '<h3 class="visually-hidden" id="r1-status">Status</h3>' in status
+    assert '<span class="cred__issuer-name">State of New Jersey</span>' in status
+    assert 'class="badge badge--verified"' in status
+    assert "Nothing in this credential has changed" in status
+    assert "panel__status--verified" not in body
+
+
+def test_tampered_consent_status_is_plain_with_the_error_badge(monkeypatch, collector) -> None:
+    body = _consent_body(monkeypatch, collector, "p23", "shoreway")
+    assert '<div class="panel__status panel__status--plain">' in body
+    assert 'class="badge badge--error"' in body
+    assert "panel__status--error" not in body
+    assert "The rest of this credential is shown as it was received." in body
+
+
+def test_missing_consent_keeps_close_request_after_the_list(monkeypatch, collector) -> None:
+    body = _consent_body(monkeypatch, collector, "p24", "ridgeline")
+    assert 'value="approve"' not in body
+    assert body.index('<ol class="request">') < body.index('value="close"')
