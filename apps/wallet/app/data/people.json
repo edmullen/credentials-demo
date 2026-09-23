@@ -5,7 +5,10 @@
     "familyName": "Okafor",
     "initials": "GO",
     "locality": "Flemington",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Pinecrest Home Care"
+    ]
   },
   {
     "id": "p02",
@@ -13,7 +16,10 @@
     "familyName": "Medina",
     "initials": "RM",
     "locality": "Vineland",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Pinecrest Home Care"
+    ]
   },
   {
     "id": "p03",
@@ -21,7 +27,10 @@
     "familyName": "Nowak",
     "initials": "TN",
     "locality": "Elizabeth",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Harborline Logistics"
+    ]
   },
   {
     "id": "p04",
@@ -29,7 +38,10 @@
     "familyName": "Rahman",
     "initials": "AR",
     "locality": "New Brunswick",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Crossroads Diner Group"
+    ]
   },
   {
     "id": "p05",
@@ -37,7 +49,10 @@
     "familyName": "Russo",
     "initials": "FR",
     "locality": "Toms River",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Shoreway Supermarkets"
+    ]
   },
   {
     "id": "p06",
@@ -45,7 +60,11 @@
     "familyName": "Brooks",
     "initials": "TB",
     "locality": "Camden",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Brightpath Early Learning",
+      "Ridgeline Home & Hardware"
+    ]
   },
   {
     "id": "p07",
@@ -53,7 +72,12 @@
     "familyName": "Ferreira",
     "initials": "LF",
     "locality": "Newark",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Pinecrest Home Care",
+      "Crossroads Diner Group",
+      "Beacon Security Services"
+    ]
   },
   {
     "id": "p08",
@@ -61,7 +85,12 @@
     "familyName": "Haddad",
     "initials": "NH",
     "locality": "Paterson",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Shoreway Supermarkets",
+      "Brightpath Early Learning",
+      "Ridgeline Home & Hardware"
+    ]
   },
   {
     "id": "p09",
@@ -69,7 +98,10 @@
     "familyName": "Walsh",
     "initials": "DW",
     "locality": "Morristown",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Liberty Crest Insurance"
+    ]
   },
   {
     "id": "p10",
@@ -77,7 +109,10 @@
     "familyName": "Shah",
     "initials": "PS",
     "locality": "Jersey City",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Palisade Financial Group"
+    ]
   },
   {
     "id": "p11",
@@ -85,7 +120,10 @@
     "familyName": "Tran",
     "initials": "KT",
     "locality": "Edison",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Coastal Tech Solutions"
+    ]
   },
   {
     "id": "p12",
@@ -93,7 +131,10 @@
     "familyName": "Cho",
     "initials": "HC",
     "locality": "Somerville",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Northfield Pharmaceuticals"
+    ]
   },
   {
     "id": "p13",
@@ -101,7 +142,10 @@
     "familyName": "Reed",
     "initials": "MR",
     "locality": "Glassboro",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Ironbound Builders"
+    ]
   },
   {
     "id": "p14",
@@ -109,7 +153,10 @@
     "familyName": "Pierre",
     "initials": "AP",
     "locality": "Trenton",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Beacon Security Services"
+    ]
   },
   {
     "id": "p15",
@@ -117,7 +164,10 @@
     "familyName": "Kowalski",
     "initials": "JK",
     "locality": "Asbury Park",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Harborline Logistics"
+    ]
   },
   {
     "id": "p16",
@@ -125,7 +175,10 @@
     "familyName": "Coleman",
     "initials": "IC",
     "locality": "Willingboro",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Raritan Valley Health"
+    ]
   },
   {
     "id": "p17",
@@ -133,7 +186,11 @@
     "familyName": "Park",
     "initials": "JP",
     "locality": "Fort Lee",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Clearview Pharmacy",
+      "Crossroads Diner Group"
+    ]
   },
   {
     "id": "p18",
@@ -141,7 +198,10 @@
     "familyName": "Reyes",
     "initials": "AR",
     "locality": "Atlantic City",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Boardwalk Hospitality Group"
+    ]
   },
   {
     "id": "p19",
@@ -149,7 +209,10 @@
     "familyName": "Carter",
     "initials": "EC",
     "locality": "Livonia",
-    "region": "MI"
+    "region": "MI",
+    "employerNames": [
+      "Northfield Pharmaceuticals"
+    ]
   },
   {
     "id": "p20",
@@ -157,7 +220,10 @@
     "familyName": "Pappas",
     "initials": "NP",
     "locality": "Astoria",
-    "region": "NY"
+    "region": "NY",
+    "employerNames": [
+      "Palisade Financial Group"
+    ]
   },
   {
     "id": "p21",
@@ -165,7 +231,10 @@
     "familyName": "Wright",
     "initials": "JW",
     "locality": "Cleveland",
-    "region": "OH"
+    "region": "OH",
+    "employerNames": [
+      "Coastal Tech Solutions"
+    ]
   },
   {
     "id": "p22",
@@ -173,7 +242,10 @@
     "familyName": "Moreno",
     "initials": "VM",
     "locality": "Staten Island",
-    "region": "NY"
+    "region": "NY",
+    "employerNames": [
+      "Harborline Logistics"
+    ]
   },
   {
     "id": "p23",
@@ -181,7 +253,10 @@
     "familyName": "Diaz",
     "initials": "CD",
     "locality": "Union City",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Shoreway Supermarkets"
+    ]
   },
   {
     "id": "p24",
@@ -189,7 +264,10 @@
     "familyName": "Miller",
     "initials": "RM",
     "locality": "Phillipsburg",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Ridgeline Home & Hardware"
+    ]
   },
   {
     "id": "p25",
@@ -197,6 +275,10 @@
     "familyName": "Doyle",
     "initials": "MD",
     "locality": "Wildwood",
-    "region": "NJ"
+    "region": "NJ",
+    "employerNames": [
+      "Crossroads Diner Group",
+      "Shoreway Supermarkets"
+    ]
   }
 ]
