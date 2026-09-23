@@ -58,7 +58,7 @@
   <footer class="footer">
     <div class="wrap">
       <p class="footer__note"><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></p>
-      {% block footer_aside %}{% if person %}<span class="footer__aside"><a href="/p/{{ person.id }}/switch">Switch person</a></span>{% endif %}{% endblock %}
+      {% block footer_aside %}{% if person %}<span class="footer__aside"><a href="/p/{{ person.id }}/switch?from={{ active }}">Switch person</a></span>{% endif %}{% endblock %}
     </div>
   </footer>
 </body>
