@@ -259,3 +259,42 @@ def test_a_double_submitted_decision_changes_nothing(monkeypatch, collector) -> 
     client.post("/p/p01/connections/meridian/request", data={"decision": "deny"})
     after = client.get("/p/p01/activity").text
     assert before == after
+
+
+def _consent_body(monkeypatch, collector, person_id: str, employer: str) -> str:
+    _patch_transport(monkeypatch, lambda r: httpx.Response(201, json=_dcql_response()))
+    client.post(f"/p/{person_id}/connections/employers", data={"employer": employer})
+    client.post(f"/p/{person_id}/connections/meridian/connect")
+    collector.run()
+    return client.get(f"/p/{person_id}/connections/meridian/request").text
+
+
+def test_consent_puts_the_decision_before_the_credential(monkeypatch, collector) -> None:
+    body = _consent_body(monkeypatch, collector, "p01", "pinecrest")
+    purpose = body.index('class="intro__purpose"')
+    decision = body.index('value="approve"')
+    request_list = body.index('<ol class="request">')
+    assert purpose < decision < request_list
+
+
+def test_consent_status_is_a_white_row_with_the_issuer_and_badge(monkeypatch, collector) -> None:
+    body = _consent_body(monkeypatch, collector, "p01", "pinecrest")
+    row = body[body.index('<div class="panel__top">'):body.index('class="panel__section panel__section--id"')]
+    assert '<h3 class="visually-hidden" id="r1-status">Status</h3>' in row
+    assert '<span class="cred__issuer-name">State of New Jersey</span>' in row
+    assert 'class="badge badge--verified"' in row
+    assert "Nothing in this credential has changed" in row
+    assert "panel__status" not in body
+
+
+def test_tampered_consent_row_keeps_its_red_badge(monkeypatch, collector) -> None:
+    body = _consent_body(monkeypatch, collector, "p23", "shoreway")
+    assert '<div class="panel__top">' in body
+    assert 'class="badge badge--error"' in body
+
+
+def test_missing_consent_keeps_close_request_below_the_list(monkeypatch, collector) -> None:
+    body = _consent_body(monkeypatch, collector, "p24", "ridgeline")
+    assert 'value="approve"' not in body
+    assert body.index('<ol class="request">') < body.index('value="close"')
+    assert '<p class="intro__title">Do you want to share 1 credential with Meridian Payroll?</p>' in body
