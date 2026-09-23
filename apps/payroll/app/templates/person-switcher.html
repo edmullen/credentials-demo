@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block page_title %}Switch person — Meridian Payroll{% endblock %}
-{% block footer_aside %}<span class="footer__aside"><a href="/p/{{ person.id }}/paystubs">Back to paystubs</a></span>{% endblock %}
+{% block footer_aside %}<span class="footer__aside"><a href="/p/{{ person.id }}/{{ screen }}">Back to {{ screen }}</a></span>{% endblock %}
 {% block main %}
     <div class="wrap stack">
       <div class="stack-s">
@@ -10,7 +10,7 @@
       <ul class="people">
         {% for row in people %}
           <li>
-            <a class="people__row" href="/p/{{ row.id }}/paystubs"{% if row.id == person.id %} aria-current="page"{% endif %}>
+            <a class="people__row" href="/p/{{ row.id }}/{{ screen }}"{% if row.id == person.id %} aria-current="page"{% endif %}>
               <span class="initials initials--sm" role="img" aria-label="{{ row.name }}">{{ row.initials }}</span>
               <span class="people__meta">
                 <span class="people__name">{{ row.name }}</span>

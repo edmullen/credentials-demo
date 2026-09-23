@@ -58,6 +58,15 @@ def employers_for(person_id: str) -> list[dict]:
     return groups
 
 
+def all_employer_ids() -> set[str]:
+    return set(_employers())
+
+
+def employer_ids_for(person_id: str) -> set[str]:
+    """Every employer id this person has at least one paystub from (docs/design.md §3, §7)."""
+    return {s["employerId"] for s in _paystubs() if s["personId"] == person_id}
+
+
 def find_paystub(person_id: str, paystub_id: str) -> dict | None:
     """None when the id isn't that person's — a mismatch is a 404, not a redirect."""
     full_id = f"urn:uuid:{paystub_id}"

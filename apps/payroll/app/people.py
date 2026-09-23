@@ -21,3 +21,8 @@ def all_people() -> tuple[dict, ...]:
 
 def get_person(person_id: str) -> dict | None:
     return next((p for p in all_people() if p["id"] == person_id), None)
+
+
+def find_by_subject(subject_id: str) -> dict | None:
+    """The employee this credential subject id belongs to, or None (docs/design.md §7)."""
+    return next((p for p in all_people() if p["subjectId"] == subject_id), None)
