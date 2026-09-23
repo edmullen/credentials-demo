@@ -31,6 +31,10 @@
   Loop 2 — the two can run in either order.
 - **Loop 4 — Wallet and Payroll connect:** employer lookup, Payroll's inbound connection and
   verification request, and the Wallet's consent screen. Payroll acts as a *verifier* here.
+- **Loop 4a — UX improvements:** an unplanned loop between 4 and 5 (#69, Intent 004a): a
+  Wallet landing page with sign in/out, compact page headers, step-naming titles, a reworked
+  consent page, and Payroll's paystub table scrolling on mobile. Presentation only: no
+  protocol, credential or state changes.
 - **Loop 5 — Payroll issues credentials:** Payroll turns paystubs into credentials; the Wallet
   requests and displays them. Payroll acts as an *issuer* here.
 - **Loop 6 — Benefits programs and eligibility:** Benefits publishes its five programs, then
@@ -46,6 +50,10 @@
   built JavaScript component library (an npm package, its `dist/` bundled into React components
   with `.d.ts` prop contracts) into a claude.ai/design project, and this repo has no package,
   no build and no JavaScript. Checked on 2026-09-21; revisit only if that ever changes.
+  **Exception, Loop 4a** (Ed, 2026-09-23): no Claude Design pass. #69 is already written at
+  mockup precision, and its two new patterns (a landing page and a compact page-head line) are
+  small. Claude Code builds straight from the issue, and Ed reviews the running app. A one-off,
+  not a change to the rule: `docs/design/loop-4a/` will hold only the archived `design.md`.
 - **Each loop's technical design is archived when it is superseded.** `docs/design.md` is always
   the *current* loop's technical design; when the next loop's replaces it, the outgoing one moves
   to `docs/design/loop-N/design.md`, beside that loop's handoff. A loop's design record then sits

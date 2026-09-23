@@ -20,9 +20,6 @@ every copy and layout detail. In summary:
   A reworked consent page. Date of birth on the identity card.
 - **Payroll** (#69, final item): the paystub earnings table scrolls horizontally on mobile.
 
-Items 9–10 appear under a "Payroll app changes" heading in the issue, but they are Wallet pages
-(consent screen and identity card). This intent treats them as Wallet.
-
 **No Claude Design pass** (Ed, 2026-09-23). The issue is already written at mockup precision.
 Only the landing page and the compact header line are new patterns, and both are small. Claude
 Code builds straight from #69, and Ed reviews the running app and the PRs.
