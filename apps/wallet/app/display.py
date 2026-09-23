@@ -67,6 +67,13 @@ def day_heading(moment: datetime) -> str:
     return f"{DAYS[d.weekday()]} {d.day} {MONTHS[d.month - 1]}"
 
 
+def join_and(items: list[str]) -> str:
+    """'A', 'A and B', or 'A, B and C'."""
+    if len(items) <= 1:
+        return items[0] if items else ""
+    return f"{', '.join(items[:-1])} and {items[-1]}"
+
+
 def state_name(code: str | None) -> str:
     return STATES.get(code or "", code or "")
 

@@ -1,12 +1,15 @@
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, Form, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from app.activity import grouped_events
+from app.connections import add_employer, provider_panels, remove_link
 from app.credentials import credentials_for, find_credential, identity_status
 from app.people import all_people, get_person
+from app.providers import all_employers, get_provider
 from app.verify import Outcome
 
 BASE_DIR = Path(__file__).parent
@@ -54,7 +57,11 @@ async def index() -> RedirectResponse:
 @app.get("/p/{person_id}/credentials", response_class=HTMLResponse)
 async def credentials(request: Request, person: dict = Depends(viewed_person)) -> HTMLResponse:
     identity = [c for c in credentials_for(person["id"]) if c.category == "Identity"]
-    return render(request, "credentials.html", person, "credentials", identity=identity)
+    connected = any(p["connected"] for p in provider_panels(person["id"]))
+    return render(
+        request, "credentials.html", person, "credentials",
+        identity=identity, connected=connected,
+    )
 
 
 @app.get("/p/{person_id}/credentials/{credential_id}", response_class=HTMLResponse)
@@ -74,12 +81,43 @@ async def credential(
 
 @app.get("/p/{person_id}/connections", response_class=HTMLResponse)
 async def connections(request: Request, person: dict = Depends(viewed_person)) -> HTMLResponse:
-    return render(request, "connections.html", person, "connections")
+    panels = provider_panels(person["id"])
+    return render(request, "connections.html", person, "connections", panels=panels)
+
+
+@app.get("/p/{person_id}/connections/employers", response_class=HTMLResponse)
+async def employers(request: Request, person: dict = Depends(viewed_person)) -> HTMLResponse:
+    added = {e for panel in provider_panels(person["id"]) for e in panel["employers"]}
+    rows = sorted(
+        ({**e, "added": e["name"] in added} for e in all_employers()),
+        key=lambda e: e["name"],
+    )
+    return render(request, "employers.html", person, "", employers=rows)
+
+
+@app.post("/p/{person_id}/connections/employers")
+async def add_employer_route(
+    person: dict = Depends(viewed_person), employer: str = Form(...)
+) -> RedirectResponse:
+    if add_employer(person["id"], employer) is None:
+        raise HTTPException(status_code=404)
+    return RedirectResponse(f"/p/{person['id']}/connections", status_code=303)
+
+
+@app.post("/p/{person_id}/connections/{provider_id}/remove")
+async def remove_link_route(
+    provider_id: str, person: dict = Depends(viewed_person)
+) -> RedirectResponse:
+    if get_provider(provider_id) is None:
+        raise HTTPException(status_code=404)
+    remove_link(person["id"], provider_id)
+    return RedirectResponse(f"/p/{person['id']}/connections", status_code=303)
 
 
 @app.get("/p/{person_id}/activity", response_class=HTMLResponse)
 async def activity(request: Request, person: dict = Depends(viewed_person)) -> HTMLResponse:
-    return render(request, "activity.html", person, "activity")
+    groups = grouped_events(person["id"])
+    return render(request, "activity.html", person, "activity", groups=groups)
 
 
 @app.get("/p/{person_id}/switch", response_class=HTMLResponse)

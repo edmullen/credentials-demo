@@ -86,18 +86,17 @@ def test_switcher_for_an_unknown_person_is_404() -> None:
 
 
 @pytest.mark.parametrize("person_id", ["p08", "p24"])
-def test_connections_shows_the_heading_and_a_disabled_find_your_employer(person_id: str) -> None:
+def test_connections_shows_the_heading_and_a_live_find_your_employer(person_id: str) -> None:
     body = client.get(f"/p/{person_id}/connections").text
     assert '<h1 class="intro__title">Connections</h1>' in body
     assert "Connections are the services allowed to send credentials" in body
-    assert '<button class="btn" type="button" disabled>Find your employer</button>' in body
+    assert f'<a class="btn" href="/p/{person_id}/connections/employers">Find your employer</a>' in body
     assert 'class="empty"' in body
 
 
 @pytest.mark.parametrize("person_id", ["p08", "p24"])
-def test_activity_shows_one_sample_log_item(person_id: str) -> None:
+def test_activity_is_empty_for_a_fresh_person(person_id: str) -> None:
     body = client.get(f"/p/{person_id}/activity").text
     assert '<h1 class="intro__title">Activity</h1>' in body
-    assert body.count('class="log__item"') == 1
-    assert "New connection to Meridian Payroll established" in body
-    assert '<span class="log__time">2:14 PM</span>' in body
+    assert "class=\"log__item\"" not in body
+    assert "Nothing has happened in your wallet yet. Finding your employer will be the first entry." in body

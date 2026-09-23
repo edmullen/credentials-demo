@@ -7,9 +7,47 @@
         <h1 class="intro__title">Connections</h1>
       </div>
       <p class="intro__purpose">Connections are the services allowed to send credentials to your wallet, or to ask you to share one.</p>
+      {% if not panels %}
       <div class="empty">
         <p>You have no connections yet. Your employer&rsquo;s payroll provider is the first one you&rsquo;ll add.</p>
-        <button class="btn" type="button" disabled>Find your employer</button>
+        <a class="btn" href="/p/{{ person.id }}/connections/employers">Find your employer</a>
       </div>
+      {% else %}
+      {% for panel in panels %}
+      <section class="panel" aria-labelledby="prov-{{ panel.provider_id }}">
+        {% if panel.band %}
+        <div class="panel__status panel__status--{{ panel.band.variant }}">
+          <span class="badge badge--{{ panel.band.variant }}"><span class="badge__icon" aria-hidden="true">{{ panel.band.glyph|safe }}</span>{{ panel.band.label }}</span>
+          {% for sentence in panel.band.sentences %}
+          <p>{{ sentence }}</p>
+          {% endfor %}
+          {% if panel.band.credential_link %}
+          <p>It has been changed since it was issued. <a href="{{ panel.band.credential_link }}">View your credential</a></p>
+          {% endif %}
+        </div>
+        {% endif %}
+        <div class="panel__section">
+          <div class="provider__head">
+            <span class="cred__issuer">
+              <span class="card__meta">Payroll provider</span>
+              <h2 class="card__title" id="prov-{{ panel.provider_id }}">{{ panel.name }}</h2>
+            </span>
+            <form method="post" action="/p/{{ person.id }}/connections/{{ panel.provider_id }}/remove">
+              <button class="link-btn" type="submit" aria-describedby="prov-{{ panel.provider_id }}">{{ "Disconnect" if panel.connected else "Remove" }}</button>
+            </form>
+          </div>
+          <ul class="provider__emps" aria-label="Employers">
+            {% for name in panel.employers %}
+            <li class="provider__emp">{{ name }}</li>
+            {% endfor %}
+          </ul>
+          {% if not panel.connected %}
+          <button class="btn btn--block" type="button">{{ "Try again" if panel.band else "Connect payroll" }}</button>
+          {% endif %}
+        </div>
+      </section>
+      {% endfor %}
+      <a class="btn btn--secondary" href="/p/{{ person.id }}/connections/employers">Find another employer</a>
+      {% endif %}
     </div>
 {% endblock %}

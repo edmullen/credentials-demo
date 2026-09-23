@@ -32,6 +32,22 @@ start.
 - Payroll: <https://cred-demo-payroll.onrender.com>
 - Benefits: <https://cred-demo-benefits.onrender.com>
 
+## Running locally
+
+Each app is its own [uv](https://docs.astral.sh/uv/) project; there is no repo-root Python
+project. From inside an app's directory:
+
+```bash
+cd apps/wallet && uv sync && uv run uvicorn app.main:app --reload --port 8001
+```
+
+Ports: wallet 8001, payroll 8002, benefits 8003. To have a locally running Wallet reach a
+locally running Payroll instead of the live one, set `MERIDIAN_PAYROLL_URL`:
+
+```bash
+MERIDIAN_PAYROLL_URL=http://localhost:8002 uv run uvicorn app.main:app --reload --port 8001
+```
+
 ## More
 
 Design decisions are recorded in [docs/decisions.md](docs/decisions.md).
