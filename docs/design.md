@@ -245,3 +245,62 @@ is clean.
 - [ ] Payroll: the paystub's tables scroll sideways at 375px, by touch and by keyboard.
 - [ ] All three suites pass, and all 25 people still reach their Loop 4 outcomes.
 - [ ] Handoff screenshots are committed under `docs/design/loop-4a/screenshots/`.
+
+## 14. Reconciliation (plan step)
+
+This is the plan step's reconciliation pass (Loop 2's improvement, kept since). It checks each
+handoff page against this design, each acceptance criterion against the mechanism that satisfies
+it, and each dependency against Ed's machine. It was written after PR 1 (#82) was built and
+checked, and before PRs 2–5. Findings marked **new** change what gets built. Everything else
+confirms this design as written.
+
+### Handoff pages against the design
+
+Each page was compared with its Loop 4 version, or with the current template, with whitespace
+ignored. The diffs contain only the changes listed here.
+
+| Handoff page | PR | Changes in the handoff | Design | Finding |
+|---|---|---|---|---|
+| `connections*.html`, `employers*.html`, `pending*.html`, `activity*.html`, `credential-detail*.html` | 1 | page head and step title only | §4 | Built in #82; the side-by-side check is identical. |
+| `landing.html` | 2 | new page: `.wrap.landing`, `.landing__title` with a `.landing__lead` span, `.btn--block` Sign in, `.landing__demo`; header shows only the brand and a `.btn`; footer unchanged | §5 | As designed. `<main>` holds `.wrap landing`, not `.wrap stack`, so the 24px top padding comes from `.landing`. The side-by-side check covers it. |
+| `consent.html`, `consent-tampered.html` | 3 | decision moved above the list; `panel__status panel__status--plain` with no variant class; `.cred__top` row; status sentence unchanged | §6 | As designed. The tampered panel's `.panel__note` and disclosure note are unchanged, so `_credential_panel.html` changes only its status block. |
+| `consent-missing.html` | 1, 3 | step title (#82); Close request stays after the list | §4, §6 | Nothing left to build in PR 3: the form is already after the list. |
+| `credentials-start.html`, `credentials-chosen.html`, `credentials.html`, `credentials-empty.html` | 3 | `.cred__dob`; the Income note's three states | §6 | As designed. The handoff has no page for a failed attempt; §6 puts it in the "chosen" state. |
+| `credential-detail*.html` | 1 | page head; status band unchanged | §4 | Built. The detail page keeps its tinted band, so `status_style` defaults to the band. |
+| `person-switcher.html` | 4 | `.people__employers` line | §7 | As designed. The handoff's order for p06, p07 and p08 matches the generated `jobs` order exactly, so "sample-data order" means job order. |
+| `payroll/paystub.html` | 5 | two `.figures__scroll` wrappers, and caption `id`s `fig-earnings` and `fig-deductions` | §8 | As designed. |
+| `payroll/cred.css` | 5 | Loop 4a additions only (strict superset) | §2 | **New:** PR 5 adds a pinned-hash test to Payroll too, matching the Wallet's `test_stylesheet.py`. §11 already asks for "each app", and PR 1 wrote only the Wallet's. |
+
+### Acceptance criteria against their mechanisms
+
+| Criterion (§13) | Mechanism | Test | Check |
+|---|---|---|---|
+| Pages match the handoff at 375px and 480px | adopted `cred.css` (§2) and the handoff's markup | `test_stylesheet.py` | side-by-side table in each PR (§10) |
+| `/` is the landing page; Sign in opens p01's credentials | `landing()` route, `render(person=None)`, `{% block title %}` | new `test_landing.py` | landing pair at both widths |
+| Sign out is the last Menu item and goes to `/` | `base.html` Menu (§3) | `test_pagehead.py` (#82) | Menu pair (#82) |
+| Page heads, step titles, `<title>`s | templates (§4), `connections_title()` | `test_pagehead.py`, attempt tests (#82) | #82's table |
+| Consent: decision first, white status, detail page unchanged | `request.html` order; `status_style="plain"` | consent tests in `test_attempt_call_one.py`; the existing detail-page include test | consent and consent-tampered pairs |
+| Credentials: DOB and the three Income note states | `numeric_date()`, `birth_date_numeric`, `income_note()` | new `test_credentials_card.py`, `test_display.py` | credentials-start, credentials-chosen and credentials pairs |
+| Switcher lists employers | generator `employerNames`, `switch.html` | new `test_switcher_employers.py`, including confinement | switcher pair |
+| Paystub tables scroll by touch and keyboard | wrappers and adopted Payroll `cred.css` | new tests in `test_paystub_display.py`, including the pinned hash | paystub pair at 375px and 992px, plus a keyboard scroll check |
+| All suites pass; 25 outcomes unchanged | no protocol or state change; re-keyed trust lists stay byte-identical | all three suites; `cmp` of the two `trust.json` files | a live connect on Render after PR 4 |
+| Handoff screenshots committed | captured from `index.html` | — | after PR 5 |
+
+### Dependencies against Ed's machine
+
+- **No new packages** in any app.
+- `tools/generate_credentials.py` runs through `uv run` with its existing inline dependencies,
+  including the `cryptography<49` cap that keeps Intel Mac wheels available. It ran cleanly on
+  this machine in the rolled-back build.
+- **Local tooling only:** the side-by-side check serves the handoff with `python3 -m http.server`
+  (macOS's built-in Python 3.9, standard library only), launched from the untracked
+  `.claude/launch.json`. Nothing about it reaches the apps, CI or Render.
+
+### Limits of the side-by-side check
+
+- **Pending pages:** the **Check again** fallback is hidden by the pages' own script, as designed,
+  but the handoff's copy doesn't hide it. The pair is compared above that form.
+- **Pages that need a pending state:** reaching them locally takes a stand-in on Payroll's port
+  that holds requests. That's how #82 measured the asking page.
+- **Sample content:** names, dates, employers and log entries differ between the two sides, so the
+  check compares structure and spacing, not every block's height.
