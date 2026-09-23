@@ -8,8 +8,8 @@
       {
         "kty": "EC",
         "crv": "P-256",
-        "x": "f3li8ZGXqWjxiT0flT2NV8yM4JvTy7f9SzM_kjJE5-s",
-        "y": "vo35aQNNTtz9ZoAW37--3sBNsJNKLfm-OHgIPP4yOEk",
+        "x": "wi2Df00nU8eyl5Cl53kFwP6fiUk8LCxxwUYOIEwHhIU",
+        "y": "m2uEWPP9GyWND7eRIN4U_oSZATfjhg3-8DL16sJ6awA",
         "kid": "nj-1"
       }
     ]
@@ -23,8 +23,8 @@
       {
         "kty": "EC",
         "crv": "P-256",
-        "x": "mL3RFU5YXdy4Dkzg9LbohXx7WiQULcph5vkWhCgRB34",
-        "y": "88IkGpHSkNgPFsAC9lSizwLhwUxB4_6hBp0RYwh-srY",
+        "x": "mOCe6lu5LV6l36mjJCYvknPXgl97M5amL8A7T_bJDLQ",
+        "y": "5Pl_ZEBCsFkY1-NxRLWd7T2LKjihQiUPfNOCyFcRuLA",
         "kid": "mi-1"
       }
     ]
@@ -38,8 +38,8 @@
       {
         "kty": "EC",
         "crv": "P-256",
-        "x": "237UvxbzJVguSqy9hzFl0_RWelgxEkQ3_hIYjxM1MX0",
-        "y": "uYTtVsmlNm-cIysxehARWgSKTOI37QqZzEvBhM-mF5I",
+        "x": "zv17vB6fZ5e4qc1DsNRv16gMIFNQXaAWs2_G4kaNb9U",
+        "y": "8BR7cXgaSmYQebZc3-qXfrMtVmgk_dzEugUkbIk5ZyQ",
         "kid": "ny-1"
       }
     ]
@@ -53,9 +53,24 @@
       {
         "kty": "EC",
         "crv": "P-256",
-        "x": "XUR14J7_vBJ8rABl1j5Vl32XEP3jNYY3T_COTEECJaU",
-        "y": "1h5ZWkx8JWpk-oJ7vqxJI18pMS53SMPcPtEJOVbd40w",
+        "x": "hReYxKrxytlq-eYdnOxH7gYfXGrNlqnkEx2u_EWKw-c",
+        "y": "Dn0BFEDPHV9VNeg4aIDfotVE95Olw0tizJj8OJDDz6w",
         "kid": "oh-1"
+      }
+    ]
+  },
+  "https://cred-demo-payroll.onrender.com": {
+    "name": "Meridian Payroll",
+    "trustedFor": [
+      "PaystubCredential"
+    ],
+    "keys": [
+      {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "UBc6EDbnmcN4LH7WnVxwkB-yWA7-XdKuBWCT2ijGaZg",
+        "y": "Bdsg88CPKk2vI-YCZIcH54fEVwiy0xkpjntfk5l0iLo",
+        "kid": "payroll-1"
       }
     ]
   }

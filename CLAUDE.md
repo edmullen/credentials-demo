@@ -91,6 +91,15 @@ Run one app locally with reload (ports: wallet 8001, payroll 8002, benefits 8003
 cd apps/wallet && uv run uvicorn app.main:app --reload --port 8001
 ```
 
+Payroll signs with a key that isn't committed (docs/design.md §3), so it needs
+`--env-file .env` and won't start locally until that file exists — run
+`uv run tools/generate_credentials.py` from the repo root first (once, or again after a fresh
+clone):
+
+```bash
+cd apps/payroll && uv run uvicorn app.main:app --reload --port 8002 --env-file .env
+```
+
 `.claude/launch.json` starts the same three apps for the desktop app's preview pane, with the
 Wallet pointed at the local Payroll. It also has a `handoff` server that serves `docs/design/` on
 port 8010, so a loop's handoff pages (`http://localhost:8010/loop-N/…`) can be compared side by
