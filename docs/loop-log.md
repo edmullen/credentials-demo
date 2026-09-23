@@ -173,7 +173,7 @@ retry-on-429 never actually works: the Wallet retried Benefits every five second
 two-minute budget and gave up with every attempt still gated, and Benefits didn't wake until
 thirty seconds later, from Ed's own browser visit — not from the ping. #48 closed by removing
 the peer-wake feature from all three apps rather than fixing it further; full trace in
-[design.md §7](design.md#7-the-peer-wake-retest-and-a-correction-to-loop-2s-finding-48).
+[design/loop-3/design.md §7](design/loop-3/design.md#7-the-peer-wake-retest-and-a-correction-to-loop-2s-finding-48).
 
 **Process note.** Per-item PRs to `main` — the answer to Loop 1's branching question — worked as
 hoped. CI ran on every PR, closing keywords fired only in the PR that finished each issue, and
@@ -208,7 +208,7 @@ salaried share one template), and the person switcher. All three issues closed o
 against `docs/design/loop-3/screenshots/` in the browser tool at desktop and mobile widths.
 Payroll's suite went 10 → 24 (#17) → 35 (#18) → 29 (#48, which removed six now-obsolete peer-wake
 tests); Wallet's dropped 79 → 67 and Benefits' 10 → 4, both from #48 alone. Full trace in
-[design.md](design.md).
+[design/loop-3/design.md](design/loop-3/design.md).
 
 **What went wrong.** Two things, different sizes.
 
@@ -216,7 +216,7 @@ tests); Wallet's dropped 79 → 67 and Benefits' 10 → 4, both from #48 alone. 
   it surfaced four places where the intent, the mockups and the committed data disagreed — the
   generator script Intent 003 didn't expect, the route shape, job-title casing, and the salaried
   installment figure — all settled with Ed before any code, recorded in
-  [design.md §11](design.md#11-decisions-and-deviations) items 1–4. At the actual plan step it
+  [design/loop-3/design.md §11](design/loop-3/design.md#11-decisions-and-deviations) items 1–4. At the actual plan step it
   caught one more: §4 tagged `employers_for()` as "(#18)" work, but the switcher — built in #17 —
   needed it, a tagging slip the design text itself got wrong.
 - *Loop 2's design record was wrong, and nothing caught it for a whole loop.* Its own
@@ -229,7 +229,7 @@ tests); Wallet's dropped 79 → 67 and Benefits' 10 → 4, both from #48 alone. 
   search for independent documentation of the specific `hibernate-rate-limited` behavior turned up
   nothing outside this project's own issues, either — the "documented" claim looks like an
   assertion made once, in Loop 2, that nothing rechecked before repeating it. Full correction in
-  [design.md §7](design.md#7-the-peer-wake-retest-and-a-correction-to-loop-2s-finding-48).
+  [design/loop-3/design.md §7](design/loop-3/design.md#7-the-peer-wake-retest-and-a-correction-to-loop-2s-finding-48).
 
 **Slow or expensive.** The design pass stayed cheap, as Loop 2's retro asked — a medium pass with
 one proposal per screen, no options explored. The peer-wake diagnosis was the loop's real cost,
@@ -244,7 +244,7 @@ own mitigation: open a short message an hour or so before he actually starts wor
 
 **Not verified at the time of writing.** Deploy scope (AC 19) is now confirmed: Ed checked
 Render's events log and found no deploy for Benefits or Wallet around when #54 and #55 merged, so
-those Payroll-only PRs redeployed Payroll alone, as design.md §8 predicts. The env var removal is
+those Payroll-only PRs redeployed Payroll alone, as design/loop-3/design.md §8 predicts. The env var removal is
 **not** confirmed — the opposite, in fact: `WALLET_URL`, `PAYROLL_URL` and `BENEFITS_URL` are
 still listed on all three live services. That's Render's documented Blueprint behavior, not a bug
 in #56 — "the resource retains any existing environment variable values that aren't overwritten

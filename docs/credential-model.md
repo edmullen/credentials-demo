@@ -77,12 +77,12 @@ identifier. The demo does not show that onboarding; Payroll's sample employee re
 carry each person's subject identifier.
 
 1. The person taps **Connect payroll**. The Wallet sends a connection request to Payroll.
-2. Payroll replies with a **presentation request**: a list of the credentials it needs and,
-   within each, the claims it needs. For Payroll the list has one entry — the identity
-   credential — but it is a list, because later verifiers ask for several.
+2. Payroll replies with a **presentation request**: a list of the credentials it needs, by
+   type. For Payroll the list has one entry — the identity credential — but it is a list,
+   because later verifiers ask for several. It names no individual claims: a signed credential
+   is shared whole, so asking for particular claims would describe less than is handed over.
 3. The Wallet shows the **consent screen** (#22): each requested credential, with **every claim
-   it contains** listed under it and the ones the requester needs marked. A signed credential is
-   shared whole, so the screen shows everything that will actually be handed over (§3).
+   it contains** shown, unmarked — everything that will actually be handed over (§3).
    Approval is **all-or-nothing** over the whole request.
    - **Deny** — nothing is shared, and the Wallet returns to its previous state.
    - **Approve** — the Wallet sends a **presentation** containing the requested credential.
@@ -479,11 +479,15 @@ the Wallet supplies the display name.
 
 Settled on 2026-09-18:
 
-1. **The consent screen lists every claim being shared**, marking the ones the requester needs.
-   A signed JWT can't be partly revealed — removing a claim breaks the signature — so asking for
-   the identity credential to check state and county also hands over the street address and
-   birth date. The screen must not understate that. *Selective disclosure* (SD-JWT), which would
-   let the holder reveal only chosen claims, is the standard fix and is deferred (#28).
+1. **The consent screen lists every claim being shared.** A signed JWT can't be partly
+   revealed — removing a claim breaks the signature — so asking for the identity credential to
+   check state and county also hands over the street address and birth date. The screen must
+   not understate that. *Selective disclosure* (SD-JWT), which would let the holder reveal only
+   chosen claims, is the standard fix and is deferred (#28).
+   *Amended 2026-09-22 (Loop 4):* this originally also said the screen marks the claims the
+   requester needs. Ed dropped the marking. For a credential shared whole, a request naming
+   particular claims describes less than what actually changes hands. So requests name
+   credential types only, and nothing is marked. Revisit with #28.
 2. **Category comes from `type`, not from a claim.** The Wallet maps `IdentityCredential` →
    Identity, `PaystubCredential` → Income and `BenefitCredential` → Benefits. The mapping is
    data, so a new category is still a data change rather than a layout change; but a display
@@ -550,9 +554,10 @@ signatures are what the verifier checks (§2).
 The request a verifier sends — "these credential types, and within each, these claims" — has
 no W3C format; in the real world it belongs to OpenID4VP, whose current version expresses it in
 a query language called **DCQL**. The demo's request is plain JSON, but **shaped after DCQL**: a
-list of credential queries, each naming a credential type and the claim paths it needs. That
-keeps a later move to real OpenID4VP a translation rather than a redesign, and it is what the
-consent screen reads to mark which claims a verifier needs.
+list of credential queries, each naming a credential type. That keeps a later move to real
+OpenID4VP a translation rather than a redesign. DCQL can also name individual claims. The demo
+leaves that out while credentials are shared whole (§3, decision 1), and would add it along
+with selective disclosure (#28).
 
 ### Things that would be contrary — and so are ruled out
 

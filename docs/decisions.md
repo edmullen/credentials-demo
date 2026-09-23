@@ -61,4 +61,20 @@
 - pytest for tests; GitHub Actions for CI; branch protection on `main`
 - **Hosting:** Render via a `render.yaml` Blueprint (free plan, `rootDir` and `buildFilter` per app, `autoDeployTrigger: checksPass`). GCP Cloud Run still makes sense eventually, but there is **no move planned and no urgency** — revisit only if Render blocks something the demo needs.
 - **Sample data:** one generated set (people, employers, paystubs), then copied per app — each app keeps only the slice it needs. No shared data store or package, per the monorepo constraint. Some duplication across apps is expected.
+- **Runtime state is in memory, per app, and volatile** (#27, decided in Intent 004 on
+  2026-09-22). There is no database and nothing written to disk: Render's free tier has no
+  persistent disk, so a file would buy nothing. Each app runs a single worker, so one set of
+  in-memory dictionaries serves every request. Any app restarting, whether from idle spin-down
+  or a redeploy, forgets what it stored. Because the apps idle independently, one can remember a
+  connection the other has lost; that is a named demo limitation, and nothing on screen
+  explains it. Real persistence (Render's free Postgres) remains a later option, not a plan.
+- **No per-person demo reset** (Ed, 2026-09-22, closing #27's other half). Restarts already are
+  the reset. Within a session, removing a provider in the Wallet returns that person to the
+  start, and reconnecting overwrites Payroll's record. Worth rechecking at Loop 6, where holding
+  benefit credentials is the first state change with no in-app way back.
+- **JavaScript is allowed sparingly** (Ed, 2026-09-22, amending "no JavaScript"): only where a
+  no-JS option is insufficient, as progressive enhancement over a page that already works
+  without it. No framework, no library, no bundler. The first and only use is the Wallet's
+  pending pages (docs/design/loop-4/README.md §6), where a `<meta refresh>` would fail WCAG
+  (F41) and holding the POST open would show nothing but the browser's spinner.
 - **One-shot generators are allowed; sync scripts are not.** A script under `tools/` may generate files into several apps' directories — the sample data (#6), and the keys, trust lists and signed identity credentials (docs/credential-model.md §2) — provided it is run by hand, its output is committed, and nothing runs it at build or deploy time. What stays ruled out is a script that *keeps* copies aligned on an ongoing basis. (The "no sync script" rule originated in a proposal to sync `cred.css` across apps, which was rejected as unnecessary; each app still owns its own `cred.css`.)
