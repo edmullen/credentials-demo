@@ -50,10 +50,6 @@
   built JavaScript component library (an npm package, its `dist/` bundled into React components
   with `.d.ts` prop contracts) into a claude.ai/design project, and this repo has no package,
   no build and no JavaScript. Checked on 2026-09-21; revisit only if that ever changes.
-  **Exception, Loop 4a** (Ed, 2026-09-23): no Claude Design pass. #69 is already written at
-  mockup precision, and its two new patterns (a landing page and a compact page-head line) are
-  small. Claude Code builds straight from the issue, and Ed reviews the running app. A one-off,
-  not a change to the rule: `docs/design/loop-4a/` will hold only the archived `design.md`.
 - **Each loop's technical design is archived when it is superseded.** `docs/design.md` is always
   the *current* loop's technical design; when the next loop's replaces it, the outgoing one moves
   to `docs/design/loop-N/design.md`, beside that loop's handoff. A loop's design record then sits

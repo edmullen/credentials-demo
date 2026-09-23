@@ -20,16 +20,16 @@ every copy and layout detail. In summary:
   A reworked consent page. Date of birth on the identity card.
 - **Payroll** (#69, final item): the paystub earnings table scrolls horizontally on mobile.
 
-**No Claude Design pass** (Ed, 2026-09-23). The issue is already written at mockup precision.
-Only the landing page and the compact header line are new patterns, and both are small. Claude
-Code builds straight from #69, and Ed reviews the running app and the PRs.
+**Design comes before build:** a *light* Claude Design pass (Ed, 2026-09-23), briefed in
+[design/loop-4a/brief.md](../design/loop-4a/brief.md). Most of the loop adjusts existing
+components. The landing page and the compact page head are the two new pieces.
 
 Done means: every item in #69 is visible on the live Wallet and Payroll. The Wallet's and Payroll's
 existing suites still pass with updated copy assertions, and every one of the 25 people still
 reaches the outcome Loop 4 designed for them.
 
 ## Affected users/systems
-- **Ed**: reviews each PR on the running app in place of a design handoff.
+- **Ed**: runs the Claude Design pass and reviews its handoff.
 - **`apps/wallet`**: nearly everything. Its templates, its own `cred.css`, a new `/` landing route,
   and a person-to-employers field on its people data.
 - **`apps/payroll`**: the paystub table's mobile overflow only. Its headers stay as they are.
@@ -37,9 +37,8 @@ reaches the outcome Loop 4 designed for them.
 - **`apps/benefits`**: unaffected.
 
 ## Constraints
-- **Record the design skip in [decisions.md](../decisions.md)** as a one-off exception to "Design
-  stage uses Claude Design", not a change to the rule. With no handoff, `docs/design/loop-4a/` holds
-  only the archived technical design when Loop 5 supersedes it.
+- **Build to the handoff.** Copy, class names and ARIA come verbatim from the Claude Design pages,
+  and the handoff lands in `docs/design/loop-4a/` beside its brief, as in earlier loops.
 - **Switcher employers are a demo aid, nothing more.** They come from the generator (one-shot,
   output committed, per decisions.md). The Wallet's lookup, connect and consent logic must never
   read them. Whether someone works for an employer is still Payroll's call.
