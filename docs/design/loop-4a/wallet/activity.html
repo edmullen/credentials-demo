@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" data-app="wallet">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Activity — Wallet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;600&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="credentials.html">
+        <span class="header__mark header__mark--wallet" aria-hidden="true"></span>
+        Wallet
+      </a>
+      <span class="initials" role="img" aria-label="Grace Okafor">GO</span>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <nav class="nav-menu__panel" aria-label="Main">
+          <a href="credentials.html">Credentials</a>
+          <a href="connections.html">Connections</a>
+          <a href="activity.html" aria-current="page">Activity</a>
+          <a class="nav-menu__signout" href="landing.html">Sign out</a>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <div class="wrap stack">
+      <div class="pagehead">
+        <h1 class="pagehead__title">Activity</h1>
+      </div>
+      <p class="intro__purpose">Everything your wallet has done, newest first.</p>
+      <section class="stack-s" aria-labelledby="day-0">
+        <h2 class="intro__eyebrow" id="day-0">Tuesday 22 September</h2>
+        <ol class="log">
+          <li class="log__item">
+            <span class="log__dot log__dot--verified" aria-hidden="true"></span>
+            <span class="log__body">
+              <span class="log__time">2:14 PM</span>
+              <span>New connection to Meridian Payroll established</span>
+            </span>
+          </li>
+          <li class="log__item">
+            <span class="log__dot log__dot--neutral" aria-hidden="true"></span>
+            <span class="log__body">
+              <span class="log__time">2:13 PM</span>
+              <span>Identity credential shared with Meridian Payroll</span>
+            </span>
+          </li>
+          <li class="log__item">
+            <span class="log__dot log__dot--neutral" aria-hidden="true"></span>
+            <span class="log__body">
+              <span class="log__time">2:13 PM</span>
+              <span>Connection to Meridian Payroll requested</span>
+            </span>
+          </li>
+          <li class="log__item">
+            <span class="log__dot log__dot--neutral" aria-hidden="true"></span>
+            <span class="log__body">
+              <span class="log__time">2:12 PM</span>
+              <span>Pinecrest Home Care added, paid through Meridian Payroll</span>
+            </span>
+          </li>
+          <li class="log__item">
+            <span class="log__dot log__dot--neutral" aria-hidden="true"></span>
+            <span class="log__body">
+              <span class="log__time">2:11 PM</span>
+              <span>Meridian Payroll removed, with Harborline Logistics</span>
+            </span>
+          </li>
+          <li class="log__item">
+            <span class="log__dot log__dot--caution" aria-hidden="true"></span>
+            <span class="log__body">
+              <span class="log__time">2:10 PM</span>
+              <span>Connection to Meridian Payroll refused: Meridian Payroll doesn&rsquo;t have an employee record that matches you.</span>
+            </span>
+          </li>
+          <li class="log__item">
+            <span class="log__dot log__dot--neutral" aria-hidden="true"></span>
+            <span class="log__body">
+              <span class="log__time">2:10 PM</span>
+              <span>Identity credential shared with Meridian Payroll</span>
+            </span>
+          </li>
+          <li class="log__item">
+            <span class="log__dot log__dot--neutral" aria-hidden="true"></span>
+            <span class="log__body">
+              <span class="log__time">2:09 PM</span>
+              <span>Request from Meridian Payroll denied. Nothing was shared.</span>
+            </span>
+          </li>
+          <li class="log__item">
+            <span class="log__dot log__dot--neutral" aria-hidden="true"></span>
+            <span class="log__body">
+              <span class="log__time">2:08 PM</span>
+              <span>Connection to Meridian Payroll requested</span>
+            </span>
+          </li>
+          <li class="log__item">
+            <span class="log__dot log__dot--neutral" aria-hidden="true"></span>
+            <span class="log__body">
+              <span class="log__time">2:07 PM</span>
+              <span>Harborline Logistics added, paid through Meridian Payroll</span>
+            </span>
+          </li>
+        </ol>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p class="footer__note"><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></p>
+      <span class="footer__aside"><a href="person-switcher.html">Switch person</a></span>
+    </div>
+  </footer>
+</body>
+</html>

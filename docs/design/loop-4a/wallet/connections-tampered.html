@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" data-app="wallet">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Now connect your payroll — Wallet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;600&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="credentials.html">
+        <span class="header__mark header__mark--wallet" aria-hidden="true"></span>
+        Wallet
+      </a>
+      <span class="initials" role="img" aria-label="Carmen Diaz">CD</span>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <nav class="nav-menu__panel" aria-label="Main">
+          <a href="credentials.html">Credentials</a>
+          <a href="connections.html" aria-current="page">Connections</a>
+          <a href="activity.html">Activity</a>
+          <a class="nav-menu__signout" href="landing.html">Sign out</a>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <div class="wrap stack">
+      <div class="pagehead">
+        <h1 class="pagehead__title">Connections</h1>
+      </div>
+      <h2 class="intro__title">Now connect your payroll</h2>
+      <p class="intro__purpose">Connections are the services allowed to send credentials to your wallet, or to ask you to share one.</p>
+      <section class="panel" aria-labelledby="prov-meridian">
+        <div class="panel__status panel__status--error">
+          <span class="badge badge--error"><span class="badge__icon" aria-hidden="true">&#10005;</span>Not connected</span>
+          <p>Meridian Payroll couldn&rsquo;t verify your identity credential.</p>
+          <p>It has been changed since it was issued. <a href="credential-detail-tampered.html">View your credential</a></p>
+        </div>
+        <div class="panel__section">
+          <div class="provider__head">
+            <span class="cred__issuer">
+              <span class="card__meta">Payroll provider</span>
+              <h2 class="card__title" id="prov-meridian">Meridian Payroll</h2>
+            </span>
+            <form method="post" action="connections.html">
+              <button class="link-btn" type="submit" aria-describedby="prov-meridian">Remove</button>
+            </form>
+          </div>
+          <ul class="provider__emps" aria-label="Employers">
+            <li class="provider__emp">Shoreway Supermarkets</li>
+          </ul>
+          <form method="post" action="pending.html">
+            <button class="btn btn--block" type="submit">Try again</button>
+          </form>
+        </div>
+      </section>
+      <a class="btn btn--secondary" href="employers.html">Find another employer</a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p class="footer__note"><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></p>
+      <span class="footer__aside"><a href="person-switcher.html">Switch person</a></span>
+    </div>
+  </footer>
+</body>
+</html>
