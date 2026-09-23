@@ -56,9 +56,17 @@ Theming is one attribute: `<html data-app="…">`, with all component CSS readin
 - **`href="/static/cred.css"` literally, never `url_for('static', …)`.** Starlette's `url_for`
   builds an absolute URL from the incoming request; behind Render's TLS proxy that arrives as
   `http://`, and browsers block the stylesheet as mixed content.
-- **No JavaScript and no bundler, anywhere in these pages.** The mobile nav is a native
-  `<details>` disclosure and the brand mark is a CSS-filled `<span>`. This is a design
-  constraint, not an omission.
+- **Almost no JavaScript, and no framework or bundler.** JavaScript is allowed sparingly, only
+  where a no-JS option is insufficient, as progressive enhancement over a page that already
+  works without it (`docs/decisions.md`). The mobile nav is a native `<details>` disclosure and
+  the brand mark is a CSS-filled `<span>`. The one script is inline on the Wallet's two pending
+  pages, polling a status URL; without it, **Check again** does the same job by hand.
+- **One uvicorn worker per app, with no `--workers`.** Runtime state (connections, requests,
+  activity) lives in each app's memory. More than one worker would split it and break the
+  connection flow.
+- **The Wallet sends Payroll's `response_uri` only to the origin it already holds.** Payroll
+  returns that URI as a path, not an absolute URL, for the same TLS-proxy reason as the
+  `cred.css` href above.
 - **Copy, class names and ARIA attributes are verbatim from the mockups**, so `cred.css` applies
   without edits.
 - **`apps/benefits`'s `cred.css` uses `data-app="benefits"`, not the handoff's `"benefit"`.**
