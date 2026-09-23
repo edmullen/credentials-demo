@@ -91,6 +91,11 @@ Run one app locally with reload (ports: wallet 8001, payroll 8002, benefits 8003
 cd apps/wallet && uv run uvicorn app.main:app --reload --port 8001
 ```
 
+`.claude/launch.json` starts the same three apps for the desktop app's preview pane, with the
+Wallet pointed at the local Payroll. It also has a `handoff` server that serves `docs/design/` on
+port 8010, so a loop's handoff pages (`http://localhost:8010/loop-N/…`) can be compared side by
+side with the running apps (Loop 4a's design, §10).
+
 The one exception to "run from inside an app": the sample-data generator is a self-contained
 uv script, run from the repo root. It regenerates `tools/sample_data/generated/` and
 `docs/sample-data.md` from the hand-written YAML, and refuses to write anything if an edit

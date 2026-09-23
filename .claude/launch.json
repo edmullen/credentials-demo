@@ -1,0 +1,44 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "wallet",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd apps/wallet && MERIDIAN_PAYROLL_URL=http://localhost:8002 uv run uvicorn app.main:app --reload --port 8001"
+      ],
+      "port": 8001
+    },
+    {
+      "name": "payroll",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd apps/payroll && uv run uvicorn app.main:app --reload --port 8002"
+      ],
+      "port": 8002
+    },
+    {
+      "name": "benefits",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd apps/benefits && uv run uvicorn app.main:app --reload --port 8003"
+      ],
+      "port": 8003
+    },
+    {
+      "name": "handoff",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8010",
+        "--directory",
+        "docs/design"
+      ],
+      "port": 8010
+    }
+  ]
+}
