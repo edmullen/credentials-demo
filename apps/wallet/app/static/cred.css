@@ -70,7 +70,7 @@ html[data-app="wallet"] {
 
 /* wallet screens sit closer to the header than the Loop 0 page did:
    top padding now reads level with .wrap's 24px sides */
-html[data-app="wallet"] .main { padding: calc(var(--space) * 1.75) 0 calc(var(--space) * 8); }
+html[data-app="wallet"] .main { padding: calc(var(--space) * 3.5) 0 calc(var(--space) * 8); }
 
 /* benefit program: plainer, squarer, higher-contrast */
 html[data-app="benefit"] {
@@ -360,7 +360,7 @@ html[data-app="benefit"] .badge { border-radius: 3px; }
 }
 .intro__title {
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: clamp(2rem, 6vw, 3rem);
   font-weight: 600;
   letter-spacing: -0.02em;
 }
@@ -873,69 +873,3 @@ a.cred:hover { border-color: var(--line-2); color: var(--ink); }
 .log__dot--verified { background: oklch(0.62 0.12 158); }
 .log__dot--caution  { background: oklch(0.75 0.13 85); }
 .log__dot--error    { background: oklch(0.60 0.17 25); }
-
-/* ============================================================
-   Loop 4a additions — Wallet (docs/design.md §3)
-   No handoff this loop: #69 is the spec. The page name and back
-   link share one compact line; the step line below it keeps
-   .intro__title's look on a <p>.
-   ============================================================ */
-
-/* --- page head --------------------------------------------- */
-/* one row: a long page name wraps within its own column rather than
-   dropping below the back link and leaving the separator stranded */
-.pagehead {
-  display: flex;
-  align-items: center;
-  gap: var(--space);
-}
-.pagehead .back { flex: none; font-size: 0.875rem; }
-.pagehead__sep { color: var(--line-2); }
-.pagehead__name {
-  min-width: 0;
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink);
-}
-/* the step line was an <h1>; keep the heading rhythm it had */
-p.intro__title { margin: 0; line-height: 1.15; text-wrap: balance; }
-
-/* --- landing page (docs/design.md §4) ---------------------- */
-.landing__note { margin: 0; font-size: 0.875rem; color: var(--ink-2); }
-
-/* --- nav: the Menu at every width (docs/design.md §4) -------
-   Sign out doesn't fit beside three links in a 30rem header, so the
-   Wallet keeps its phone Menu on desktop too. The panel's content
-   lines up with the 30rem column rather than the window's edges. */
-html[data-app="wallet"] .nav-menu { display: block; }
-html[data-app="wallet"] .nav-menu__panel {
-  padding-inline: max(calc(var(--space) * 3), calc((100% - 30rem) / 2 + var(--space) * 3));
-}
-
-/* --- consent: status as a white row (docs/design.md §5) -----
-   Laid out like the credentials card's .cred__top. No variant
-   tint, and deliberately not a .panel__status, whose rule turns
-   badges white: here the badge keeps its own colour and alone
-   carries verified, tampered or caution.                        */
-.panel__top {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--space) * 1.5);
-  padding: calc(var(--space) * 2.5);
-  border-bottom: 1px solid var(--line);
-}
-.panel__top p { margin: 0; font-size: 0.9375rem; color: var(--ink-2); }
-
-/* --- credentials card and Income note (docs/design.md §6) --- */
-.cred__dob { font-size: 0.9375rem; color: var(--ink-2); line-height: 1.4; }
-div.category__waiting-note {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: calc(var(--space) * 2);
-}
-div.category__waiting-note p { margin: 0; }

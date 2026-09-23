@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 from app import clock
-from app.display import issuer_phrase, long_date, numeric_date, short_date, state_name
+from app.display import issuer_phrase, long_date, short_date, state_name
 from app.outcomes import NO_CREDENTIAL, PRESENTATIONS, Presentation, message_for
 from app.people import DATA_DIR
 from app.verify import Outcome, verify
@@ -81,10 +81,6 @@ class CredentialView:
     @property
     def birth_date(self) -> str:
         return long_date(self.subject.get("birthDate"))
-
-    @property
-    def birth_date_numeric(self) -> str:
-        return numeric_date(self.subject.get("birthDate"))
 
     @property
     def valid_from(self) -> str:

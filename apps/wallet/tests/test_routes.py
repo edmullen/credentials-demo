@@ -9,6 +9,10 @@ from app.people import all_people
 client = TestClient(app)
 
 
+def test_root_redirects_to_the_first_person() -> None:
+    response = client.get("/", follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers["location"] == "/p/p01/credentials"
 
 
 @pytest.mark.parametrize("screen", [key for key, _ in NAV])
@@ -45,10 +49,10 @@ def test_nav_is_the_three_screens_with_no_help() -> None:
 
 
 @pytest.mark.parametrize("screen", [key for key, _ in NAV])
-def test_active_item_is_marked_in_the_menu(screen: str) -> None:
+def test_active_item_is_marked_in_both_navs(screen: str) -> None:
     body = client.get(f"/p/p08/{screen}").text
     current = re.findall(r'<a href="/p/p08/(\w+)" aria-current="page"', body)
-    assert current == [screen]  # the Menu is the Wallet's only nav (docs/design.md §4)
+    assert current == [screen, screen]  # inline nav and <details> panel
 
 
 def test_footer_links_to_the_switcher_from_the_current_screen() -> None:
@@ -84,8 +88,7 @@ def test_switcher_for_an_unknown_person_is_404() -> None:
 @pytest.mark.parametrize("person_id", ["p08", "p24"])
 def test_connections_shows_the_heading_and_a_live_find_your_employer(person_id: str) -> None:
     body = client.get(f"/p/{person_id}/connections").text
-    assert '<h1 class="pagehead__name">Connections</h1>' in body
-    assert '<p class="intro__title">You have 0 connections</p>' in body
+    assert '<h1 class="intro__title">Connections</h1>' in body
     assert "Connections are the services allowed to send credentials" in body
     assert f'<a class="btn" href="/p/{person_id}/connections/employers">Find your employer</a>' in body
     assert 'class="empty"' in body
@@ -94,6 +97,6 @@ def test_connections_shows_the_heading_and_a_live_find_your_employer(person_id: 
 @pytest.mark.parametrize("person_id", ["p08", "p24"])
 def test_activity_is_empty_for_a_fresh_person(person_id: str) -> None:
     body = client.get(f"/p/{person_id}/activity").text
-    assert '<h1 class="pagehead__name">Activity</h1>' in body
+    assert '<h1 class="intro__title">Activity</h1>' in body
     assert "class=\"log__item\"" not in body
     assert "Nothing has happened in your wallet yet. Finding your employer will be the first entry." in body

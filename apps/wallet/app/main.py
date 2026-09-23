@@ -19,7 +19,7 @@ from app.attempt import (
     start_connect,
     where_is_the_attempt,
 )
-from app.connections import add_employer, connections_title, provider_panels, remove_link
+from app.connections import add_employer, provider_panels, remove_link
 from app.credentials import credentials_for, find_credential, identity_status
 from app.people import all_people, get_person
 from app.providers import all_employers, get_provider
@@ -54,10 +54,7 @@ def viewed_person(person_id: str) -> dict:
     return person
 
 
-def render(
-    request: Request, template: str, person: dict | None, active: str, **context
-) -> HTMLResponse:
-    """`person` is None only on the landing page, which has no one signed in."""
+def render(request: Request, template: str, person: dict, active: str, **context) -> HTMLResponse:
     return templates.TemplateResponse(
         request,
         template,
@@ -65,20 +62,18 @@ def render(
     )
 
 
-@app.get("/", response_class=HTMLResponse)
-async def landing(request: Request) -> HTMLResponse:
-    # Sign in is navigation, not authentication: it opens the default person's wallet.
-    return render(request, "landing.html", None, "", sign_in=f"/p/{DEFAULT_PERSON}/credentials")
+@app.get("/")
+async def index() -> RedirectResponse:
+    return RedirectResponse(f"/p/{DEFAULT_PERSON}/credentials", status_code=303)
 
 
 @app.get("/p/{person_id}/credentials", response_class=HTMLResponse)
 async def credentials(request: Request, person: dict = Depends(viewed_person)) -> HTMLResponse:
     identity = [c for c in credentials_for(person["id"]) if c.category == "Identity"]
-    panels = provider_panels(person["id"])
-    connected = any(p["connected"] for p in panels)
+    connected = any(p["connected"] for p in provider_panels(person["id"]))
     return render(
         request, "credentials.html", person, "credentials",
-        identity=identity, connected=connected, has_link=bool(panels),
+        identity=identity, connected=connected,
     )
 
 
@@ -100,10 +95,7 @@ async def credential(
 @app.get("/p/{person_id}/connections", response_class=HTMLResponse)
 async def connections(request: Request, person: dict = Depends(viewed_person)) -> HTMLResponse:
     panels = provider_panels(person["id"])
-    return render(
-        request, "connections.html", person, "connections",
-        panels=panels, title=connections_title(panels),
-    )
+    return render(request, "connections.html", person, "connections", panels=panels)
 
 
 @app.get("/p/{person_id}/connections/employers", response_class=HTMLResponse)

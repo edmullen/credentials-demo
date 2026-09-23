@@ -54,9 +54,7 @@ Wallet page:
   so the page name is the only heading that can be the `<h1>` there. Making it the `<h1>` on every
   page means the `<h1>` always names the page and `<title>` can match it (§9 item 2). When a page
   has a step line, it becomes a `<p class="intro__title">`, which looks the same as before.
-- **CSS:** `.pagehead` is a single flex row, with items centered and a gap of `var(--space)`. The
-  back link doesn't shrink. A long page name wraps within its own column, so the separator is never
-  left stranded at a line end.
+- **CSS:** `.pagehead` is a flex row that wraps, with items centered and a gap of `var(--space)`.
   `.pagehead__name` uses the eyebrow's type (mono, 0.75rem, 0.08em tracking, uppercase), but with
   `font-weight: 600`, `color: var(--ink)` and `margin: 0`. `.pagehead .back` drops to 0.875rem and
   keeps its `min-height: var(--tap)` touch target. `.pagehead__sep` uses `var(--line-2)`.
@@ -112,11 +110,10 @@ is unchanged. Where the old eyebrow just said "Wallet", the nav label becomes th
   - the footer leaves out Switch person.
 
   Payroll's landing page shows placeholder nav links, but the Wallet's shows none (§9 item 5).
-- **Sign out** is a plain link to `/`, and the last item in the Menu panel (#69 item 2). **The
-  Wallet shows the Menu at every width** (§9 item 4). The desktop header's inline links are gone,
-  and the panel becomes the page's one `<nav aria-label="Main">`. Its links line up with the 30rem
-  column. Signing out clears nothing: runtime state is per person, not per visit. The brand still
-  links to the signed-in person's credentials (Intent 004a).
+- **Sign out** is a plain link to `/`. It's the last item in the Menu panel (#69 item 2), and also
+  the last item in the desktop header nav, so it can be reached at every width (§9 item 4). Signing
+  out clears nothing: runtime state is per person, not per visit. The brand still links to the
+  signed-in person's credentials (Intent 004a).
 - **Tests:** `/` returns 200 with the headline and a Sign in link to `/p/p01/credentials`, and has
   no initials. Every person page has a Sign out link to `/`. Any test that expected `/` to redirect
   is updated.
@@ -132,7 +129,7 @@ is unchanged. Where the old eyebrow just said "Wallet", the nav label becomes th
   keeps its tinted band, as Ed decided in Intent 004a. `"top"` renders:
 
   ```html
-  <div class="panel__top">
+  <div class="panel__status panel__status--top">
     <h3 class="visually-hidden" id="r1-status">Status</h3>
     <div class="cred__top">  <!-- Issuer: {issuer name} on the left, the badge on the right -->
     <p>{{ c.message }}</p>
@@ -142,11 +139,9 @@ is unchanged. Where the old eyebrow just said "Wallet", the nav label becomes th
   The HTML comment stands in for the issuer and badge markup, which is exactly the markup
   `credentials.html` uses today.
 
-  `.panel__top` copies the band's padding and gap, sits on the panel's white surface with
-  `border-bottom: 1px solid var(--line)`, and sets its `<p>` in `var(--ink-2)`. It's deliberately
-  not a `.panel__status`: that class's badge rule paints badges white, and here the badge keeps its
-  own color. So a tampered credential gets a white row with a red badge. The message sentence
-  stays below the row (§9 item 9).
+  `.panel__status--top` has `background: var(--surface)`, `border-bottom: 1px solid var(--line)`,
+  and a `<p>` in `var(--ink-2)`. It carries no variant modifier, so a tampered credential gets a
+  white row with a red badge. The message sentence stays below the row (§9 item 9).
 
 ## 6. Credentials page (#69 items 3, 10)
 
@@ -200,11 +195,8 @@ Choices this design makes where #69 is silent or ambiguous, for Ed to confirm or
    longer its "is asking for" sentence.
 3. **Pages #69 doesn't list** (credential detail, Asking, Checking, Switch person) follow the rule
    in §3: the old eyebrow moves up to the page name, and the title stays.
-4. **The Wallet uses the Menu at every width** (Ed, 2026-09-23, during build). The plan was to add
-   Sign out to the desktop header nav as well, but it doesn't fit. The Wallet's header is 30rem
-   wide, which leaves about 269px for nav links, and the four links measure 278px with no gaps. So
-   the desktop header drops its inline links, and Sign out sits at the bottom of the Menu at every
-   width, as #69 item 2 describes.
+4. **Sign out appears in the desktop header nav too**, not only in the mobile Menu panel. Without
+   that, desktop has no way to sign out.
 5. **The landing page has no nav, no Menu and no Switch person link.** It shows just the brand and
    Sign in.
 6. **Blurb typo:** #69 item 1.2 says "like you ID". The page reads "like your ID".
@@ -260,7 +252,7 @@ at phone width.
 ## 12. Acceptance criteria
 
 - [ ] `/` shows the landing page, and both Sign in buttons go to p01's credentials.
-- [ ] Sign out, the last Menu item at every width, returns to `/`.
+- [ ] Sign out, the last nav item at every width, returns to `/`.
 - [ ] Every Wallet page opens with the compact page head, following §3's table.
 - [ ] Step lines match #69 item 8 and §3, including the Connections count.
 - [ ] Consent: the new title and purpose line, Approve and Deny above the credential, and a white

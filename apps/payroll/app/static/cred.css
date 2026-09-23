@@ -593,11 +593,6 @@ html[data-app="payroll"] {
 }
 .figures__amount { width: 1%; }
 
-/* Loop 4a (docs/design.md §8): cells don't wrap and .panel clips its
-   overflow, so on a phone a wide table was cut off. Each table scrolls
-   sideways in its own focusable region instead. */
-.figures__scroll { overflow-x: auto; min-width: 0; }
-
 /* net pay, set apart from the lines that make it */
 .stub__net {
   flex-direction: row;

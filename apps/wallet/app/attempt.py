@@ -57,7 +57,7 @@ def where_is_the_attempt(person_id: str, provider_id: str) -> str:
 def purpose_line(provider_name: str, employer_ids: list[str]) -> str:
     names = sorted(get_employer(e)["name"] for e in employer_ids)
     return (
-        f"{provider_name} runs payroll for {join_and(names)}, and needs to check who you are before it "
+        f"It runs payroll for {join_and(names)}, and needs to check who you are before it "
         "links your wallet to your employee record."
     )
 
