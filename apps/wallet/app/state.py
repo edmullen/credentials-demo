@@ -35,6 +35,19 @@ class Link:
     outcome: str | None = None  # "credential_invalid" | "not_an_employee" | "no_response"
     shared_credential_id: str | None = None
     request: PendingRequest | None = None
+    connection_id: str | None = None  # docs/design.md §2, §7
+    arrived: int | None = None  # count the first fetch brought; shown once on Connections
+
+
+@dataclass
+class Check:
+    """The latest background fetch for one person and provider (docs/design.md §7, §9)."""
+
+    state: str  # "checking" | "done"
+    token: str
+    result: str | None = None  # "none" | "new" | "error" | "lost"
+    count: int = 0
+    finished_at: datetime | None = None
 
 
 @dataclass
@@ -45,6 +58,12 @@ class Event:
 
 
 _links: dict[str, dict[str, Link]] = {}
+# Per person: credential id -> JWT, in the order they arrived (docs/design.md §7).
+_received: dict[str, dict[str, str]] = {}
+# Per person: credential ids that have been rendered at least once (the New pill, §8).
+_seen: dict[str, set[str]] = {}
+# Per (person, provider): the latest background check.
+_checks: dict[tuple[str, str], Check] = {}
 _events: dict[str, list[Event]] = {}
 
 
@@ -65,8 +84,35 @@ def add_employer(person_id: str, provider_id: str, employer_id: str) -> Link:
 
 
 def remove_link(person_id: str, provider_id: str) -> Link | None:
-    """Deletes the link and everything in it. Returns what was removed, or None."""
+    """Deletes the link and its check. Keeps received credentials — they're still valid and
+    signed, and the person holds them (docs/design.md §7, §13 item 6). Returns what was
+    removed, or None."""
+    _checks.pop((person_id, provider_id), None)
     return _links.get(person_id, {}).pop(provider_id, None)
+
+
+def received_for(person_id: str) -> dict[str, str]:
+    return _received.get(person_id, {})
+
+
+def add_received(person_id: str, credential_id: str, token: str) -> None:
+    _received.setdefault(person_id, {})[credential_id] = token
+
+
+def seen_for(person_id: str) -> set[str]:
+    return _seen.get(person_id, set())
+
+
+def mark_seen(person_id: str, credential_ids) -> None:
+    _seen.setdefault(person_id, set()).update(credential_ids)
+
+
+def get_check(person_id: str, provider_id: str) -> Check | None:
+    return _checks.get((person_id, provider_id))
+
+
+def set_check(person_id: str, provider_id: str, check: Check) -> None:
+    _checks[(person_id, provider_id)] = check
 
 
 def events_for(person_id: str) -> list[Event]:
@@ -80,4 +126,7 @@ def log(person_id: str, dot: str, message: str, at: datetime) -> None:
 def reset_all() -> None:
     """Test-only: returns every person's state to a fresh process's starting point."""
     _links.clear()
+    _received.clear()
+    _seen.clear()
+    _checks.clear()
     _events.clear()

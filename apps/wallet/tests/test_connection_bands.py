@@ -18,7 +18,22 @@ def test_connected_band() -> None:
     assert "Connected since 22 Sep 2026, 2:14 PM. Meridian Payroll can send you credentials for every employer below." in body
     assert '<button class="link-btn" type="submit" aria-describedby="prov-meridian">Disconnect</button>' in body
     assert "Connect payroll" not in body
-    assert "Try again" not in body
+
+
+def test_arrived_line_shows_once_then_is_gone() -> None:
+    link = state.add_employer("p01", "meridian", "pinecrest")
+    link.connected_at = CONNECTED_AT
+    link.arrived = 2
+    first = client.get("/p/p01/connections").text
+    assert "2 income credentials received. <a href=\"/p/p01/credentials\">View credentials</a>" in first
+    second = client.get("/p/p01/connections").text
+    assert "income credentials received" not in second
+
+
+def test_no_arrival_line_when_nothing_arrived() -> None:
+    state.add_employer("p01", "meridian", "pinecrest")
+    state.get_link("p01", "meridian").connected_at = CONNECTED_AT
+    assert "income credential" not in client.get("/p/p01/connections").text
 
 
 def test_connected_lists_employers_az_p08_style() -> None:
@@ -89,5 +104,5 @@ def test_credentials_home_income_note_reflects_connection() -> None:
     connected = client.get("/p/p01/credentials").text
     assert (
         "You&rsquo;re connected to Meridian Payroll. Your pay will appear here as credentials "
-        "once it starts sending them." in connected
+        "as soon as they arrive." in connected
     )

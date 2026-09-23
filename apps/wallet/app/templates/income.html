@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% set page_title = "Income credentials" %}
+{% block main %}
+    <div class="wrap stack">
+      <div class="pagehead">
+        <a class="back" href="/p/{{ person.id }}/credentials">Credentials</a>
+        <span class="pagehead__sep" aria-hidden="true"></span>
+        <h1 class="pagehead__title">Income credentials</h1>
+      </div>
+      <section class="category" aria-labelledby="cat-income">
+        <div class="category__head">
+          <h2 class="category__title" id="cat-income">Income</h2>
+          <span class="card__meta">{{ income|length }} credential{{ "s" if income|length != 1 }}</span>
+        </div>
+        {% for c in income %}
+        {% include "_income_card.html" %}
+        {% endfor %}
+      </section>
+    </div>
+{% endblock %}

@@ -6,14 +6,28 @@ it says, with a badge that says not to believe it.
 """
 
 import json
+import re
 from dataclasses import dataclass
 from functools import lru_cache
 
-from app import clock
-from app.display import issuer_phrase, long_date, numeric_date, short_date, state_name
+from app import clock, state
+from app.display import (
+    frequency_label,
+    issuer_phrase,
+    long_date,
+    money,
+    numeric_date,
+    period_long,
+    period_short,
+    short_date,
+    state_name,
+)
 from app.outcomes import NO_CREDENTIAL, PRESENTATIONS, Presentation, message_for
 from app.people import DATA_DIR
 from app.verify import Outcome, verify
+
+# oklch(L C H) — only H (the third number) is read (docs/design.md §4).
+_ISSUER_COLOR_RE = re.compile(r"oklch\(\s*[\d.]+\s+[\d.]+\s+([\d.]+)\s*\)")
 
 # Category comes from `type`, not from a claim (credential-model §3, decision 2).
 CATEGORIES = {"IdentityCredential": "Identity", "PaystubCredential": "Income", "BenefitCredential": "Benefits"}
@@ -25,6 +39,10 @@ def _committed() -> tuple[dict[str, list[str]], dict]:
     credentials = json.loads((DATA_DIR / "credentials.json").read_text())
     trust = json.loads((DATA_DIR / "trust.json").read_text())
     return credentials, trust
+
+
+def trust_list() -> dict:
+    return _committed()[1]
 
 
 @dataclass(frozen=True)
@@ -98,25 +116,79 @@ class CredentialView:
     def valid_until_short(self) -> str:
         return short_date(self.claims.get("validUntil"))
 
+    # --- income claims (docs/design.md §8) ---------------------------------------------------
+
+    @property
+    def employer_name(self) -> str:
+        return (self.subject.get("employer") or {}).get("name", "")
+
+    @property
+    def pay_period_short(self) -> str:
+        return period_short(self.subject.get("payPeriodStart"), self.subject.get("payPeriodEnd"))
+
+    @property
+    def pay_period_long(self) -> str:
+        return period_long(self.subject.get("payPeriodStart"), self.subject.get("payPeriodEnd"))
+
+    @property
+    def pay_date(self) -> str:
+        return long_date(self.subject.get("payDate"))
+
+    @property
+    def frequency(self) -> str:
+        return frequency_label(self.subject.get("payFrequency"))
+
+    @property
+    def gross(self) -> str:
+        return money(self.subject.get("grossPay") or {"value": 0})
+
+    @property
+    def net(self) -> str:
+        return money(self.subject.get("netPay") or {"value": 0})
+
+    @property
+    def _render_hue(self) -> str | None:
+        for entry in self.claims.get("renderMethod") or []:
+            if entry.get("type") == "CredDemoIssuerColor":
+                match = _ISSUER_COLOR_RE.match(entry.get("color", ""))
+                if match:
+                    return match.group(1)
+        return None
+
+    @property
+    def issuer_hue(self) -> str | None:
+        """The issuer's render hue for a card, or None with no entry, an unreadable color, or a
+        credential that isn't verified (docs/design.md §4) — an unverified card falls back to
+        sand rather than trust a color it can't believe."""
+        return self._render_hue if self.outcome is Outcome.VERIFIED else None
+
+    @property
+    def detail_issuer_hue(self) -> str | None:
+        """The detail page's issuer bar shows the color as received, tampered or not — the
+        same "shown as received, badged as untrustworthy" rule the rest of the panel follows."""
+        return self._render_hue
+
+
+def _view(token: str, trust: dict, now) -> CredentialView:
+    result = verify(token, trust, now)
+    claims = result.claims or {}
+    types = [t for t in claims.get("type", []) if t in CATEGORIES]
+    return CredentialView(
+        id=claims.get("id", "").removeprefix(URN_PREFIX),
+        token=token,
+        outcome=result.outcome,
+        claims=claims,
+        kid=result.kid,
+        category=CATEGORIES[types[0]] if types else "Identity",
+    )
+
 
 def credentials_for(person_id: str) -> list[CredentialView]:
     stored, trust = _committed()
     now = clock.now()
-    views = []
-    for token in stored.get(person_id, []):
-        result = verify(token, trust, now)
-        claims = result.claims or {}
-        types = [t for t in claims.get("type", []) if t in CATEGORIES]
-        views.append(
-            CredentialView(
-                id=claims.get("id", "").removeprefix(URN_PREFIX),
-                token=token,
-                outcome=result.outcome,
-                claims=claims,
-                kid=result.kid,
-                category=CATEGORIES[types[0]] if types else "Identity",
-            )
-        )
+    views = [_view(token, trust, now) for token in stored.get(person_id, [])]
+    # Received credentials keep Payroll's order — newest first, as they arrived (§4, §8).
+    views += [_view(token, trust, now) for token in state.received_for(person_id).values()]
     return views
 
 

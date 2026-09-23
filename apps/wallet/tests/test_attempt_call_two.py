@@ -67,6 +67,10 @@ def _two_stage_handler(presentation_response: httpx.Response, seen: dict | None 
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path.endswith("/api/connections/requests"):
             return httpx.Response(201, json=_dcql_response())
+        if request.url.path.endswith("/api/credentials"):
+            # The post-connect fetch (docs/design.md §9) — empty by default, so existing
+            # call-2 tests don't have to think about income credentials.
+            return httpx.Response(200, json={"credentials": []})
         if seen is not None:
             seen["body"] = json.loads(request.content)
             seen["url"] = str(request.url)
@@ -90,7 +94,7 @@ def test_approve_sends_the_committed_jwt_exactly(monkeypatch, collector) -> None
     seen: dict = {}
     _reach_consent(
         monkeypatch, collector, "p01", "pinecrest",
-        httpx.Response(200, json={"outcome": "connected"}), seen,
+        httpx.Response(200, json={"outcome": "connected", "connectionId": "conn-1"}), seen,
     )
     response = client.post(
         "/p/p01/connections/meridian/request", data={"decision": "approve"}, follow_redirects=False
@@ -110,7 +114,7 @@ def test_approve_sends_the_committed_jwt_exactly(monkeypatch, collector) -> None
 
 def test_connected_outcome(monkeypatch, collector) -> None:
     _reach_consent(
-        monkeypatch, collector, "p01", "pinecrest", httpx.Response(200, json={"outcome": "connected"})
+        monkeypatch, collector, "p01", "pinecrest", httpx.Response(200, json={"outcome": "connected", "connectionId": "conn-1"})
     )
     client.post("/p/p01/connections/meridian/request", data={"decision": "approve"})
     collector.run()
@@ -205,7 +209,7 @@ def test_call_two_timeout_gives_no_response(monkeypatch, collector) -> None:
 
 def test_a_stale_answer_after_remove_is_dropped(monkeypatch, collector) -> None:
     _reach_consent(
-        monkeypatch, collector, "p01", "pinecrest", httpx.Response(200, json={"outcome": "connected"})
+        monkeypatch, collector, "p01", "pinecrest", httpx.Response(200, json={"outcome": "connected", "connectionId": "conn-1"})
     )
     client.post("/p/p01/connections/meridian/request", data={"decision": "approve"})
     stale_task = collector.coros.pop(0)
@@ -216,7 +220,7 @@ def test_a_stale_answer_after_remove_is_dropped(monkeypatch, collector) -> None:
 
 def test_a_double_submitted_approve_changes_nothing(monkeypatch, collector) -> None:
     _reach_consent(
-        monkeypatch, collector, "p01", "pinecrest", httpx.Response(200, json={"outcome": "connected"})
+        monkeypatch, collector, "p01", "pinecrest", httpx.Response(200, json={"outcome": "connected", "connectionId": "conn-1"})
     )
     client.post("/p/p01/connections/meridian/request", data={"decision": "approve"})
     before = client.get("/p/p01/activity").text
@@ -228,7 +232,7 @@ def test_a_double_submitted_approve_changes_nothing(monkeypatch, collector) -> N
 
 def test_verifying_page_redirects_once_answered(monkeypatch, collector) -> None:
     _reach_consent(
-        monkeypatch, collector, "p01", "pinecrest", httpx.Response(200, json={"outcome": "connected"})
+        monkeypatch, collector, "p01", "pinecrest", httpx.Response(200, json={"outcome": "connected", "connectionId": "conn-1"})
     )
     client.post("/p/p01/connections/meridian/request", data={"decision": "approve"})
     collector.run()
@@ -239,7 +243,7 @@ def test_verifying_page_redirects_once_answered(monkeypatch, collector) -> None:
 
 def test_status_endpoint_during_verifying(monkeypatch, collector) -> None:
     _reach_consent(
-        monkeypatch, collector, "p01", "pinecrest", httpx.Response(200, json={"outcome": "connected"})
+        monkeypatch, collector, "p01", "pinecrest", httpx.Response(200, json={"outcome": "connected", "connectionId": "conn-1"})
     )
     client.post("/p/p01/connections/meridian/request", data={"decision": "approve"})
     still = client.get("/p/p01/connections/meridian/status?page=verifying").json()
@@ -251,7 +255,7 @@ def test_status_endpoint_during_verifying(monkeypatch, collector) -> None:
 
 def test_verifying_page_head_and_step_title(monkeypatch, collector) -> None:
     _reach_consent(
-        monkeypatch, collector, "p01", "pinecrest", httpx.Response(200, json={"outcome": "connected"})
+        monkeypatch, collector, "p01", "pinecrest", httpx.Response(200, json={"outcome": "connected", "connectionId": "conn-1"})
     )
     client.post("/p/p01/connections/meridian/request", data={"decision": "approve"})
     body = client.get("/p/p01/connections/meridian/verifying").text

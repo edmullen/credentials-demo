@@ -1,0 +1,21 @@
+{# A full income credential card (docs/design.md §8): the "one held" state on Credentials and
+   every card on the "all income credentials" list. Callers set `c` and `seen` first. #}
+        <a class="cred cred--income{{ ' cred--issuer' if c.issuer_hue }}" href="/p/{{ person.id }}/credentials/{{ c.id }}"{% if c.issuer_hue %} style="--issuer-hue: {{ c.issuer_hue }}"{% endif %}>
+          <span class="cred__top">
+            <span class="cred__issuer">
+              <span class="card__meta">Employer:</span>
+              <span class="cred__employer">{{ c.employer_name }}</span>
+            </span>
+            <span class="badge badge--{{ c.presentation.variant }}"><span class="badge__icon" aria-hidden="true">{{ c.presentation.glyph|safe }}</span>{{ c.presentation.label }}</span>
+          </span>
+          <span class="cred__pay">
+            <span class="card__meta">Gross pay</span>
+            <span class="stack-cards__amount">{{ c.gross }}</span>
+          </span>
+          <span class="rule"></span>
+          <span class="cred__foot card__meta">
+            <span>{{ c.pay_period_short }}</span>
+            {% if c.id not in seen %}<span class="cred__new">New</span>{% endif %}
+            <span class="cred__more">Details</span>
+          </span>
+        </a>

@@ -21,6 +21,9 @@
           {% for sentence in panel.band.sentences %}
           <p>{{ sentence }}</p>
           {% endfor %}
+          {% if panel.band.arrived %}
+          <p>{{ panel.band.arrived }} income credential{{ "s" if panel.band.arrived != 1 }} received. <a href="/p/{{ person.id }}/credentials">View credentials</a></p>
+          {% endif %}
           {% if panel.band.credential_link %}
           <p>It has been changed since it was issued. <a href="{{ panel.band.credential_link }}">View your credential</a></p>
           {% endif %}

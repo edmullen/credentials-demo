@@ -980,3 +980,103 @@ html[data-app="wallet"] .nav-menu__panel {
    ============================================================ */
 .panel__status--plain .badge--caution { background: oklch(0.965 0.045 85); }
 .panel__status--plain .badge--unknown { background: oklch(0.955 0.012 255); }
+
+
+/* ============================================================
+   Loop 5 additions — Wallet
+   Everything below is new, with three documented retunes of
+   Loop 2 stack sizes (--cred-card-h, the stacked card's padding,
+   and the employer and amount line-heights): a two-line employer
+   name no longer pushes the badge against the card's edge.
+   ============================================================ */
+
+/* --- stack retunes (Ed, 2026-09-23) ------------------------ */
+html[data-app="wallet"] { --cred-card-h: 140px; }                 /* was 132px */
+.stack-cards__card,
+.stack-cards__more { padding: calc(var(--space) * 2.25); }        /* 18px all round; was 14px 18px */
+.stack-cards__employer { display: block; line-height: 1.2; }
+.stack-cards__amount { line-height: 1.15; }
+
+/* --- issuer colour -----------------------------------------
+   An issuer may sign one display colour into a credential. The
+   Wallet takes only its hue; lightness and chroma are fixed here,
+   so white text keeps about 7:1 for any hue. The server sets the
+   hue on the card itself (never on the stack or the category), so
+   cards from different issuers can sit in one stack:
+     class="… cred--issuer" style="--issuer-hue: 255"
+   Without the class, an income card falls back to Loop 2's sand. */
+.cred--issuer {
+  --issuer:       oklch(0.46 0.11 var(--issuer-hue));
+  --issuer-edge:  oklch(0.38 0.11 var(--issuer-hue));
+  --issuer-rule:  oklch(0.58 0.09 var(--issuer-hue));
+  --issuer-soft:  oklch(0.93 0.03 var(--issuer-hue));  /* secondary text on --issuer */
+}
+.stack-cards__card.cred--issuer,
+.cred.cred--issuer {
+  background: var(--issuer);
+  border-color: var(--issuer-edge);
+  color: oklch(1 0 0);
+}
+.stack-cards__card.cred--issuer:hover,
+a.cred.cred--issuer:hover { border-color: var(--ink); color: oklch(1 0 0); }
+.stack-cards__card.cred--issuer .card__meta,
+.cred.cred--issuer .card__meta,
+.cred--issuer .stack-cards__period { color: var(--issuer-soft); }
+.cred.cred--issuer .rule { background: var(--issuer-rule); }
+.cred.cred--issuer .cred__more { color: oklch(1 0 0); }
+/* badges keep their own pale fills and colours on any issuer colour */
+
+/* "View all" belongs to the category, not to an issuer: it keeps
+   Loop 2's sand (--cred-income-tint) whatever the cards are. */
+
+/* --- income credential, in full (flat list) ---------------- */
+.cred--income { background: var(--cred-income); border-color: var(--cred-income-line); }
+.cred__employer { font-weight: 600; line-height: 1.2; }
+.cred__pay { display: flex; flex-direction: column; gap: 2px; }
+
+/* --- New: shown on a card the first time it's displayed ---- */
+.cred__new {
+  flex: none;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: oklch(1 0 0);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+.stack-cards__when { display: inline-flex; align-items: center; gap: var(--space); flex: none; }
+
+/* --- income detail: the issuer bar above the status band --- */
+.panel__issuer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: calc(var(--space) * 1.75) calc(var(--space) * 2.5);
+  background: var(--issuer);
+  color: oklch(1 0 0);
+}
+.panel__issuer .card__meta { color: var(--issuer-soft); }
+.panel__issuer-name { font-weight: 600; }
+
+/* --- background check, inline in the Income heading ---------
+   The meta slot beside "Income" carries the check's state. The
+   announcement goes to a separate, always-present live region. */
+.category__status { display: inline-flex; align-items: center; gap: var(--space); }
+.spinner {
+  width: 10px; height: 10px;
+  border: 2px solid var(--line-2);
+  border-top-color: var(--accent);
+  border-radius: 999px;
+  flex: none;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; border-color: var(--accent); } }
+/* no-JS fallback under the cards: the script hides it */
+.category__check { margin: -4px 0 0; }
+.category__waiting-note--action form { margin: 0; }
+.category__waiting-note--action .btn { white-space: nowrap; }

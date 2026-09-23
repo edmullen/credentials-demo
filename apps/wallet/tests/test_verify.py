@@ -191,3 +191,26 @@ def test_a_bad_signature_is_reported_before_an_expired_window() -> None:
     other_key, _ = _keypair()
     token = _credential(other_key, valid_until=NOW - timedelta(days=1))
     assert verify(token, _trust(public), NOW).outcome is Outcome.TAMPERED
+
+
+PAYROLL_ID = "https://cred-demo-payroll.onrender.com"
+
+
+def test_a_payroll_signed_identity_credential_is_refused() -> None:
+    # AC 20: Payroll's real trust entry, trusted for PaystubCredential only, refuses an
+    # otherwise-valid, correctly-signed IdentityCredential from that same key.
+    key, public = _keypair(kid="payroll-1")
+    trust = {PAYROLL_ID: {"name": "Meridian Payroll", "trustedFor": ["PaystubCredential"], "keys": [public]}}
+    token = _credential(
+        key, kid="payroll-1", issuer=PAYROLL_ID, types=("VerifiableCredential", "IdentityCredential")
+    )
+    assert verify(token, trust, NOW).outcome is Outcome.UNRECOGNIZED_ISSUER
+
+
+def test_a_state_signed_paystub_credential_is_refused() -> None:
+    key, public = _keypair(kid="nj-1")
+    trust = {ISSUER_ID: {"name": "State of New Jersey", "trustedFor": ["IdentityCredential"], "keys": [public]}}
+    token = _credential(
+        key, kid="nj-1", issuer=ISSUER_ID, types=("VerifiableCredential", "PaystubCredential")
+    )
+    assert verify(token, trust, NOW).outcome is Outcome.UNRECOGNIZED_ISSUER
