@@ -95,3 +95,12 @@ def test_back_link_returns_to_the_landing_page() -> None:
 def test_detail_page_has_no_current_nav_item() -> None:
     body = client.get(f"/p/p01/paystubs/{P01_16_30}").text
     assert "aria-current" not in body
+
+
+def test_each_figures_table_scrolls_in_a_focusable_region() -> None:
+    """Loop 4a (docs/design.md §8): a wide table scrolls sideways on a phone."""
+    body = client.get(f"/p/p01/paystubs/{P01_16_30}").text
+    for caption in ("Earnings", "Deductions"):
+        region = f'<div class="figures__scroll" role="region" aria-label="{caption}" tabindex="0">'
+        start = body.index(region)
+        assert body.index(f"<caption>{caption}</caption>", start) < body.index("</div>", start)
