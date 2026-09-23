@@ -1,10 +1,12 @@
 """Fetching income credentials from a connected provider (docs/design.md §9).
 
 One function does the work for both moments call 3 can happen: right after connecting
-(attempt.py) and whenever the Credentials page opens (PR 5). It uses the same stale-answer
-guard as call 1 and call 2: a background task writes its result only if the check it started
-with is still the current one for that person and provider.
+(attempt.py) and whenever the Credentials page opens (maybe_start_check, below). It uses the
+same stale-answer guard as call 1 and call 2: a background task writes its result only if the
+check it started with is still the current one for that person and provider.
 """
+
+from datetime import timedelta
 
 from app import clock, outbound, state
 from app.credentials import trust_list
@@ -14,6 +16,10 @@ from app.verify import Outcome, verify
 RECEIVED_MESSAGE = "{count} income credential{plural} received from {provider}"
 UNVERIFIED_MESSAGE = "{count} income credential{plural} from {provider} couldn't be verified"
 UNREACHABLE_MESSAGE = "Couldn't reach {provider} to check for new credentials"
+
+# Between page-open checks (§9, §13 item 7): stops the handoff script's redraw from starting a
+# second check, and limits how often a reload can hit Payroll.
+CHECK_COOLDOWN = timedelta(seconds=30)
 
 
 def _plural(count: int) -> str:
@@ -115,3 +121,49 @@ async def fetch(person_id: str, provider_id: str) -> None:
             ),
             now,
         )
+
+
+def maybe_start_check(person_id: str, provider_id: str) -> None:
+    """Spawns a background fetch() for a connected provider, unless one is already running or
+    the last one finished within the cooldown (docs/design.md §9). Never awaited — the
+    Credentials page renders straight from what's already held."""
+    link = state.get_link(person_id, provider_id)
+    if link is None or link.connected_at is None or link.connection_id is None:
+        return
+    check = state.get_check(person_id, provider_id)
+    if check is not None:
+        if check.state == "checking":
+            return
+        if check.finished_at is not None and clock.now() - check.finished_at < CHECK_COOLDOWN:
+            return
+    outbound.spawn(fetch(person_id, provider_id))
+
+
+def check_status(person_id: str) -> dict:
+    """The status endpoint's answer (docs/design.md §9): checking while any of the person's
+    checks are running, else the most recently finished one's result, with an announcement for
+    "new" and "error" — "lost" reports "new" with none, so the script redraws into the
+    not-connected state instead of announcing an arrival."""
+    checks = {
+        provider_id: check
+        for provider_id in all_providers()
+        if (check := state.get_check(person_id, provider_id)) is not None
+    }
+    if any(c.state == "checking" for c in checks.values()):
+        return {"state": "checking"}
+    if not checks:
+        return {"state": "none"}
+    provider_id, check = max(checks.items(), key=lambda kv: kv[1].finished_at)
+    provider_name = all_providers()[provider_id]["name"]
+    if check.result == "lost":
+        return {"state": "new"}
+    if check.result == "new":
+        return {
+            "state": "new",
+            "announce": (
+                f"{check.count} new income credential{_plural(check.count)} from {provider_name}."
+            ),
+        }
+    if check.result == "error":
+        return {"state": "error", "announce": UNREACHABLE_MESSAGE.format(provider=provider_name) + "."}
+    return {"state": "none"}

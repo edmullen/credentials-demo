@@ -10,6 +10,8 @@ from app.outcomes import CONNECTION_STATES, connection_sentences
 from app.providers import all_providers, get_employer, provider_for_employer
 from app.verify import Outcome
 
+CHECK_STATUS_URL = "/p/{person_id}/credentials/check"
+
 
 def employer_names(employer_ids: list[str]) -> list[str]:
     """Employer names for these ids, A-Z."""
@@ -40,6 +42,36 @@ def income_note(person_id: str) -> dict:
             "employer": get_employer(link.employers[-1])["name"],
         }
     return {"state": "start"}
+
+
+def income_check_view(person_id: str) -> dict | None:
+    """What the Credentials page's Income section shows below the cards, and the heading's
+    `data-check` (docs/design.md §9, §10). None when the person has never linked a provider.
+
+    While connected: {"connected": True, "running": ..., "error": ..., "status_url": ...} — the
+    §9 table's four rows collapse to two booleans, since "finished with unseen cards" and
+    "finished none" both mean "not running, not the error state".
+
+    After a lost connection (§13 item 4): {"connected": False, "provider_name": ...} — the
+    person still holds their income cards, but needs to reconnect.
+    """
+    for provider_id, provider in all_providers().items():
+        link = state.get_link(person_id, provider_id)
+        if link is None:
+            continue
+        if link.connected_at is None:
+            return {"connected": False, "provider_name": provider["name"]}
+        check = state.get_check(person_id, provider_id)
+        running = check is not None and check.state == "checking"
+        error = check is not None and check.state == "done" and check.result == "error"
+        return {
+            "connected": True,
+            "running": running,
+            "error": error,
+            "provider_name": provider["name"],
+            "status_url": CHECK_STATUS_URL.format(person_id=person_id) if running else "",
+        }
+    return None
 
 
 def band_for(person_id: str, provider_name: str, link: state.Link) -> dict | None:
