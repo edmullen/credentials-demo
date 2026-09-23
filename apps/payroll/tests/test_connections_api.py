@@ -95,8 +95,11 @@ def test_call_two_valid_at_the_right_employer_connects(monkeypatch) -> None:
     create = client.post("/api/connections/requests", json={"employers": ["pinecrest"]}).json()
     response = client.post(create["response_uri"], json=_vp(_token(key)))
     assert response.status_code == 200
-    assert response.json() == {"outcome": "connected"}
-    assert connections.get_connection("p01") is not None
+    body = response.json()
+    assert body["outcome"] == "connected"
+    connection = connections.get_connection("p01")
+    assert connection is not None
+    assert body["connectionId"] == connection.connection_id
     activity = client.get("/p/p01/activity").text
     assert "New connection from your wallet established" in activity
     conn_page = client.get("/p/p01/connections").text
