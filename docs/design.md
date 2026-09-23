@@ -1,5 +1,9 @@
 # Design: Loop 4a — UX improvements
 
+> **Superseded, pending rewrite.** Loop 4a now has a Claude Design pass
+> ([design/loop-4a/brief.md](design/loop-4a/brief.md)). This document will be rewritten against
+> its handoff before the build; until then, don't build from it.
+
 This is the technical design for [Intent 004a](intents/004a-ux-improvements.md). It covers one
 issue, [#69](https://github.com/edmullen/credentials-demo/issues/69), and follows
 [decisions.md](decisions.md).
