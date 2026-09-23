@@ -882,17 +882,15 @@ a.cred:hover { border-color: var(--line-2); color: var(--ink); }
    ============================================================ */
 
 /* --- page head --------------------------------------------- */
-/* one row: a long page name wraps within its own column rather than
-   dropping below the back link and leaving the separator stranded */
 .pagehead {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space);
+  gap: 0 var(--space);
 }
-.pagehead .back { flex: none; font-size: 0.875rem; }
+.pagehead .back { font-size: 0.875rem; }
 .pagehead__sep { color: var(--line-2); }
 .pagehead__name {
-  min-width: 0;
   margin: 0;
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -915,27 +913,3 @@ html[data-app="wallet"] .nav-menu { display: block; }
 html[data-app="wallet"] .nav-menu__panel {
   padding-inline: max(calc(var(--space) * 3), calc((100% - 30rem) / 2 + var(--space) * 3));
 }
-
-/* --- consent: status as a white row (docs/design.md §5) -----
-   Laid out like the credentials card's .cred__top. No variant
-   tint, and deliberately not a .panel__status, whose rule turns
-   badges white: here the badge keeps its own colour and alone
-   carries verified, tampered or caution.                        */
-.panel__top {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--space) * 1.5);
-  padding: calc(var(--space) * 2.5);
-  border-bottom: 1px solid var(--line);
-}
-.panel__top p { margin: 0; font-size: 0.9375rem; color: var(--ink-2); }
-
-/* --- credentials card and Income note (docs/design.md §6) --- */
-.cred__dob { font-size: 0.9375rem; color: var(--ink-2); line-height: 1.4; }
-div.category__waiting-note {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: calc(var(--space) * 2);
-}
-div.category__waiting-note p { margin: 0; }
