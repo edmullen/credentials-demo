@@ -110,11 +110,10 @@ is unchanged. Where the old eyebrow just said "Wallet", the nav label becomes th
   - the footer leaves out Switch person.
 
   Payroll's landing page shows placeholder nav links, but the Wallet's shows none (§9 item 5).
-- **Sign out** is a plain link to `/`, and the last item in the Menu panel (#69 item 2). **The
-  Wallet shows the Menu at every width** (§9 item 4). The desktop header's inline links are gone,
-  and the panel becomes the page's one `<nav aria-label="Main">`. Its links line up with the 30rem
-  column. Signing out clears nothing: runtime state is per person, not per visit. The brand still
-  links to the signed-in person's credentials (Intent 004a).
+- **Sign out** is a plain link to `/`. It's the last item in the Menu panel (#69 item 2), and also
+  the last item in the desktop header nav, so it can be reached at every width (§9 item 4). Signing
+  out clears nothing: runtime state is per person, not per visit. The brand still links to the
+  signed-in person's credentials (Intent 004a).
 - **Tests:** `/` returns 200 with the headline and a Sign in link to `/p/p01/credentials`, and has
   no initials. Every person page has a Sign out link to `/`. Any test that expected `/` to redirect
   is updated.
@@ -196,11 +195,8 @@ Choices this design makes where #69 is silent or ambiguous, for Ed to confirm or
    longer its "is asking for" sentence.
 3. **Pages #69 doesn't list** (credential detail, Asking, Checking, Switch person) follow the rule
    in §3: the old eyebrow moves up to the page name, and the title stays.
-4. **The Wallet uses the Menu at every width** (Ed, 2026-09-23, during build). The plan was to add
-   Sign out to the desktop header nav as well, but it doesn't fit. The Wallet's header is 30rem
-   wide, which leaves about 269px for nav links, and the four links measure 278px with no gaps. So
-   the desktop header drops its inline links, and Sign out sits at the bottom of the Menu at every
-   width, as #69 item 2 describes.
+4. **Sign out appears in the desktop header nav too**, not only in the mobile Menu panel. Without
+   that, desktop has no way to sign out.
 5. **The landing page has no nav, no Menu and no Switch person link.** It shows just the brand and
    Sign in.
 6. **Blurb typo:** #69 item 1.2 says "like you ID". The page reads "like your ID".
@@ -256,7 +252,7 @@ at phone width.
 ## 12. Acceptance criteria
 
 - [ ] `/` shows the landing page, and both Sign in buttons go to p01's credentials.
-- [ ] Sign out, the last Menu item at every width, returns to `/`.
+- [ ] Sign out, the last nav item at every width, returns to `/`.
 - [ ] Every Wallet page opens with the compact page head, following §3's table.
 - [ ] Step lines match #69 item 8 and §3, including the Connections count.
 - [ ] Consent: the new title and purpose line, Approve and Deny above the credential, and a white

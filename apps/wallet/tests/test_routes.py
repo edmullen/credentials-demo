@@ -9,6 +9,10 @@ from app.people import all_people
 client = TestClient(app)
 
 
+def test_root_redirects_to_the_first_person() -> None:
+    response = client.get("/", follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers["location"] == "/p/p01/credentials"
 
 
 @pytest.mark.parametrize("screen", [key for key, _ in NAV])
@@ -45,10 +49,10 @@ def test_nav_is_the_three_screens_with_no_help() -> None:
 
 
 @pytest.mark.parametrize("screen", [key for key, _ in NAV])
-def test_active_item_is_marked_in_the_menu(screen: str) -> None:
+def test_active_item_is_marked_in_both_navs(screen: str) -> None:
     body = client.get(f"/p/p08/{screen}").text
     current = re.findall(r'<a href="/p/p08/(\w+)" aria-current="page"', body)
-    assert current == [screen]  # the Menu is the Wallet's only nav (docs/design.md §4)
+    assert current == [screen, screen]  # inline nav and <details> panel
 
 
 def test_footer_links_to_the_switcher_from_the_current_screen() -> None:

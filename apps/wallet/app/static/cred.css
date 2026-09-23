@@ -901,15 +901,3 @@ a.cred:hover { border-color: var(--line-2); color: var(--ink); }
 }
 /* the step line was an <h1>; keep the heading rhythm it had */
 p.intro__title { margin: 0; line-height: 1.15; text-wrap: balance; }
-
-/* --- landing page (docs/design.md §4) ---------------------- */
-.landing__note { margin: 0; font-size: 0.875rem; color: var(--ink-2); }
-
-/* --- nav: the Menu at every width (docs/design.md §4) -------
-   Sign out doesn't fit beside three links in a 30rem header, so the
-   Wallet keeps its phone Menu on desktop too. The panel's content
-   lines up with the 30rem column rather than the window's edges. */
-html[data-app="wallet"] .nav-menu { display: block; }
-html[data-app="wallet"] .nav-menu__panel {
-  padding-inline: max(calc(var(--space) * 3), calc((100% - 30rem) / 2 + var(--space) * 3));
-}

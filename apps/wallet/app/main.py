@@ -54,10 +54,7 @@ def viewed_person(person_id: str) -> dict:
     return person
 
 
-def render(
-    request: Request, template: str, person: dict | None, active: str, **context
-) -> HTMLResponse:
-    """`person` is None only on the landing page, which has no one signed in."""
+def render(request: Request, template: str, person: dict, active: str, **context) -> HTMLResponse:
     return templates.TemplateResponse(
         request,
         template,
@@ -65,10 +62,9 @@ def render(
     )
 
 
-@app.get("/", response_class=HTMLResponse)
-async def landing(request: Request) -> HTMLResponse:
-    # Sign in is navigation, not authentication: it opens the default person's wallet.
-    return render(request, "landing.html", None, "", sign_in=f"/p/{DEFAULT_PERSON}/credentials")
+@app.get("/")
+async def index() -> RedirectResponse:
+    return RedirectResponse(f"/p/{DEFAULT_PERSON}/credentials", status_code=303)
 
 
 @app.get("/p/{person_id}/credentials", response_class=HTMLResponse)
