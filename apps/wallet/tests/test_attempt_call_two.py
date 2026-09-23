@@ -247,3 +247,15 @@ def test_status_endpoint_during_verifying(monkeypatch, collector) -> None:
     collector.run()
     moved = client.get("/p/p01/connections/meridian/status?page=verifying").json()
     assert moved == {"next": "/p/p01/connections"}
+
+
+def test_verifying_page_head_and_step_title(monkeypatch, collector) -> None:
+    _reach_consent(
+        monkeypatch, collector, "p01", "pinecrest", httpx.Response(200, json={"outcome": "connected"})
+    )
+    client.post("/p/p01/connections/meridian/request", data={"decision": "approve"})
+    body = client.get("/p/p01/connections/meridian/verifying").text
+    assert '<h1 class="pagehead__title">Connecting to Meridian Payroll</h1>' in body
+    assert '<h2 class="intro__title">Wait while Meridian Payroll checks your identity</h2>' in body
+    assert "<title>Wait while Meridian Payroll checks your identity — Wallet</title>" in body
+    collector.run()  # let the queued call two finish, so nothing is left un-awaited

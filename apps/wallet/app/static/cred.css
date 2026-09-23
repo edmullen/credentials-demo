@@ -873,3 +873,110 @@ a.cred:hover { border-color: var(--line-2); color: var(--ink); }
 .log__dot--verified { background: oklch(0.62 0.12 158); }
 .log__dot--caution  { background: oklch(0.75 0.13 85); }
 .log__dot--error    { background: oklch(0.60 0.17 25); }
+
+
+/* ============================================================
+   Loop 4a additions — Wallet
+   Presentation only. Two Loop 2 sizes are retuned below (the
+   wallet's .main top padding and .intro__title); everything
+   else is new. The old eyebrow + <h1> intro and the standalone
+   .back link are replaced on every Wallet page by .pagehead.
+   ============================================================ */
+
+/* --- sizes (brief §4.9) ------------------------------------ */
+html[data-app="wallet"] .main { padding-top: calc(var(--space) * 1.75); }  /* 14px, half of Loop 2's 28px */
+html[data-app="wallet"] .intro__title { font-size: 2rem; }
+
+/* --- compact page head: [‹ Back] | PAGE NAME ---------------
+   One line. The page name is the page's <h1>. With a long name
+   at phone width, the name wraps inside its own column; the back
+   link and divider never wrap. */
+.pagehead {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--space) * 1.5);
+  min-height: var(--tap);
+}
+.pagehead .back { flex: none; }
+.pagehead__sep {
+  flex: none;
+  width: 1px;
+  height: 20px;
+  background: var(--line-2);
+}
+.pagehead__title {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* --- one Menu at every width --------------------------------
+   The Wallet drops its inline nav: the <details> Menu is shown at
+   every width, and its panel is the <nav aria-label="Main">. On
+   wide screens the panel's links line up with the 30rem column. */
+html[data-app="wallet"] .header__nav { display: none; }
+html[data-app="wallet"] .nav-menu { display: block; }
+html[data-app="wallet"] .nav-menu__panel {
+  padding-left:  max(calc(var(--space) * 3), calc((100% - 30rem) / 2 + var(--space) * 3));
+  padding-right: max(calc(var(--space) * 3), calc((100% - 30rem) / 2 + var(--space) * 3));
+}
+
+/* Sign out, set apart as the last item of the narrow Menu */
+.nav-menu__panel a.nav-menu__signout {
+  margin-top: var(--space);
+  border-top-color: var(--line-2);
+}
+
+/* --- landing page (signed out) ----------------------------- */
+.landing { display: flex; flex-direction: column; gap: calc(var(--space) * 3); padding-top: calc(var(--space) * 3); }
+.landing__title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.landing__lead { display: block; color: var(--accent-text); }
+.landing .intro__purpose { margin-top: calc(var(--space) * 1.5); }  /* 36px from the headline */
+.landing__demo { margin: 0; font-size: 0.875rem; color: var(--ink-2); }
+
+/* --- credential preview: date of birth --------------------- */
+.cred__dob { font-size: 0.9375rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+/* --- waiting note with a next step -------------------------- */
+.category__waiting-note--action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--space) * 1.5);
+}
+.category__waiting-note--action p { margin: 0; }
+
+/* --- consent: white status area laid out like .cred__top ---- */
+.panel__status--plain {
+  gap: var(--space);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.panel__status--plain p { color: var(--ink-2); }
+.panel__status--plain .badge { align-self: auto; }
+.panel__status--plain .badge--verified { background: oklch(0.955 0.035 158); }
+.panel__status--plain .badge--error    { background: oklch(0.965 0.025 25); }
+
+/* --- person switcher: employers line (as in Payroll's copy) - */
+.people__employers { font-size: 0.875rem; color: var(--ink-2); text-wrap: pretty; }
+
+/* ============================================================
+   Loop 4a build additions — Wallet (docs/design.md §2, §9 item 3)
+   Everything above this block is the handoff's cred.css, byte for
+   byte. .panel__status--plain restores the verified and error
+   badge tints; caution and unknown can reach the consent page
+   too, so they get theirs back the same way.
+   ============================================================ */
+.panel__status--plain .badge--caution { background: oklch(0.965 0.045 85); }
+.panel__status--plain .badge--unknown { background: oklch(0.955 0.012 255); }

@@ -66,7 +66,8 @@ def test_connect_gives_asking_immediately() -> None:
     assert response.headers["location"] == "/p/p01/connections/meridian/asking"
     body = client.get("/p/p01/connections/meridian/asking").text
     assert 'data-poll="/p/p01/connections/meridian/status?page=asking"' in body
-    assert "Asking Meridian Payroll" in body
+    assert '<h1 class="pagehead__title">Connecting to Meridian Payroll</h1>' in body
+    assert '<h2 class="intro__title">Wait while Meridian Payroll prepares its request</h2>' in body
     activity = client.get("/p/p01/activity").text
     assert "Connection to Meridian Payroll requested" in activity
 
@@ -94,7 +95,9 @@ def test_call_one_success_gives_consent_for_p01(monkeypatch, collector) -> None:
     collector.run()
     assert state.get_link("p01", "meridian").request.phase == "consent"
     body = client.get("/p/p01/connections/meridian/request").text
-    assert "Meridian Payroll is asking for 1 credential" in body
+    assert '<h1 class="pagehead__title">Request from Meridian Payroll</h1>' in body
+    assert '<h2 class="intro__title">Do you want to share 1 credential with Meridian Payroll?</h2>' in body
+    assert "Meridian Payroll runs payroll for " in body
     assert "1 of 1" in body
     assert "Approve and share" in body
     assert "Deny" in body
@@ -256,3 +259,14 @@ def test_a_double_submitted_decision_changes_nothing(monkeypatch, collector) -> 
     client.post("/p/p01/connections/meridian/request", data={"decision": "deny"})
     after = client.get("/p/p01/activity").text
     assert before == after
+
+
+def test_missing_consent_says_what_is_missing(monkeypatch, collector) -> None:
+    _patch_transport(monkeypatch, lambda r: httpx.Response(201, json=_dcql_response()))
+    client.post("/p/p24/connections/employers", data={"employer": "ridgeline"})
+    client.post("/p/p24/connections/meridian/connect")
+    collector.run()
+    body = client.get("/p/p24/connections/meridian/request").text
+    step = "You do not have the credential Meridian Payroll is requesting."
+    assert f'<h2 class="intro__title">{step}</h2>' in body
+    assert f"<title>{step} — Wallet</title>" in body
