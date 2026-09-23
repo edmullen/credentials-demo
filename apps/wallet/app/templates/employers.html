@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% set page_title = "Find your employer" %}
+{% block main %}
+    <div class="wrap stack">
+      <a class="back" href="/p/{{ person.id }}/connections">Connections</a>
+      <div class="stack-s">
+        <p class="intro__eyebrow">Connections</p>
+        <h1 class="intro__title">Find your employer</h1>
+      </div>
+      <p class="intro__purpose">Choose where you work. Your wallet notes which payroll provider pays you, so you can connect to it next.</p>
+      <ul class="employers" aria-label="Employers">
+        {% for e in employers %}
+        <li>
+          <form method="post" action="/p/{{ person.id }}/connections/employers">
+            <button class="employers__row" type="submit" name="employer" value="{{ e.id }}"{% if e.added %} disabled{% endif %}>
+              <span class="people__meta">
+                <span class="people__name">{{ e.name }}</span>
+                <span class="people__place">{{ e.industry }} &middot; {{ e.city }}, NJ</span>
+              </span>
+              {% if e.added %}
+              <span class="badge badge--neutral"><span class="badge__icon" aria-hidden="true">&ndash;</span>Added</span>
+              {% else %}
+              <span class="employers__go" aria-hidden="true"></span>
+              {% endif %}
+            </button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+{% endblock %}

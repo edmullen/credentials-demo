@@ -729,3 +729,147 @@ a.cred:hover { border-color: var(--line-2); color: var(--ink); }
 .people__meta { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .people__name { font-weight: 600; }
 .people__place { font-size: 0.875rem; color: var(--ink-2); }
+
+
+/* ============================================================
+   Loop 4 additions — Wallet
+   Everything below is new. No Loop 2 component is redefined:
+   the status band gains a caution variant, and the activity
+   marker gains four modifiers; the unmodified .log__dot still
+   renders exactly as it did in Loop 2.
+   ============================================================ */
+
+/* --- status band: caution (not a trust failure) ------------- */
+.panel__status--caution {
+  background: oklch(0.965 0.045 85);
+  border-bottom: 1px solid oklch(0.85 0.09 85);
+}
+.panel__status--caution p { color: oklch(0.33 0.08 85); }
+
+/* --- a button that reads as a link (state-changing POSTs) --- */
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.link-btn:hover { color: var(--ink); }
+
+/* --- a payroll provider and the employers it covers --------- */
+.provider__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: calc(var(--space) * 1.5);
+}
+.provider__head form { margin: -10px 0 0; flex: none; }
+.provider__emps {
+  margin: 0; padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+}
+.provider__emp {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  border-bottom: 1px solid var(--line);
+}
+.provider__emp:last-child { border-bottom: 0; }
+
+/* --- employer lookup (a .people-shaped list of POST buttons) - */
+.employers {
+  margin: 0; padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.employers form { margin: 0; }
+.employers__row {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--space) * 1.5);
+  width: 100%;
+  min-height: 60px;
+  padding: 10px calc(var(--space) * 2);
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.employers li:first-child .employers__row { border-top: 0; }
+.employers__row:hover { background: var(--bg); }
+.employers__row:disabled { cursor: default; background: var(--surface-2); }
+.employers__go {
+  width: 8px; height: 8px;
+  border-right: 2px solid var(--line-2);
+  border-top: 2px solid var(--line-2);
+  transform: rotate(45deg);
+  flex: none;
+}
+.employers__row:hover .employers__go { border-color: var(--accent-text); }
+
+/* --- consent: a list of requested credentials --------------- */
+.request { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: calc(var(--space) * 3); }
+.request__item { display: flex; flex-direction: column; gap: calc(var(--space) * 1.5); }
+.decision { display: flex; flex-direction: column; gap: calc(var(--space) * 1.5); margin: 0; }
+.decision__lead { margin: 0; font-size: 0.9375rem; color: var(--ink-2); }
+.actions { display: flex; flex-wrap: wrap; gap: calc(var(--space) * 1.5); }
+.actions .btn { flex: 1 1 9rem; }
+
+/* --- pending interstitial ----------------------------------- */
+.pending {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) * 2);
+  padding: calc(var(--space) * 3) calc(var(--space) * 2.5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+.pending p { margin: 0; }
+.pending__fallback { margin: 0; }
+.progress {
+  position: relative;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--accent-tint);
+  overflow: hidden;
+}
+.progress::before {
+  content: "";
+  position: absolute; top: 0; bottom: 0; left: 0;
+  width: 35%;
+  border-radius: inherit;
+  background: var(--accent);
+  animation: progress 1.6s ease-in-out infinite;
+}
+@keyframes progress { from { transform: translateX(-100%); } to { transform: translateX(290%); } }
+@media (prefers-reduced-motion: reduce) {
+  .progress::before { animation: none; width: 100%; opacity: 0.4; }
+}
+
+/* --- activity marker: status palette ------------------------
+   Decorative (aria-hidden); the message always says the outcome. */
+.log__dot--neutral  { background: oklch(0.80 0.006 70); }
+.log__dot--verified { background: oklch(0.62 0.12 158); }
+.log__dot--caution  { background: oklch(0.75 0.13 85); }
+.log__dot--error    { background: oklch(0.60 0.17 25); }
