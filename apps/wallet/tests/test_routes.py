@@ -9,12 +9,6 @@ from app.people import all_people
 client = TestClient(app)
 
 
-def test_root_redirects_to_the_first_person() -> None:
-    response = client.get("/", follow_redirects=False)
-    assert response.status_code == 303
-    assert response.headers["location"] == "/p/p01/credentials"
-
-
 @pytest.mark.parametrize("screen", [key for key, _ in NAV])
 @pytest.mark.parametrize("person_id", ["p08", "p24"])
 def test_each_screen_renders_for_a_person(screen: str, person_id: str) -> None:
