@@ -17,19 +17,15 @@
         <span class="header__mark header__mark--wallet" aria-hidden="true"></span>
         {{ site.name }}
       </a>
-      <nav class="header__nav" aria-label="Main">
-        {% for key, label in nav %}
-        <a href="/p/{{ person.id }}/{{ key }}"{% if key == active %} aria-current="page"{% endif %}>{{ label }}</a>
-        {% endfor %}
-      </nav>
       <span class="initials" role="img" aria-label="{{ person.name }}">{{ person.initials }}</span>
       <details class="nav-menu">
         <summary>Menu</summary>
-        <div class="nav-menu__panel">
+        <nav class="nav-menu__panel" aria-label="Main">
           {% for key, label in nav %}
           <a href="/p/{{ person.id }}/{{ key }}"{% if key == active %} aria-current="page"{% endif %}>{{ label }}</a>
           {% endfor %}
-        </div>
+          <a class="nav-menu__signout" href="/">Sign out</a>
+        </nav>
       </details>
     </div>
   </header>
