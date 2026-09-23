@@ -8,7 +8,7 @@ Run by hand from the repo root:
 
     uv run tools/generate_credentials.py
 
-Reads   tools/sample_data/generated/people.json, tools/sample_data/photos/pNN.jpg
+Reads   tools/sample_data/generated/{people,employers}.json, tools/sample_data/photos/pNN.jpg
 Writes  keys/{nj,mi,ny,oh}-1.jwk.json    private keys, gitignored
         apps/wallet/app/data/{people,credentials,trust}.json
         apps/payroll/app/data/trust.json
@@ -40,6 +40,7 @@ from jwt.algorithms import ECAlgorithm
 
 ROOT = Path(__file__).resolve().parent.parent
 SAMPLE_PEOPLE = ROOT / "tools" / "sample_data" / "generated" / "people.json"
+SAMPLE_EMPLOYERS = ROOT / "tools" / "sample_data" / "generated" / "employers.json"
 PHOTOS = ROOT / "tools" / "sample_data" / "photos"
 KEYS_DIR = ROOT / "keys"
 WALLET_DATA = ROOT / "apps" / "wallet" / "app" / "data"
@@ -212,8 +213,13 @@ def issue(person: dict, keys: dict[str, dict]) -> str:
 # ---- Output -----------------------------------------------------------------------------------
 
 
-def wallet_person(person: dict) -> dict:
-    """Only what a screen shows. No identity status: the badge comes from verifying."""
+def wallet_person(person: dict, employer_names: dict[str, str]) -> dict:
+    """Only what a screen shows. No identity status: the badge comes from verifying.
+
+    `employerNames` is a demo aid for the person switcher, in job order (Loop 4a,
+    docs/design.md §7). The Wallet's connect logic never reads it: whether someone works for an
+    employer is Payroll's call.
+    """
     return {
         "id": person["id"],
         "givenName": person["givenName"],
@@ -221,6 +227,7 @@ def wallet_person(person: dict) -> dict:
         "initials": person["givenName"][0] + person["familyName"][0],
         "locality": person["address"]["locality"],
         "region": person["address"]["region"],
+        "employerNames": [employer_names[job["employerId"]] for job in person["jobs"]],
     }
 
 
@@ -231,6 +238,7 @@ def write_json(name: str, data, directory: Path = WALLET_DATA) -> None:
 
 def main() -> None:
     people = sorted(json.loads(SAMPLE_PEOPLE.read_text()), key=lambda p: p["id"])
+    employer_names = {e["id"]: e["name"] for e in json.loads(SAMPLE_EMPLOYERS.read_text())}
     keys = make_keys()
 
     holders = [p for p in people if p["identity"] != "none"]
@@ -240,7 +248,7 @@ def main() -> None:
     credentials = {p["id"]: [issue(p, keys)] if p["identity"] != "none" else [] for p in people}
 
     write_keys(keys)
-    write_json("people.json", [wallet_person(p) for p in people])
+    write_json("people.json", [wallet_person(p, employer_names) for p in people])
     write_json("credentials.json", credentials)
     write_json("trust.json", trust_list(keys))
     # Payroll trusts the same four states, until it gets its own keys in Loop 5
