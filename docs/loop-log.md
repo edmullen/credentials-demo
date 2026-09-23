@@ -355,3 +355,114 @@ copy that example verbatim into a test first, and write the code to satisfy it �
 way around. And for copy: when adding a new user-facing string, check how the *nearest* existing
 string in that same file is encoded (raw curly quote vs. HTML entity) and match it, rather than
 picking a convention and finding out at test time it disagrees with its neighbors.
+
+## Loop 4a — UX Improvements
+
+**Built.** An unplanned loop between 4 and 5, driven by one issue,
+[#69](https://github.com/edmullen/credentials-demo/issues/69). It covered:
+
+- a Wallet landing page with Sign in and Sign out;
+- a compact page head (back link and page name on one line) on every Wallet page;
+- step titles that tell the person what to do;
+- a consent page that puts its decision above the credential;
+- DOB and a next-step button on the credentials page;
+- employers in the person switcher;
+- Payroll's paystub tables scrolling sideways on a phone.
+
+It shipped in five PRs, after a Claude Design handoff
+([#80](https://github.com/edmullen/credentials-demo/pull/80)) and a design written against it
+([#81](https://github.com/edmullen/credentials-demo/pull/81)):
+
+- [#82](https://github.com/edmullen/credentials-demo/pull/82): the stylesheet, Menu and page heads;
+- [#84](https://github.com/edmullen/credentials-demo/pull/84): the landing page;
+- [#85](https://github.com/edmullen/credentials-demo/pull/85): the consent and credentials pages;
+- [#86](https://github.com/edmullen/credentials-demo/pull/86): switcher employers, including a re-key;
+- [#87](https://github.com/edmullen/credentials-demo/pull/87): the paystub scroll.
+
+Each app's `cred.css` is now its handoff file byte for byte, pinned by length and SHA-256 in a
+test. Every Wallet PR carried a side-by-side table measuring the built page against its handoff
+page at 375px and 480px, and every one came out identical. Nothing in the protocol, credentials
+or state changed, and all 25 people still reach their Loop 4 outcomes. The Wallet's suite grew
+140 → 161 → 164 → 177 → 182, Payroll's 69 → 71, and Benefits stayed at 4. The design and its
+reconciliation (§14) are in [design.md](design.md).
+
+**What went wrong.** The loop was built twice.
+
+- *The first build skipped Claude Design, on Claude's recommendation, and was rolled back.* #69
+  read like a spec: exact copy, "halve the padding", "2rem". So the intent said no design pass
+  was needed, and Ed agreed. Five PRs (#73–#77) shipped in about eleven minutes, every one green
+  and checked by eye. Ed judged the result by how it looked, and sizes and padding were off in
+  several places.
+
+  The issue had said *what* to change. It never covered spacing rhythm, wrapping at phone width,
+  or how the pages related to each other. Those were the parts Ed was judging, and nothing but a
+  design pass would have supplied them. The build itself hinted at this: Sign out didn't fit the
+  desktop header, and a long page name stranded its separator at 375px. Both are layout
+  questions that surfaced only in code.
+
+  [#78](https://github.com/edmullen/credentials-demo/pull/78) reverted all five merges, leaving
+  the tree byte-identical to the pre-build commit, and reopened #69. Then
+  [#79](https://github.com/edmullen/credentials-demo/pull/79) unwound the intent's and
+  decisions.md's "no design pass".
+- *The reconciliation pass was skipped until Ed asked for it.* Loop 2's improvement, kept
+  through Loops 3 and 4, is to write the reconciliation before any code. The rebuild went from
+  design to code, and PR 1 (#82) was already open when Ed asked whether there was a plan. The
+  pass ([#83](https://github.com/edmullen/credentials-demo/pull/83)) confirmed the design and
+  found one gap: Payroll's stylesheet had no pinning test to match the Wallet's. So the pass
+  was cheap, but it was late, and only happened because Ed asked.
+- *The handoff screenshots hung the session.* Headless Chrome saved one PNG and never exited, and
+  the capture loop had no time limit. Ed saw no progress and asked three times whether Claude was
+  stuck before Claude surfaced. A second, time-boxed try saved nothing either. The screenshots
+  were skipped for this loop by Ed's decision
+  ([#88](https://github.com/edmullen/credentials-demo/pull/88)). `index.html` already frames
+  every page at its widths.
+- *The handoff left four small gaps, all caught in review before the build.* The landing page's
+  Sign in pointed at `/p/p01/`, a route only Payroll has. The landing footer's Switch person
+  needed a person. `.panel__status--plain` restored the verified and error badge tints, but not
+  caution or unknown. And "Finish connecting" was new copy beyond #69. Each is settled in design
+  §9.
+
+**Slow or expensive.**
+
+- *The cost of skipping design was the whole loop, twice.* That meant two builds, a revert that
+  redeployed both apps, a second intent edit, a brief, and a Claude Design session on Ed's usage
+  window. The pass that was skipped to save time ended up costing more than it would have.
+- *The rebuild itself was fast and first-time right.* From the design merge (#81) to the last
+  build merge (#87) took about seventeen minutes, including the reconciliation. All five PRs
+  passed CI on the first push, and no PR's side-by-side check found a layout difference.
+  Adopting each handoff `cred.css` whole, instead of transcribing rules, removed a whole class of
+  error.
+- *Reaching a pending page for measurement* needed a stand-in on Payroll's port that holds each
+  request for 40 seconds. Stopping Payroll outright gives an instant `no_response`, so the page
+  never stays up.
+
+**Not verified at the time of writing.**
+
+- *Deploy scope per PR.* #82, #84 and #85 should have redeployed only the Wallet. #86 should
+  have redeployed the Wallet and Payroll, because of the re-key, and #87 only Payroll. The docs
+  PRs should have redeployed nothing. As in every loop, confirming this needs Render's events
+  log, which only Ed can see.
+- *The verifying page's side-by-side check.* It was never measured directly. It shares the asking
+  page's template shape, which was measured and identical, and a test covers its text.
+
+**Process note.** Hands-off merges held for all five build PRs, as in Loop 4. Ed stepped in at
+exactly the two points that needed judgment, neither of which CI could have caught: the look of
+the first build, and the missing plan before the second. The side-by-side check is new this
+loop, and it's the part worth keeping. It turns "does it match the design?" from an eyeball
+judgment into a table of numbers in each PR. `.claude/launch.json` now serves every loop's
+handoff on port 8010 ([#89](https://github.com/edmullen/credentials-demo/pull/89)), so the setup
+is ready for the next loop.
+
+**Last loop's improvement.** Loop 4's retro wrote its improvement for Loop 5, not for this
+interstitial loop. Its copy half applied here and held: every new user-facing string matched the
+apostrophe encoding of its neighbor (`&rsquo;` in templates), and no test failed on an encoding.
+The spec-example half, writing a test from the credential-model example first, carries forward
+to Loop 5 unchanged.
+
+**One improvement for Loop 5.** Finish the plan step before the first line of code, for any loop
+with screens. Take the design pass as given; the plan step then has two parts. Write the
+reconciliation, and start the side-by-side setup: the apps and the handoff running next to each
+other, with the measuring script ready. Then treat a clean side-by-side table as a merge
+condition, alongside green CI. Loop 4a showed both halves: skipping the design, and letting the
+plan slip, cost a rebuild and a mid-build pause. Loop 5 adds the Wallet's first income-credential
+screens, so it needs both.
