@@ -40,7 +40,7 @@ def test_credential_invalid_band_without_tampered_link() -> None:
     assert '<span class="badge badge--error"><span class="badge__icon" aria-hidden="true">&#10005;</span>Not connected</span>' in body
     assert "Meridian Payroll couldn’t verify your identity credential." in body
     assert "View your credential" not in body
-    assert '<button class="btn btn--block" type="button">Try again</button>' in body
+    assert '<button class="btn btn--block" type="submit">Try again</button>' in body
     assert '<button class="link-btn" type="submit" aria-describedby="prov-meridian">Remove</button>' in body
 
 

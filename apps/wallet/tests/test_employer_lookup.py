@@ -38,7 +38,8 @@ def test_adding_an_employer_reaches_the_chosen_state() -> None:
     body = client.get("/p/p01/connections").text
     assert "Pinecrest Home Care" in body
     assert '<button class="link-btn" type="submit" aria-describedby="prov-meridian">Remove</button>' in body
-    assert '<button class="btn btn--block" type="button">Connect payroll</button>' in body
+    assert 'action="/p/p01/connections/meridian/connect"' in body
+    assert '<button class="btn btn--block" type="submit">Connect payroll</button>' in body
     assert "Find another employer" in body
 
 

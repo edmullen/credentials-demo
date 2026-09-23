@@ -42,7 +42,9 @@
             {% endfor %}
           </ul>
           {% if not panel.connected %}
-          <button class="btn btn--block" type="button">{{ "Try again" if panel.band else "Connect payroll" }}</button>
+          <form method="post" action="/p/{{ person.id }}/connections/{{ panel.provider_id }}/connect">
+            <button class="btn btn--block" type="submit">{{ "Try again" if panel.band else "Connect payroll" }}</button>
+          </form>
           {% endif %}
         </div>
       </section>

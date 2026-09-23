@@ -5,7 +5,19 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from app import state
 from app.activity import grouped_events
+from app.attempt import (
+    close,
+    deny,
+    matching_credential,
+    phase_url,
+    purpose_line,
+    request_label,
+    request_type,
+    start_connect,
+    where_is_the_attempt,
+)
 from app.connections import add_employer, provider_panels, remove_link
 from app.credentials import credentials_for, find_credential, identity_status
 from app.people import all_people, get_person
@@ -112,6 +124,89 @@ async def remove_link_route(
         raise HTTPException(status_code=404)
     remove_link(person["id"], provider_id)
     return RedirectResponse(f"/p/{person['id']}/connections", status_code=303)
+
+
+@app.post("/p/{person_id}/connections/{provider_id}/connect")
+async def connect_route(
+    provider_id: str, person: dict = Depends(viewed_person)
+) -> RedirectResponse:
+    if get_provider(provider_id) is None or state.get_link(person["id"], provider_id) is None:
+        raise HTTPException(status_code=404)
+    start_connect(person["id"], provider_id)
+    return RedirectResponse(
+        f"/p/{person['id']}/connections/{provider_id}/asking", status_code=303
+    )
+
+
+@app.get("/p/{person_id}/connections/{provider_id}/asking", response_class=HTMLResponse)
+async def asking_page(
+    request: Request, provider_id: str, person: dict = Depends(viewed_person)
+) -> HTMLResponse:
+    provider = get_provider(provider_id)
+    if provider is None:
+        raise HTTPException(status_code=404)
+    link = state.get_link(person["id"], provider_id)
+    if link is None or link.request is None or link.request.phase != "asking":
+        return RedirectResponse(where_is_the_attempt(person["id"], provider_id), status_code=303)
+    return render(
+        request, "asking.html", person, "",
+        provider={"id": provider_id, "name": provider["name"]},
+    )
+
+
+@app.get("/p/{person_id}/connections/{provider_id}/request", response_class=HTMLResponse)
+async def request_page(
+    request: Request, provider_id: str, person: dict = Depends(viewed_person)
+) -> HTMLResponse:
+    provider = get_provider(provider_id)
+    if provider is None:
+        raise HTTPException(status_code=404)
+    link = state.get_link(person["id"], provider_id)
+    if link is None or link.request is None or link.request.phase not in ("consent", "missing"):
+        return RedirectResponse(where_is_the_attempt(person["id"], provider_id), status_code=303)
+    entries = []
+    for entry in link.request.dcql_query.get("credentials", []):
+        credential_type = request_type(entry)
+        credential = matching_credential(person["id"], credential_type)
+        entries.append({
+            "label": request_label(credential_type),
+            "credential": credential,
+            "tampered": credential is not None and credential.outcome is Outcome.TAMPERED,
+        })
+    return render(
+        request, "request.html", person, "",
+        provider={"id": provider_id, "name": provider["name"]},
+        entries=entries,
+        phase=link.request.phase,
+        purpose=purpose_line(provider["name"], link.employers),
+    )
+
+
+@app.post("/p/{person_id}/connections/{provider_id}/request")
+async def decide_request(
+    provider_id: str, person: dict = Depends(viewed_person), decision: str = Form(...)
+) -> RedirectResponse:
+    if get_provider(provider_id) is None:
+        raise HTTPException(status_code=404)
+    if decision == "deny":
+        deny(person["id"], provider_id)
+    elif decision == "close":
+        close(person["id"], provider_id)
+    return RedirectResponse(where_is_the_attempt(person["id"], provider_id), status_code=303)
+
+
+@app.get("/p/{person_id}/connections/{provider_id}/status")
+async def connection_status(
+    provider_id: str, person: dict = Depends(viewed_person), page: str = Query(...)
+) -> dict:
+    if get_provider(provider_id) is None:
+        raise HTTPException(status_code=404)
+    link = state.get_link(person["id"], provider_id)
+    if link is None or link.request is None:
+        return {"next": f"/p/{person['id']}/connections"}
+    if link.request.phase == page:
+        return {"next": None}
+    return {"next": phase_url(person["id"], provider_id, link.request.phase)}
 
 
 @app.get("/p/{person_id}/activity", response_class=HTMLResponse)
