@@ -1,6 +1,12 @@
 """Display text the Wallet composes. None of it is signed by an issuer (docs/design.md §6)."""
 
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
+
+# Every employer and almost every credential is in New Jersey (docs/design.md §6).
+EASTERN = ZoneInfo("America/New_York")
+
+DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 STATES = {
     "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas", "CA": "California",
@@ -40,6 +46,25 @@ def short_date(value: str | None) -> str:
     """'15 Jan 2030'"""
     d = parse_date(value)
     return f"{d.day} {MONTHS[d.month - 1][:3]} {d.year}" if d else ""
+
+
+def time_of_day(moment: datetime) -> str:
+    """'2:14 PM' in America/New_York, no leading zero on the hour."""
+    d = moment.astimezone(EASTERN)
+    hour = int(d.strftime("%I"))
+    return f"{hour}:{d.strftime('%M %p')}"
+
+
+def when(moment: datetime) -> str:
+    """'22 Sep 2026, 2:14 PM' in America/New_York."""
+    d = moment.astimezone(EASTERN)
+    return f"{d.day} {MONTHS[d.month - 1][:3]} {d.year}, {time_of_day(moment)}"
+
+
+def day_heading(moment: datetime) -> str:
+    """'Tuesday 22 September' in America/New_York."""
+    d = moment.astimezone(EASTERN)
+    return f"{DAYS[d.weekday()]} {d.day} {MONTHS[d.month - 1]}"
 
 
 def state_name(code: str | None) -> str:

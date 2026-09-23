@@ -51,3 +51,52 @@ NO_CREDENTIAL = Presentation("No credential", "neutral", "&ndash;", "")
 
 def message_for(outcome: Outcome, issuer: str, date: str = "") -> str:
     return PRESENTATIONS[outcome].message.format(issuer=issuer, date=date)
+
+
+@dataclass(frozen=True)
+class ConnectionState:
+    """A connection outcome's status band (docs/design.md §6): variant, glyph, label, the
+    sentence(s) always shown, and the Activity dot a transition to this outcome logs with.
+    `{provider}` and `{when}` are filled in by `connection_message`.
+    """
+
+    variant: str  # panel__status--{variant}
+    glyph: str
+    label: str
+    sentences: tuple[str, ...]
+    dot: str  # log__dot--{variant}
+
+
+CONNECTION_STATES = {
+    "connected": ConnectionState(
+        "verified", "&#10003;", "Connected",
+        (
+            "Connected since {when}. {provider} can send you credentials for every "
+            "employer below.",
+        ),
+        "verified",
+    ),
+    "credential_invalid": ConnectionState(
+        "error", "&#10005;", "Not connected",
+        ("{provider} couldn’t verify your identity credential.",),
+        "error",
+    ),
+    "not_an_employee": ConnectionState(
+        "caution", "!", "Not connected",
+        (
+            "{provider} doesn’t have an employee record that matches you.",
+            "Check that you chose the right employer. If not, remove {provider} and find "
+            "your employer again.",
+        ),
+        "caution",
+    ),
+    "no_response": ConnectionState(
+        "caution", "!", "Not connected",
+        ("{provider} didn’t respond.", "Try again in a minute."),
+        "caution",
+    ),
+}
+
+
+def connection_sentences(code: str, provider: str, when: str = "") -> list[str]:
+    return [s.format(provider=provider, when=when) for s in CONNECTION_STATES[code].sentences]
