@@ -66,7 +66,8 @@ def test_connect_gives_asking_immediately() -> None:
     assert response.headers["location"] == "/p/p01/connections/meridian/asking"
     body = client.get("/p/p01/connections/meridian/asking").text
     assert 'data-poll="/p/p01/connections/meridian/status?page=asking"' in body
-    assert "Asking Meridian Payroll" in body
+    assert '<h1 class="pagehead__name">Connecting to Meridian Payroll</h1>' in body
+    assert '<p class="intro__title">Asking Meridian Payroll</p>' in body
     activity = client.get("/p/p01/activity").text
     assert "Connection to Meridian Payroll requested" in activity
 
@@ -94,7 +95,9 @@ def test_call_one_success_gives_consent_for_p01(monkeypatch, collector) -> None:
     collector.run()
     assert state.get_link("p01", "meridian").request.phase == "consent"
     body = client.get("/p/p01/connections/meridian/request").text
-    assert "Meridian Payroll is asking for 1 credential" in body
+    assert '<h1 class="pagehead__name">Request from Meridian Payroll</h1>' in body
+    assert '<p class="intro__title">Do you want to share 1 credential with Meridian Payroll?</p>' in body
+    assert "Meridian Payroll runs payroll for " in body
     assert "1 of 1" in body
     assert "Approve and share" in body
     assert "Deny" in body
