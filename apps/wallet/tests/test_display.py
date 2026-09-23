@@ -18,3 +18,11 @@ def test_when() -> None:
 
 def test_day_heading() -> None:
     assert day_heading(MOMENT) == "Tuesday 22 September"
+
+
+def test_numeric_date_is_zero_padded_mm_dd_yy() -> None:
+    from app.display import numeric_date
+
+    assert numeric_date("1982-03-11") == "03/11/82"
+    assert numeric_date("2001-12-05T00:00:00Z") == "12/05/01"
+    assert numeric_date(None) == ""

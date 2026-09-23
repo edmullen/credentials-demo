@@ -23,3 +23,10 @@ def test_detail_page_output_is_unchanged_tampered() -> None:
     body = client.get(f"/p/p23/credentials/{cred.id}").text
     assert '<h2 class="visually-hidden" id="status">Status</h2>' in body
     assert "The signature check failed against" in body
+
+
+def test_detail_page_keeps_its_tinted_band() -> None:
+    cred = credentials_for("p01")[0]
+    body = client.get(f"/p/p01/credentials/{cred.id}").text
+    assert '<div class="panel__status panel__status--verified">' in body
+    assert "panel__status--plain" not in body

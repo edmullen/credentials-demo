@@ -19,7 +19,9 @@ from app.attempt import (
     start_connect,
     where_is_the_attempt,
 )
-from app.connections import add_employer, connections_title, provider_panels, remove_link
+from app.connections import (
+    add_employer, connections_title, income_note, provider_panels, remove_link,
+)
 from app.credentials import credentials_for, find_credential, identity_status
 from app.people import all_people, get_person
 from app.providers import all_employers, get_provider
@@ -79,10 +81,9 @@ async def landing(request: Request) -> HTMLResponse:
 @app.get("/p/{person_id}/credentials", response_class=HTMLResponse)
 async def credentials(request: Request, person: dict = Depends(viewed_person)) -> HTMLResponse:
     identity = [c for c in credentials_for(person["id"]) if c.category == "Identity"]
-    connected = any(p["connected"] for p in provider_panels(person["id"]))
     return render(
         request, "credentials.html", person, "credentials",
-        identity=identity, connected=connected,
+        identity=identity, note=income_note(person["id"]),
     )
 
 

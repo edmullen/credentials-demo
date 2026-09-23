@@ -48,6 +48,12 @@ def short_date(value: str | None) -> str:
     return f"{d.day} {MONTHS[d.month - 1][:3]} {d.year}" if d else ""
 
 
+def numeric_date(value: str | None) -> str:
+    """'03/11/82' (MM/DD/YY), the DOB line on a credentials card."""
+    d = parse_date(value)
+    return d.strftime("%m/%d/%y") if d else ""
+
+
 def time_of_day(moment: datetime) -> str:
     """'2:14 PM' in America/New_York, no leading zero on the hour."""
     d = moment.astimezone(EASTERN)
