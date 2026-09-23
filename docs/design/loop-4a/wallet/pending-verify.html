@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" data-app="wallet">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wait while Meridian Payroll checks your identity — Wallet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;600&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="credentials.html">
+        <span class="header__mark header__mark--wallet" aria-hidden="true"></span>
+        Wallet
+      </a>
+      <span class="initials" role="img" aria-label="Grace Okafor">GO</span>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <nav class="nav-menu__panel" aria-label="Main">
+          <a href="credentials.html">Credentials</a>
+          <a href="connections.html">Connections</a>
+          <a href="activity.html">Activity</a>
+          <a class="nav-menu__signout" href="landing.html">Sign out</a>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <div class="wrap stack">
+      <div class="pagehead">
+        <h1 class="pagehead__title">Connecting to Meridian Payroll</h1>
+      </div>
+      <h2 class="intro__title">Wait while Meridian Payroll checks your identity</h2>
+      <div class="pending" role="status" data-poll="">
+        <div class="progress" aria-hidden="true"></div>
+        <p>Meridian Payroll is checking the credential you shared. This can take up to half a minute.</p>
+      </div>
+      <form class="pending__fallback" method="get" action="connections-connected.html">
+        <button class="btn btn--secondary" type="submit">Check again</button>
+      </form>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p class="footer__note"><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></p>
+      <span class="footer__aside"><a href="person-switcher.html">Switch person</a></span>
+    </div>
+  </footer>
+  <script>
+    // Progressive enhancement for the pending page (README, "Pending").
+    // Without it the page still works: "Check again" is an ordinary GET.
+    (function () {
+      var el = document.querySelector("[data-poll]");
+      if (!el || !el.dataset.poll || !window.fetch) return;
+      var fallback = document.querySelector(".pending__fallback");
+      if (fallback) fallback.hidden = true;
+      setTimeout(function () { if (fallback) fallback.hidden = false; }, 45000);
+      function check() {
+        fetch(el.dataset.poll, { headers: { Accept: "application/json" } })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (s) { if (s && s.next) location.replace(s.next); else setTimeout(check, 2000); })
+          .catch(function () { setTimeout(check, 2000); });
+      }
+      setTimeout(check, 2000);
+    })();
+  </script>
+</body>
+</html>
