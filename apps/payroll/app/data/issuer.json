@@ -1,0 +1,12 @@
+{
+  "id": "https://cred-demo-payroll.onrender.com",
+  "name": "Meridian Payroll",
+  "kid": "payroll-1",
+  "publicKey": {
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "ZnFLQBKhXHamNLRfd-rOLtQwEqR9WyPv4GO43Re37b8",
+    "y": "OFhL8HwgLuL0Sx6-nWftEMpH4YYgaKnTAUkFXzJVrVk",
+    "kid": "payroll-1"
+  }
+}

@@ -15,7 +15,7 @@
       "runtimeExecutable": "sh",
       "runtimeArgs": [
         "-c",
-        "cd apps/payroll && uv run uvicorn app.main:app --reload --port 8002"
+        "cd apps/payroll && uv run uvicorn app.main:app --reload --port 8002 --env-file .env"
       ],
       "port": 8002
     },

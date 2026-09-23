@@ -91,6 +91,15 @@ Run one app locally with reload (ports: wallet 8001, payroll 8002, benefits 8003
 cd apps/wallet && uv run uvicorn app.main:app --reload --port 8001
 ```
 
+Payroll signs with a key that isn't committed (docs/design.md §3), so it needs
+`--env-file .env` and won't start locally until that file exists — run
+`uv run tools/generate_credentials.py` from the repo root first (once, or again after a fresh
+clone):
+
+```bash
+cd apps/payroll && uv run uvicorn app.main:app --reload --port 8002 --env-file .env
+```
+
 `.claude/launch.json` starts the same three apps for the desktop app's preview pane, with the
 Wallet pointed at the local Payroll. It also has a `handoff` server that serves `docs/design/` on
 port 8010, so a loop's handoff pages (`http://localhost:8010/loop-N/…`) can be compared side by
@@ -125,6 +134,14 @@ protection — so adding or renaming an app never requires touching branch prote
 `buildFilter.paths` are relative to the **repo root**, not to `rootDir`. Editing one app's files
 redeploys only that service; editing `docs/` or `tools/` redeploys none. `PYTHON_VERSION`
 in `render.yaml` must be kept in step with each app's `.python-version`.
+
+**Never put a real secret's value anywhere on the public repo** — a PR description, an issue, a
+commit message, a code comment. A `sync: false` var (like `PAYROLL_SIGNING_KEY`) is set by hand
+in Render's dashboard; hand its value to Ed directly (in chat), never through GitHub, even
+labeled as a value to copy. A key generated for a demo stops being a throwaway the moment it's
+pasted into Render as the live secret — at that point a public posting is a real leak, and
+GitHub's edit history means editing a PR body afterward doesn't undo it. If it happens anyway,
+rotate the key (re-run the generator) rather than relying on the edit.
 
 Live at `https://cred-demo-<app>.onrender.com` (`wallet` / `payroll` / `benefits`). Render's
 free tier spins services down after ~15 min idle — the first request after that, including

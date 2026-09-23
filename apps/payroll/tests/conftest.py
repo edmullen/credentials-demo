@@ -1,8 +1,11 @@
+import json
 from datetime import UTC, datetime
 
 import pytest
+from cryptography.hazmat.primitives.asymmetric import ec
+from jwt.algorithms import ECAlgorithm
 
-from app import clock, connections
+from app import clock, connections, signing
 
 # An arbitrary fixed "today" — Payroll's own tests mint throwaway keys and credentials at test
 # time (docs/design.md §10), so nothing here depends on the Wallet's committed validity windows.
@@ -13,6 +16,20 @@ FIXED_NOW = datetime(2026, 9, 21, 12, 0, tzinfo=UTC)
 def fixed_clock(monkeypatch):
     monkeypatch.setattr(clock, "now", lambda: FIXED_NOW)
     return FIXED_NOW
+
+
+@pytest.fixture(autouse=True)
+def payroll_key(monkeypatch):
+    """Tests never use the real key (docs/design.md §3): a throwaway pair, with issuer.json's
+    public half patched in memory to match, so /health, JWKS and signing all agree."""
+    key = ec.generate_private_key(ec.SECP256R1())
+    private = json.loads(ECAlgorithm.to_jwk(key))
+    public = json.loads(ECAlgorithm.to_jwk(key.public_key()))
+    private["kid"] = public["kid"] = "payroll-1"
+    monkeypatch.setenv(signing.ENV_VAR, json.dumps(private))
+    real_issuer = signing._issuer()
+    monkeypatch.setattr(signing, "_issuer", lambda: {**real_issuer, "publicKey": public})
+    return {"private": private, "public": public}
 
 
 @pytest.fixture(autouse=True)

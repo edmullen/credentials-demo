@@ -67,10 +67,17 @@ def test_credentials_have_the_documented_shape() -> None:
             assert claims["issuer"]["id"].startswith("did:example:")
 
 
-def test_the_trust_list_is_four_states_with_public_keys_only() -> None:
-    assert len(TRUST) == 4
-    for issuer in TRUST.values():
+def test_the_trust_list_is_four_states_and_payroll_with_public_keys_only() -> None:
+    # The four states, trusted for IdentityCredential, plus Payroll, trusted for
+    # PaystubCredential only (docs/design.md §3).
+    assert len(TRUST) == 5
+    payroll = TRUST["https://cred-demo-payroll.onrender.com"]
+    assert payroll["trustedFor"] == ["PaystubCredential"]
+    for issuer_id, issuer in TRUST.items():
+        if issuer_id == "https://cred-demo-payroll.onrender.com":
+            continue
         assert issuer["trustedFor"] == ["IdentityCredential"]
+    for issuer in TRUST.values():
         (key,) = issuer["keys"]
         assert key["kty"] == "EC" and key["crv"] == "P-256"
         assert "d" not in key

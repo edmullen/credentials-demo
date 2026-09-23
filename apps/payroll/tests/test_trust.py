@@ -14,6 +14,12 @@ def test_trust_list_has_four_states_trusted_for_identity_only() -> None:
         assert issuer["keys"][0]["crv"] == "P-256"
 
 
-def test_trust_list_is_byte_identical_to_the_wallets() -> None:
-    wallet_trust = Path(__file__).parent.parent.parent / "wallet" / "app" / "data" / "trust.json"
-    assert (DATA_DIR / "trust.json").read_bytes() == wallet_trust.read_bytes()
+def test_trust_list_matches_the_wallets_four_states() -> None:
+    # Payroll's own trust.json never gained Payroll's entry (it doesn't verify its own
+    # credentials, docs/design.md §3), so it's the Wallet's minus that one entry.
+    wallet_trust = json.loads(
+        (Path(__file__).parent.parent.parent / "wallet" / "app" / "data" / "trust.json").read_text()
+    )
+    payroll_trust = json.loads((DATA_DIR / "trust.json").read_text())
+    del wallet_trust["https://cred-demo-payroll.onrender.com"]
+    assert payroll_trust == wallet_trust

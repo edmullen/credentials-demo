@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app import clock, connections
+from app import clock, connections, signing
 from app.activity import grouped_events
 from app.display import issuer_phrase, when
 from app.paystubs import all_employer_ids, employers_for, landing_groups, paystub_view
@@ -162,5 +162,13 @@ async def submit_presentation(request_id: str, vp: dict = Body(...)) -> JSONResp
 
 
 @app.get("/health")
-async def health() -> dict:
-    return {"status": "ok"}
+async def health() -> JSONResponse:
+    result = signing.status()
+    if not result.ok:
+        return JSONResponse(status_code=503, content={"status": "unhealthy", "reason": result.reason})
+    return JSONResponse(content={"status": "ok"})
+
+
+@app.get("/.well-known/jwks.json")
+async def jwks() -> dict:
+    return {"keys": [signing.public_jwk()]}
