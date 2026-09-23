@@ -54,7 +54,9 @@ Wallet page:
   so the page name is the only heading that can be the `<h1>` there. Making it the `<h1>` on every
   page means the `<h1>` always names the page and `<title>` can match it (§9 item 2). When a page
   has a step line, it becomes a `<p class="intro__title">`, which looks the same as before.
-- **CSS:** `.pagehead` is a flex row that wraps, with items centered and a gap of `var(--space)`.
+- **CSS:** `.pagehead` is a single flex row, with items centered and a gap of `var(--space)`. The
+  back link doesn't shrink. A long page name wraps within its own column, so the separator is never
+  left stranded at a line end.
   `.pagehead__name` uses the eyebrow's type (mono, 0.75rem, 0.08em tracking, uppercase), but with
   `font-weight: 600`, `color: var(--ink)` and `margin: 0`. `.pagehead .back` drops to 0.875rem and
   keeps its `min-height: var(--tap)` touch target. `.pagehead__sep` uses `var(--line-2)`.
@@ -130,7 +132,7 @@ is unchanged. Where the old eyebrow just said "Wallet", the nav label becomes th
   keeps its tinted band, as Ed decided in Intent 004a. `"top"` renders:
 
   ```html
-  <div class="panel__status panel__status--top">
+  <div class="panel__top">
     <h3 class="visually-hidden" id="r1-status">Status</h3>
     <div class="cred__top">  <!-- Issuer: {issuer name} on the left, the badge on the right -->
     <p>{{ c.message }}</p>
@@ -140,9 +142,11 @@ is unchanged. Where the old eyebrow just said "Wallet", the nav label becomes th
   The HTML comment stands in for the issuer and badge markup, which is exactly the markup
   `credentials.html` uses today.
 
-  `.panel__status--top` has `background: var(--surface)`, `border-bottom: 1px solid var(--line)`,
-  and a `<p>` in `var(--ink-2)`. It carries no variant modifier, so a tampered credential gets a
-  white row with a red badge. The message sentence stays below the row (§9 item 9).
+  `.panel__top` copies the band's padding and gap, sits on the panel's white surface with
+  `border-bottom: 1px solid var(--line)`, and sets its `<p>` in `var(--ink-2)`. It's deliberately
+  not a `.panel__status`: that class's badge rule paints badges white, and here the badge keeps its
+  own color. So a tampered credential gets a white row with a red badge. The message sentence
+  stays below the row (§9 item 9).
 
 ## 6. Credentials page (#69 items 3, 10)
 

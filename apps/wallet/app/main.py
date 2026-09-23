@@ -74,10 +74,11 @@ async def landing(request: Request) -> HTMLResponse:
 @app.get("/p/{person_id}/credentials", response_class=HTMLResponse)
 async def credentials(request: Request, person: dict = Depends(viewed_person)) -> HTMLResponse:
     identity = [c for c in credentials_for(person["id"]) if c.category == "Identity"]
-    connected = any(p["connected"] for p in provider_panels(person["id"]))
+    panels = provider_panels(person["id"])
+    connected = any(p["connected"] for p in panels)
     return render(
         request, "credentials.html", person, "credentials",
-        identity=identity, connected=connected,
+        identity=identity, connected=connected, has_link=bool(panels),
     )
 
 
