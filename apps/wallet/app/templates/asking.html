@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% set page_title = "Asking " ~ provider.name %}
+{% block main %}
+    <div class="wrap stack">
+      <div class="stack-s">
+        <p class="intro__eyebrow">Connecting to {{ provider.name }}</p>
+        <h1 class="intro__title">Asking {{ provider.name }}</h1>
+      </div>
+      <div class="pending" role="status" data-poll="/p/{{ person.id }}/connections/{{ provider.id }}/status?page=asking">
+        <div class="progress" aria-hidden="true"></div>
+        <p>Waiting for {{ provider.name }} to say what it needs from you. This can take up to half a minute.</p>
+      </div>
+      <form class="pending__fallback" method="get" action="/p/{{ person.id }}/connections/{{ provider.id }}/asking">
+        <button class="btn btn--secondary" type="submit">Check again</button>
+      </form>
+    </div>
+{% endblock %}
+{% block scripts %}
+  <script>
+    // Progressive enhancement for the pending page (README, "Pending").
+    // Without it the page still works: "Check again" is an ordinary GET.
+    (function () {
+      var el = document.querySelector("[data-poll]");
+      if (!el || !el.dataset.poll || !window.fetch) return;
+      var fallback = document.querySelector(".pending__fallback");
+      if (fallback) fallback.hidden = true;
+      setTimeout(function () { if (fallback) fallback.hidden = false; }, 45000);
+      function check() {
+        fetch(el.dataset.poll, { headers: { Accept: "application/json" } })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (s) { if (s && s.next) location.replace(s.next); else setTimeout(check, 2000); })
+          .catch(function () { setTimeout(check, 2000); });
+      }
+      setTimeout(check, 2000);
+    })();
+  </script>
+{% endblock %}
