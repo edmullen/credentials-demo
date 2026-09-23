@@ -120,6 +120,16 @@ def test_ledge_never_gets_the_issuer_class(payroll_trust) -> None:
     assert "cred--issuer" not in ledge
 
 
+def test_not_yet_valid_still_gets_its_hue(payroll_trust) -> None:
+    # A future pay date fails the temporal check but the signature is genuine — the color is a
+    # signed claim, so it's still shown (docs/design.md §4; a real bug Ed caught live).
+    _receive("p01", _income(payroll_trust, n=1, pay_date="2026-09-25"))
+    body = client.get("/p/p01/credentials").text
+    assert "Not yet valid" in body
+    assert 'class="cred cred--income cred--issuer"' in body
+    assert 'style="--issuer-hue: 255"' in body
+
+
 def test_unreadable_or_missing_hue_falls_back_to_no_issuer_class(payroll_trust) -> None:
     _receive("p01", _income(payroll_trust, n=1, hue=None))
     body = client.get("/p/p01/credentials").text

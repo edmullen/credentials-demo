@@ -158,9 +158,13 @@ class CredentialView:
     @property
     def issuer_hue(self) -> str | None:
         """The issuer's render hue for a card, or None with no entry, an unreadable color, or a
-        credential that isn't verified (docs/design.md §4) — an unverified card falls back to
-        sand rather than trust a color it can't believe."""
-        return self._render_hue if self.outcome is Outcome.VERIFIED else None
+        tampered credential (docs/design.md §4). The color is a signed claim, so what makes it
+        untrustworthy is a broken signature (TAMPERED) or an issuer we can't check a signature
+        against at all (UNRECOGNIZED_ISSUER) — not an expired or not-yet-valid window, which
+        both still carry a signature that checked out."""
+        if self.outcome in (Outcome.TAMPERED, Outcome.UNRECOGNIZED_ISSUER):
+            return None
+        return self._render_hue
 
     @property
     def detail_issuer_hue(self) -> str | None:
