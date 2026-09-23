@@ -198,8 +198,9 @@ Wallet PR also gets a **side-by-side check**:
   employer, are expected. Differences in layout are not.
 
 After the last merge, one live pass on Render covers every Wallet page and a paystub at 375px.
-Then the handoff pages are captured as PNGs from `index.html` into
-`docs/design/loop-4a/screenshots/`.
+
+**Handoff screenshots are skipped this loop** (Ed, 2026-09-23). Headless Chrome hung in this
+environment, and `index.html` already shows every handoff page at its widths.
 
 ## 11. Tests
 
@@ -244,7 +245,8 @@ is clean.
 - [ ] Switcher: each person's employers are listed.
 - [ ] Payroll: the paystub's tables scroll sideways at 375px, by touch and by keyboard.
 - [ ] All three suites pass, and all 25 people still reach their Loop 4 outcomes.
-- [ ] Handoff screenshots are committed under `docs/design/loop-4a/screenshots/`.
+- [ ] ~~Handoff screenshots are committed under `docs/design/loop-4a/screenshots/`.~~ Skipped
+      this loop (Ed, 2026-09-23; see §10).
 
 ## 14. Reconciliation (plan step)
 
@@ -284,7 +286,7 @@ ignored. The diffs contain only the changes listed here.
 | Switcher lists employers | generator `employerNames`, `switch.html` | new `test_switcher_employers.py`, including confinement | switcher pair |
 | Paystub tables scroll by touch and keyboard | wrappers and adopted Payroll `cred.css` | new tests in `test_paystub_display.py`, including the pinned hash | paystub pair at 375px and 992px, plus a keyboard scroll check |
 | All suites pass; 25 outcomes unchanged | no protocol or state change; re-keyed trust lists stay byte-identical | all three suites; `cmp` of the two `trust.json` files | a live connect on Render after PR 4 |
-| Handoff screenshots committed | captured from `index.html` | — | after PR 5 |
+| Handoff screenshots committed | skipped this loop (§10) | — | — |
 
 ### Dependencies against Ed's machine
 
