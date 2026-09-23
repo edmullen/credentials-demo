@@ -135,6 +135,14 @@ protection — so adding or renaming an app never requires touching branch prote
 redeploys only that service; editing `docs/` or `tools/` redeploys none. `PYTHON_VERSION`
 in `render.yaml` must be kept in step with each app's `.python-version`.
 
+**Never put a real secret's value anywhere on the public repo** — a PR description, an issue, a
+commit message, a code comment. A `sync: false` var (like `PAYROLL_SIGNING_KEY`) is set by hand
+in Render's dashboard; hand its value to Ed directly (in chat), never through GitHub, even
+labeled as a value to copy. A key generated for a demo stops being a throwaway the moment it's
+pasted into Render as the live secret — at that point a public posting is a real leak, and
+GitHub's edit history means editing a PR body afterward doesn't undo it. If it happens anyway,
+rotate the key (re-run the generator) rather than relying on the edit.
+
 Live at `https://cred-demo-<app>.onrender.com` (`wallet` / `payroll` / `benefits`). Render's
 free tier spins services down after ~15 min idle — the first request after that, including
 right after a fresh Blueprint deploy, can take up to a minute or time out once before
