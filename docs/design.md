@@ -596,3 +596,34 @@ Set up once, reused by every UI PR (3, 4, 5), per Loop 4a's retro:
   §12. A dry run against the current `credentials.html`/`credentials-p01.html` pair (both
   showing 1 identity credential, no income yet) confirms the script reads matching numbers
   before any Loop 5 code exists.
+
+## 17. Live pass on Render (PR 6, AC 24)
+
+Run 2026-09-23, against both apps' production URLs, once PR 5 (#100) had merged and redeployed.
+
+- **Payroll's health and JWKS.** `GET /health` → `200 {"status":"ok"}` — the deployed
+  `PAYROLL_SIGNING_KEY` (rotated after the leak recorded in `no-secrets-in-pr-descriptions`,
+  Ed's memory) matches the committed `issuer.json`. `GET /.well-known/jwks.json` serves that
+  same rotated public key.
+- **Connected p08 (Nadia Haddad) to Shoreway**, live, through the Wallet's UI: call 1, the
+  consent screen, **Approve and share**, call 2, then the Wallet's own post-connect fetch — all
+  server-to-server between the two Render services. Landed on Connections as connected; the
+  Credentials page showed **"6 credentials · 5 new"**, the stack, the ledge ("View all Income
+  credentials (6)"), and Payroll's hue on every verified card. Three of the six read "Not yet
+  valid" — correctly: their `payDate` is 30 Sep 2026, after today's real date, so `validFrom` is
+  in the future. This is a live-clock artifact the loop's own fixed-clock tests don't hit
+  (design.md §11, "no sample person produces [an unverified credential] under the fixed test
+  clock"), not a bug.
+- **Matched one credential end to end.** Payroll's paystub page for Brightpath Early Learning,
+  1–15 Sep 2026, showed its `.panel--cred` with id `urn:uuid:111e78a4-d2f7-5529-ac7a-ed39ac63b662`,
+  gross `$330.00`, net `$300.71`. The Wallet's income detail page for the same card showed the
+  identical id, gross, net, pay period and date, issuer id
+  `https://cred-demo-payroll.onrender.com`, and a JWT that verified with the real deployed key —
+  the same credential, independently rendered by both apps from the same signed JWT.
+- **AC 24 is satisfied:** all three suites passed in CI on every PR (§12), and this pass connects
+  a person, receives their credentials, and shows the matching credential on Payroll's paystub
+  page, on the deployed services.
+
+Ed confirms separately, from Render's events log, that each PR redeployed only the services
+§12 says it should have (PR 1: Wallet and Payroll; PRs 2–3: Payroll only; PRs 4–5: Wallet only;
+docs PRs: neither).
