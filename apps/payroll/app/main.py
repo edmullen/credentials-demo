@@ -8,7 +8,8 @@ from fastapi.templating import Jinja2Templates
 from app import clock, connections, signing
 from app.activity import grouped_events
 from app.display import issuer_phrase, when
-from app.paystubs import all_employer_ids, employers_for, landing_groups, paystub_view
+from app.issuance import credential_id, issue
+from app.paystubs import all_employer_ids, employers_for, landing_groups, paystub_view, paystubs_for
 from app.people import all_people, get_person
 from app.presentation import verify_presentation
 from app.trust import trust_list
@@ -153,12 +154,38 @@ async def submit_presentation(request_id: str, vp: dict = Body(...)) -> JSONResp
         return JSONResponse(status_code=400, content={"error": "invalid_presentation"})
     if outcome == "connected":
         person = extra["person"]
-        connections.connect(person["id"], extra["issuer_name"], now)
+        connection_id = connections.connect(person["id"], extra["issuer_name"], now)
         connections.log(
             person["id"], "verified", "New connection from your wallet established", now
         )
-        return JSONResponse(status_code=200, content={"outcome": "connected"})
+        return JSONResponse(
+            status_code=200, content={"outcome": "connected", "connectionId": connection_id}
+        )
     return JSONResponse(status_code=200, content={"outcome": "refused", "reason": outcome})
+
+
+@app.post("/api/credentials")
+async def fetch_credentials(payload: dict = Body(...)) -> JSONResponse:
+    connection_id = payload.get("connectionId")
+    have = payload.get("have")
+    if not isinstance(connection_id, str) or not isinstance(have, list) or not all(
+        isinstance(h, str) for h in have
+    ):
+        return JSONResponse(status_code=400, content={"error": "invalid_request"})
+    person_id = connections.person_for_connection(connection_id)
+    if person_id is None:
+        return JSONResponse(status_code=404, content={"error": "unknown_connection"})
+    if not signing.status().ok:
+        return JSONResponse(status_code=503, content={"status": "unhealthy"})
+    have_set = set(have)
+    stubs = [s for s in paystubs_for(person_id) if credential_id(s) not in have_set]
+    credentials = [issue(s) for s in stubs]
+    if credentials:
+        plural = "" if len(credentials) == 1 else "s"
+        connections.log(
+            person_id, "neutral", f"{len(credentials)} income credential{plural} sent to your wallet", clock.now()
+        )
+    return JSONResponse(status_code=200, content={"credentials": credentials})
 
 
 @app.get("/health")

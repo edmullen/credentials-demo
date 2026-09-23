@@ -58,6 +58,14 @@ def employers_for(person_id: str) -> list[dict]:
     return groups
 
 
+def paystubs_for(person_id: str) -> list[dict]:
+    """A person's paystubs, newest pay date first; ties keep paystubs.json's order (a stable
+    sort), which is employer-grouped (docs/design.md §4 — p08 is Shoreway, Brightpath,
+    Ridgeline). Raw records, for issuance.py's credential builder, not the display view."""
+    stubs = [s for s in _paystubs() if s["personId"] == person_id]
+    return sorted(stubs, key=lambda s: s["payDate"], reverse=True)
+
+
 def all_employer_ids() -> set[str]:
     return set(_employers())
 

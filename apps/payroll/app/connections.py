@@ -21,6 +21,7 @@ class PendingRequest:
 class Connection:
     connected_at: datetime
     issuer_name: str
+    connection_id: str
 
 
 @dataclass
@@ -32,6 +33,7 @@ class Event:
 
 _pending: dict[str, PendingRequest] = {}
 _connections: dict[str, Connection] = {}
+_by_connection_id: dict[str, str] = {}  # connection id -> person id (docs/design.md §5)
 _events: dict[str, list[Event]] = {}
 
 
@@ -61,9 +63,22 @@ def get_connection(person_id: str) -> Connection | None:
     return _connections.get(person_id)
 
 
-def connect(person_id: str, issuer_name: str, now: datetime) -> None:
-    """Connecting again overwrites the record (docs/design.md §7)."""
-    _connections[person_id] = Connection(connected_at=now, issuer_name=issuer_name)
+def connect(person_id: str, issuer_name: str, now: datetime) -> str:
+    """Connecting again overwrites the record and issues a fresh connection id; the old one
+    stops resolving (docs/design.md §2, §5). Returns the new id."""
+    old = _connections.get(person_id)
+    if old is not None:
+        _by_connection_id.pop(old.connection_id, None)
+    connection_id = uuid4().hex
+    _connections[person_id] = Connection(
+        connected_at=now, issuer_name=issuer_name, connection_id=connection_id
+    )
+    _by_connection_id[connection_id] = person_id
+    return connection_id
+
+
+def person_for_connection(connection_id: str) -> str | None:
+    return _by_connection_id.get(connection_id)
 
 
 def events_for(person_id: str) -> list[Event]:
@@ -78,4 +93,5 @@ def reset_all() -> None:
     """Test-only: returns every person's state to a fresh process's starting point."""
     _pending.clear()
     _connections.clear()
+    _by_connection_id.clear()
     _events.clear()
