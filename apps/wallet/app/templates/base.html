@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ page_title }} — {{ site.name }}</title>
+  <title>{% if page_title %}{{ page_title }} — {% endif %}{{ site.name }}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="{{ site.fonts_url }}" rel="stylesheet">
@@ -13,24 +13,24 @@
   <a class="skip" href="#main">Skip to main content</a>
   <header class="header">
     <div class="header__inner">
-      <a class="header__brand" href="/p/{{ person.id }}/credentials">
+      <a class="header__brand" href="{% if person %}/p/{{ person.id }}/credentials{% else %}/{% endif %}">
         <span class="header__mark header__mark--wallet" aria-hidden="true"></span>
         {{ site.name }}
       </a>
-      <nav class="header__nav" aria-label="Main">
-        {% for key, label in nav %}
-        <a href="/p/{{ person.id }}/{{ key }}"{% if key == active %} aria-current="page"{% endif %}>{{ label }}</a>
-        {% endfor %}
-      </nav>
+      {% if person %}
       <span class="initials" role="img" aria-label="{{ person.name }}">{{ person.initials }}</span>
       <details class="nav-menu">
         <summary>Menu</summary>
-        <div class="nav-menu__panel">
+        <nav class="nav-menu__panel" aria-label="Main">
           {% for key, label in nav %}
           <a href="/p/{{ person.id }}/{{ key }}"{% if key == active %} aria-current="page"{% endif %}>{{ label }}</a>
           {% endfor %}
-        </div>
+          <a href="/">Sign out</a>
+        </nav>
       </details>
+      {% else %}
+      <a class="btn" href="{{ sign_in }}">Sign in</a>
+      {% endif %}
     </div>
   </header>
 
@@ -41,7 +41,7 @@
   <footer class="footer">
     <div class="wrap">
       <p class="footer__note"><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></p>
-      {% block footer_aside %}<span class="footer__aside"><a href="/p/{{ person.id }}/switch?from={{ active }}">Switch person</a></span>{% endblock %}
+      {% block footer_aside %}{% if person %}<span class="footer__aside"><a href="/p/{{ person.id }}/switch?from={{ active }}">Switch person</a></span>{% endif %}{% endblock %}
     </div>
   </footer>
   {% block scripts %}{% endblock %}
