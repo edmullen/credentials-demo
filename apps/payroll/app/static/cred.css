@@ -679,3 +679,28 @@ html[data-app="payroll"] {
   padding: 12px calc(var(--space) * 2.5);
 }
 .connlist__meta { display: flex; flex-direction: column; min-width: 12rem; flex: 1; }
+
+
+/* ============================================================
+   Loop 4a additions — Payroll
+   The paystub's figure tables scroll sideways when they don't
+   fit, instead of being clipped by .panel's overflow. Nothing
+   else in Payroll changes.
+   ============================================================ */
+.figures__scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border-radius: 2px;
+  /* scroll cue: a soft edge shadow appears only on a side that has
+     more to show; the two surface-coloured covers scroll with the
+     content and hide the shadow once that edge is reached */
+  background:
+    linear-gradient(to right, var(--surface) 40%, transparent) left center / 28px 100% no-repeat local,
+    linear-gradient(to left,  var(--surface) 40%, transparent) right center / 28px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%,    oklch(0.24 0.012 70 / 0.22), transparent) left center / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, oklch(0.24 0.012 70 / 0.22), transparent) right center / 12px 100% no-repeat scroll;
+}
+.figures__scroll:focus-visible { outline-offset: 4px; }
+/* keep the description column readable rather than crushed */
+.figures__scroll .figures tbody th,
+.figures__scroll .figures tfoot th { min-width: 8.5rem; }
