@@ -291,7 +291,7 @@ refused `credential_invalid`, p24/p25 (no credential) hit the missing-credential
 wrong-employer choice is refused `not_an_employee` — checked against a locally running pair of
 apps and, for a representative subset, live on Render. Wallet's suite grew 67 → 102 (#63) → 127
 (#65) → 140 (#66); Payroll's grew 29 → 69 (#64) and held there; Benefits, untouched, stayed at 4.
-Full trace in [design.md](design.md).
+Full trace in [design.md](design/loop-4/design.md).
 
 **What went wrong.** Nothing reached `main` broken — every PR's CI passed on the first push,
 caught first by the local suite each time — but three things took more than one attempt to get
@@ -346,7 +346,7 @@ warm passed twice, live, before the second PR was written. The cold half added a
 didn't have: the gate isn't just slow-and-eventually-succeeds, it's a *fast refusal* — about two
 seconds to `no_response`, against the roughly 22-second cold start a direct visit takes moments
 later. Same shape as #48's peer-wake pings, now confirmed for real request traffic, recorded in
-[design.md §13 item 17](design.md#13-decisions-and-deviations).
+[design.md §13 item 17](design/loop-4/design.md#13-decisions-and-deviations).
 
 **One improvement for Loop 5.** Loop 5 gives Payroll its own keys and has it issue credentials —
 new signed payloads matched against a spec example, the same shape as this loop's `type`-as-list
