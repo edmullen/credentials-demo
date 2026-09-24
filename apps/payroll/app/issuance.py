@@ -47,7 +47,7 @@ def credential_payload(stub: dict) -> dict:
             "grossPay": _amount(stub["grossPay"]),
             "netPay": _amount(stub["netPay"]),
         },
-        "renderMethod": [{"type": "CredDemoIssuerColor", "color": ISSUER_COLOR}],
+        "renderMethod": [{"type": "CredDemoCardColor", "color": ISSUER_COLOR}],
     }
 
 
