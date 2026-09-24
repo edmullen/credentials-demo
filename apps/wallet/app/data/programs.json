@@ -1,0 +1,7 @@
+[
+  {"code": "food", "order": 1, "name": "Food Assistance"},
+  {"code": "energy", "order": 2, "name": "Energy Assistance"},
+  {"code": "housing", "order": 3, "name": "Housing Assistance"},
+  {"code": "health", "order": 4, "name": "Health"},
+  {"code": "dividend", "order": 5, "name": "Dividend"}
+]
