@@ -21,14 +21,18 @@ class PendingRequest:
     """
 
     token: str
-    phase: str  # "asking" | "consent" | "missing" | "verifying"
+    # "asking" | "consent" | "missing" | "verifying" for Payroll; Benefit Agency's own attempt
+    # also uses "applying" and "error" (docs/design.md §9.2).
+    phase: str
     dcql_query: dict | None = None
     response_uri: str | None = None
+    missing: str | None = None  # "identity" | "income" — which one Benefit Agency's request needs
+    arrived: bool = False  # fetched by reference (§12, a later loop)
 
 
 @dataclass
 class Link:
-    """One connection to one payroll provider."""
+    """One connection to one provider — a payroll processor or a government service."""
 
     employers: list[str] = field(default_factory=list)
     connected_at: datetime | None = None
@@ -37,6 +41,9 @@ class Link:
     request: PendingRequest | None = None
     connection_id: str | None = None  # docs/design.md §2, §7
     arrived: int | None = None  # count the first fetch brought; shown once on Connections
+    determination: dict | None = None  # Benefit Agency's call 2 reply, kept for results (§9.2)
+    refusal: str | None = None  # Benefit Agency's refusal reason
+    presentation: dict | None = None  # the approved VP, kept only until call 2 answers (§10.6)
 
 
 @dataclass
@@ -73,6 +80,12 @@ def new_token() -> str:
 
 def get_link(person_id: str, provider_id: str) -> Link | None:
     return _links.get(person_id, {}).get(provider_id)
+
+
+def get_or_create_link(person_id: str, provider_id: str) -> Link:
+    """A service (no employers) creates its link this way, the first time someone applies —
+    the analogue of add_employer's "create on first touch" for a provider with none."""
+    return _links.setdefault(person_id, {}).setdefault(provider_id, Link())
 
 
 def add_employer(person_id: str, provider_id: str, employer_id: str) -> Link:

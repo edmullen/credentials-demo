@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% set page_title = "Do you want to share " ~ total ~ " credential" ~ ("s" if total != 1 else "") ~ " with Benefit Agency?" %}
+{% block main %}
+    <div class="wrap stack">
+      <div class="pagehead">
+        <a class="back" href="/p/{{ person.id }}/services">Government services</a>
+        <span class="pagehead__sep" aria-hidden="true"></span>
+        <h1 class="pagehead__title">Request from Benefit Agency</h1>
+      </div>
+      <h2 class="intro__title">{{ page_title }}</h2>
+      <p class="intro__purpose">Benefit Agency uses your identity and your pay to decide five programs at once: Food, Energy and Housing Assistance, Health, and Dividend.</p>
+      <form class="decision" method="post" action="/p/{{ person.id }}/services/{{ service_id }}/request">
+        <p class="decision__lead">This applies to the whole request: all {{ total }} credentials.</p>
+        <div class="actions">
+          <button class="btn" type="submit" name="decision" value="approve">Approve and share</button>
+          <button class="btn btn--secondary" type="submit" name="decision" value="deny">Deny</button>
+        </div>
+      </form>
+      <ol class="request">
+        <li class="request__item">
+          <div class="category__head">
+            <h2 class="category__title" id="r1">Identity credential</h2>
+            <span class="card__meta">1 of {{ total }}</span>
+          </div>
+          <div class="panel" aria-labelledby="r1">
+            {%- set c = identity -%}
+            {%- set tampered = identity_tampered -%}
+            {%- set heading_tag = "h3" -%}
+            {%- set id_prefix = "r1-" -%}
+            {%- set status_style = "plain" -%}
+            {% include "_credential_panel.html" %}
+          </div>
+        </li>
+        {% for group in income_groups %}
+        <li class="request__item">
+          <div class="category__head">
+            <h2 class="category__title" id="r{{ loop.index + 1 }}">Income credential{{ "s" if group.credentials|length != 1 }}</h2>
+            <span class="card__meta">{% if group.credentials|length == 1 %}{{ loop.index + 1 }} of {{ total }}{% else %}{{ loop.index + 1 }}&ndash;{{ loop.index + group.credentials|length }} of {{ total }}{% endif %}</span>
+          </div>
+          <div class="panel{{ ' cred--issuer' if group.hue }}"{% if group.hue %} style="--issuer-hue: {{ group.hue }}"{% endif %} aria-labelledby="r{{ loop.index + 1 }}">
+            <div class="panel__issuer">
+              <span class="card__meta">Issuer:</span>
+              <span class="panel__issuer-name">{{ group.issuer_name }}</span>
+            </div>
+            <div class="panel__status panel__status--plain">
+              <h3 class="visually-hidden" id="r{{ loop.index + 1 }}-status">Status</h3>
+              <span class="cred__top">
+                <span class="cred__issuer">
+                  <span class="card__meta">{{ group.credentials|length }} paystub{{ "s" if group.credentials|length != 1 }}</span>
+                  <span class="cred__issuer-name">{{ group.period_label }}</span>
+                </span>
+                <span class="badge badge--{{ 'verified' if group.all_verified else 'caution' }}"><span class="badge__icon" aria-hidden="true">{{ "&#10003;" if group.all_verified else "!" }}</span>{{ "All verified" if group.all_verified else "Check details" }}</span>
+              </span>
+              <p>{% if group.all_verified %}Nothing in these {{ group.credentials|length }} credentials has changed since {{ group.issuer_name }} issued them. Open one to see every claim it shares.{% else %}Not every credential from {{ group.issuer_name }} could be verified. Open one to see every claim it shares.{% endif %}</p>
+            </div>
+            <ul class="shares" aria-label="Income credentials">
+              {% for c in group.credentials %}
+              <li>
+                <details class="share">
+                  <summary>
+                    <span class="share__who">
+                      <span class="share__employer">{{ c.employer_name }}</span>
+                      <span class="share__period">{{ c.pay_period_short }}</span>
+                    </span>
+                    <span class="share__gross"><span class="visually-hidden">Gross pay </span>{{ c.gross }}</span>
+                    <span class="disclosure__chev" aria-hidden="true"></span>
+                  </summary>
+                  <div class="share__body">
+                    <dl class="claims claims--grid">
+                      <dt>Employer</dt>
+                      <dd class="claims__value--strong">{{ c.employer_name }}</dd>
+                      <dt>Issued by</dt>
+                      <dd>{{ c.issuer_name }}</dd>
+                      <dt>Pay period</dt>
+                      <dd>{{ c.pay_period_long }}</dd>
+                      <dt>Pay date</dt>
+                      <dd>{{ c.pay_date }}</dd>
+                      <dt>Frequency</dt>
+                      <dd>{{ c.frequency }}</dd>
+                      <dt>Gross pay</dt>
+                      <dd class="claims__value--strong">{{ c.gross }}</dd>
+                      <dt>Net pay</dt>
+                      <dd>{{ c.net }}</dd>
+                    </dl>
+                    <p class="share__id">urn:uuid:{{ c.id }}</p>
+                  </div>
+                </details>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </li>
+        {% endfor %}
+      </ol>
+      {% if total > 3 %}
+      <form class="decision" method="post" action="/p/{{ person.id }}/services/{{ service_id }}/request" aria-label="Decide on the whole request">
+        <p class="decision__lead">Approve shares all {{ total }} credentials above. Deny shares nothing.</p>
+        <div class="actions">
+          <button class="btn" type="submit" name="decision" value="approve">Approve and share</button>
+          <button class="btn btn--secondary" type="submit" name="decision" value="deny">Deny</button>
+        </div>
+      </form>
+      {% endif %}
+    </div>
+{% endblock %}

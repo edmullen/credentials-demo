@@ -71,6 +71,17 @@ def period_long(start: str, end: str) -> str:
     return f"{long_date(start)} – {long_date(end)}"
 
 
+def month_span(dates: list[str]) -> str:
+    """'September 2026' for one month held, 'Aug–Sep 2026' for a span (docs/design.md §10.4)."""
+    parsed = sorted({d for d in (parse_date(v) for v in dates) if d})
+    if not parsed:
+        return ""
+    first, last = parsed[0], parsed[-1]
+    if (first.year, first.month) == (last.year, last.month):
+        return f"{MONTHS[first.month - 1]} {first.year}"
+    return f"{MONTHS[first.month - 1][:3]}–{MONTHS[last.month - 1][:3]} {last.year}"
+
+
 def money(amount: dict) -> str:
     """A MonetaryAmount claim, '$1,100.00'. USD only, per credential-model §3 — the demo's."""
     return f"${Decimal(str(amount['value'])):,.2f}"

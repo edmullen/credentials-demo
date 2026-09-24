@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% set page_title = "Results from Benefit Agency" %}
+{% block main %}
+    <div class="wrap stack">
+      <div class="pagehead">
+        <h1 class="pagehead__title">Results from Benefit Agency</h1>
+      </div>
+      {% if variant == "refused" %}
+      <h2 class="intro__title">Your application couldn&rsquo;t be decided</h2>
+      <section class="panel" aria-labelledby="status">
+        <div class="panel__status panel__status--error">
+          <h3 class="visually-hidden" id="status">Status</h3>
+          <span class="badge badge--error"><span class="badge__icon" aria-hidden="true">&#10005;</span>Refused</span>
+          <p>{{ refusal_sentence }}</p>
+        </div>
+        <p class="panel__note">Nothing was issued. On your Credentials page, the credential that failed shows as Tampered.</p>
+      </section>
+      <p class="visually-hidden" role="status">Your application couldn&rsquo;t be decided. {{ refusal_sentence }}</p>
+      <a class="btn btn--block" href="/p/{{ person.id }}/credentials">Go to your credentials</a>
+      {% else %}
+      <section class="verdict" aria-labelledby="verdict">
+        <h2 class="verdict__title" id="verdict">{{ verdict.heading }}</h2>
+        <p class="verdict__worth">{{ verdict.sentence|safe }}</p>
+      </section>
+      <p class="visually-hidden" role="status">{{ verdict.status_text }}</p>
+      {% if eligible_cards %}
+      {% if variant == "arriving" %}
+      <section class="category" aria-labelledby="cat-added">
+        <div class="category__head">
+          <h3 class="category__title" id="cat-added">On the way to your wallet</h3>
+          <span class="card__meta category__status"><span class="spinner" aria-hidden="true"></span>Collecting</span>
+        </div>
+        <p class="category__waiting-note">Your {{ eligible_cards|length }} benefit credential{{ "s" if eligible_cards|length != 1 }} {{ "are" if eligible_cards|length != 1 else "is" }} on {{ "their" if eligible_cards|length != 1 else "its" }} way from Benefit Agency. They&rsquo;ll appear in Credentials as soon as they arrive.</p>
+      </section>
+      {% else %}
+      <section class="category" id="added" aria-labelledby="cat-added">
+        <div class="category__head">
+          <h3 class="category__title" id="cat-added">Added to your wallet</h3>
+          <span class="card__meta">{{ eligible_cards|length }} credential{{ "s" if eligible_cards|length != 1 }}</span>
+        </div>
+        <div class="stack-cards stack-cards--flat">
+          {% for c in eligible_cards %}
+          <a class="stack-cards__card{{ ' cred--issuer' if c.issuer_hue }}" href="/p/{{ person.id }}/credentials/{{ c.id }}" style="--i: {{ loop.index0 }}{% if c.issuer_hue %}; --issuer-hue: {{ c.issuer_hue }}{% endif %}">
+            <span class="stack-cards__row">
+              <span class="stack-cards__program">{{ c.program_name }}</span>
+              <span class="stack-cards__figure">{{ c.figure }}</span>
+            </span>
+            <span class="stack-cards__row stack-cards__row--bottom">
+              <span class="stack-s">
+                {% if c.figure_sub %}<span class="cred__figure-sub">{{ c.figure_sub }}</span>{% endif %}
+                <span class="stack-cards__period">Valid until {{ c.valid_until_short }}</span>
+              </span>
+              <span class="badge badge--{{ c.presentation.variant }}"><span class="badge__icon" aria-hidden="true">{{ c.presentation.glyph|safe }}</span>{{ c.presentation.label }}</span>
+            </span>
+          </a>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+      {% endif %}
+      {% if denials %}
+      <section class="stack-s" aria-labelledby="not">
+        <h3 class="category__title" id="not">{{ denials.heading }}</h3>
+        <ul class="outcomes">
+          {% for name, sentence in denials.lines %}
+          <li class="outcomes__item"><span class="outcomes__mark" aria-hidden="true"></span><p><strong>{{ name }}:</strong> {{ sentence }}</p></li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+      <div class="results__next">
+        <a class="btn btn--block" href="/p/{{ person.id }}/credentials">Go to your credentials</a>
+        {% if zero_of_five %}
+        <p>Find government services stays on your Credentials page, so you can apply again.</p>
+        {% else %}
+        <p>Benefit credentials are valid for 12 months, until {{ valid_until }}.</p>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+{% endblock %}

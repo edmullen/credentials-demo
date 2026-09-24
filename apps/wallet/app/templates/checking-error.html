@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% set page_title = "Couldn't reach Benefit Agency" %}
+{% block main %}
+    <div class="wrap stack">
+      <div class="pagehead">
+        <h1 class="pagehead__title">Applying to Benefit Agency</h1>
+      </div>
+      <h2 class="intro__title">Couldn&rsquo;t reach Benefit Agency</h2>
+      <section class="panel" aria-labelledby="status">
+        <div class="panel__status panel__status--caution">
+          <h3 class="visually-hidden" id="status">Status</h3>
+          <span class="badge badge--caution">No answer</span>
+          <p>Benefit Agency didn&rsquo;t answer, so your application wasn&rsquo;t decided and no credentials were issued. Try again in a moment.</p>
+        </div>
+      </section>
+      <form class="decision" method="post" action="/p/{{ person.id }}/services/{{ service_id }}/request">
+        <div class="actions">
+          <button class="btn" type="submit" name="decision" value="retry">Try again</button>
+          <a class="btn btn--secondary" href="/p/{{ person.id }}/credentials">Back to credentials</a>
+        </div>
+      </form>
+    </div>
+{% endblock %}

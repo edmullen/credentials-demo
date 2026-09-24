@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% set page_title = "You need an identity credential first" %}
+{% block main %}
+    <div class="wrap stack">
+      <div class="pagehead">
+        <a class="back" href="/p/{{ person.id }}/services">Government services</a>
+        <span class="pagehead__sep" aria-hidden="true"></span>
+        <h1 class="pagehead__title">Request from Benefit Agency</h1>
+      </div>
+      <h2 class="intro__title">You need an identity credential first</h2>
+      <p class="intro__purpose">Benefit Agency needs to know who you are and where you live. Your payroll provider needs the same before it can send your pay, so an identity credential comes first.</p>
+      <section class="panel" aria-labelledby="needs">
+        <h3 class="visually-hidden" id="needs">What Benefit Agency asks for</h3>
+        <ul class="needs">
+          <li><span class="needs__row"><span class="needs__name">Identity credential</span><span class="badge badge--neutral">None</span></span></li>
+          <li><span class="needs__row"><span class="needs__name">Income credentials</span><span class="badge badge--neutral">None</span></span></li>
+        </ul>
+        <p class="panel__note">You don&rsquo;t have an identity credential in this wallet. Switch to a person who does to apply.</p>
+      </section>
+      <a class="btn btn--block" href="/p/{{ person.id }}/switch?from=credentials">Switch person</a>
+    </div>
+{% endblock %}

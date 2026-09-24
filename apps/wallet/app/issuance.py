@@ -13,9 +13,12 @@ from app.credentials import trust_list
 from app.providers import all_providers
 from app.verify import Outcome, verify
 
-RECEIVED_MESSAGE = "{count} income credential{plural} received from {provider}"
-UNVERIFIED_MESSAGE = "{count} income credential{plural} from {provider} couldn't be verified"
+RECEIVED_MESSAGE = "{count} {kind} credential{plural} received from {provider}"
+UNVERIFIED_MESSAGE = "{count} {kind} credential{plural} from {provider} couldn't be verified"
 UNREACHABLE_MESSAGE = "Couldn't reach {provider} to check for new credentials"
+
+# The word each provider kind's credentials go by (docs/design.md §10.8).
+KIND_WORD = {"payroll": "income", "service": "benefit"}
 
 # Between page-open checks (§9, §13 item 7): stops the handoff script's redraw from starting a
 # second check, and limits how often a reload can hit Payroll.
@@ -64,8 +67,13 @@ async def fetch(person_id: str, provider_id: str) -> None:
         return
 
     if outcome == "lost":
-        link.connected_at = None
-        link.connection_id = None
+        if provider["kind"] == "service":
+            # Nothing to reconnect to for a service — the link is removed outright, keeping
+            # any credentials already held (docs/design.md §10.8, §16 item 11).
+            state.remove_link(person_id, provider_id)
+        else:
+            link.connected_at = None
+            link.connection_id = None
         state.set_check(
             person_id, provider_id,
             state.Check(state="done", token=token, result="lost", finished_at=now),
@@ -104,12 +112,13 @@ async def fetch(person_id: str, provider_id: str) -> None:
             count=count, finished_at=now,
         ),
     )
+    kind_word = KIND_WORD[provider["kind"]]
     if verified_ids:
         state.log(
             person_id, "verified",
             RECEIVED_MESSAGE.format(
                 count=len(verified_ids), plural=_plural(len(verified_ids)),
-                provider=provider["name"],
+                provider=provider["name"], kind=kind_word,
             ),
             now,
         )
@@ -118,6 +127,7 @@ async def fetch(person_id: str, provider_id: str) -> None:
             person_id, "error",
             UNVERIFIED_MESSAGE.format(
                 count=tampered_count, plural=_plural(tampered_count), provider=provider["name"],
+                kind=kind_word,
             ),
             now,
         )
@@ -158,10 +168,11 @@ def check_status(person_id: str) -> dict:
     if check.result == "lost":
         return {"state": "new"}
     if check.result == "new":
+        kind_word = KIND_WORD[all_providers()[provider_id]["kind"]]
         return {
             "state": "new",
             "announce": (
-                f"{check.count} new income credential{_plural(check.count)} from {provider_name}."
+                f"{check.count} new {kind_word} credential{_plural(check.count)} from {provider_name}."
             ),
         }
     if check.result == "error":
