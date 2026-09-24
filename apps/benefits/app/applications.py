@@ -43,10 +43,10 @@ class Application:
     subject_id: str | None  # read even from an unverified identity credential
     name: str | None  # "Given Family"
     presented: list[Presented]
-    same_subject: bool | None
+    same_subject: bool  # computed from unverified claims, regardless of outcome
     outcome: str  # "decided" | "refused"
     reason: str | None = None  # set when refused
-    facts: Facts | None = None  # set when decided
+    facts: Facts | None = None  # recorded "as presented" even on a refusal
     determination: Determination | None = None  # set when decided
     issued: dict = field(default_factory=dict)  # program -> issuance.Issued, set when decided
 
@@ -101,7 +101,7 @@ def record_application(
     subject_id: str | None,
     name: str | None,
     presented: list[Presented],
-    same_subject: bool | None,
+    same_subject: bool,
     outcome: str,
     reason: str | None,
     facts: Facts | None,

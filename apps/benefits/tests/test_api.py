@@ -196,6 +196,21 @@ def test_nothing_is_connected_on_a_refusal(keys) -> None:
     assert applications._connections == {}
 
 
+def test_facts_are_recorded_as_presented_on_a_refusal(keys) -> None:
+    # The admin view shows submitted data even on a refusal, "as presented" (docs/design.md §8.2).
+    request_id = _new_request()
+    identity = _identity_token(keys["state"][0], "nj-test-1", county="Hunterdon")
+    income = _paystub_token(keys["payroll"][0], "payroll-test-1", tamper=True)
+    client.post(f"/api/applications/requests/{request_id}/presentation", json=_vp(identity, income))
+    from app import applications
+
+    application = applications.all_applications()[0]
+    assert application.facts.region == "NJ"
+    assert application.facts.county == "Hunterdon"
+    assert len(application.facts.paystubs) == 1
+    assert application.subject_id == SUBJECT_ID
+
+
 # ---- Call 2: bad shapes (400) ------------------------------------------------------------------
 
 

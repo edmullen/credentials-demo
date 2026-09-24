@@ -21,7 +21,10 @@ def keypair(kid: str):
     return key, public
 
 
-def identity_token(key, kid, *, subject_id=SUBJECT_ID, region="NJ", county="Hunterdon", tamper=False):
+def identity_token(
+    key, kid, *, subject_id=SUBJECT_ID, region="NJ", county="Hunterdon", tamper=False,
+    given_name="Grace", family_name="Okafor",
+):
     payload = {
         "@context": ["https://www.w3.org/ns/credentials/v2"],
         "id": f"urn:uuid:{uuid.uuid4()}",
@@ -31,9 +34,10 @@ def identity_token(key, kid, *, subject_id=SUBJECT_ID, region="NJ", county="Hunt
         "validUntil": "2030-01-01T00:00:00Z",
         "credentialSubject": {
             "id": subject_id,
-            "givenName": "Grace",
-            "familyName": "Okafor",
+            "givenName": given_name,
+            "familyName": family_name,
             "birthDate": "1990-01-01",
+            "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD",
             "address": {
                 "type": "PostalAddress",
                 "streetAddress": "1 Main St",
