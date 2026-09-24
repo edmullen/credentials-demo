@@ -41,7 +41,7 @@ def payroll_trust(monkeypatch):
 def _income(
     key, *, n=1, employer="Pinecrest Home Care", hue="255",
     pay_period_start="2026-09-01", pay_period_end="2026-09-15", pay_date="2026-09-15",
-    gross=1100.0, net=955.87, tamper=False,
+    gross=1100.0, net=955.87, tamper=False, render_type="CredDemoCardColor",
 ) -> tuple[str, str]:
     """Returns (credential_id, jwt)."""
     credential_id = f"urn:uuid:{uuid.uuid5(uuid.NAMESPACE_URL, f'test-paystub-{n}')}"
@@ -64,7 +64,7 @@ def _income(
         },
     }
     if color:
-        payload["renderMethod"] = [{"type": "CredDemoIssuerColor", "color": color}]
+        payload["renderMethod"] = [{"type": render_type, "color": color}]
     token = jwt.encode(payload, key, algorithm="ES256", headers={"kid": "payroll-1", "typ": "vc+jwt"})
     if tamper:
         header, body, sig = token.split(".")
@@ -143,6 +143,15 @@ def test_tampered_card_gets_no_hue_either(payroll_trust) -> None:
     assert 'class="cred cred--income"' in body
     assert "cred--issuer" not in body
     assert ">Tampered<" in body
+
+
+def test_old_render_hint_name_is_not_recognized(payroll_trust) -> None:
+    """The Wallet reads only CredDemoCardColor; there's no fallback to CredDemoIssuerColor
+    (docs/design.md §5, the rename)."""
+    _receive("p01", _income(payroll_trust, n=1, render_type="CredDemoIssuerColor"))
+    body = client.get("/p/p01/credentials").text
+    assert 'class="cred cred--income"' in body
+    assert "cred--issuer" not in body
 
 
 def test_new_pill_shows_once_then_is_gone(payroll_trust) -> None:

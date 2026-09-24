@@ -72,7 +72,7 @@ def test_claims_match_the_paystub() -> None:
 def test_render_method_carries_payrolls_issuer_color() -> None:
     payload = credential_payload(P01_FIRST)
     assert payload["renderMethod"] == [
-        {"type": "CredDemoIssuerColor", "color": "oklch(0.46 0.11 255)"}
+        {"type": "CredDemoCardColor", "color": "oklch(0.46 0.11 255)"}
     ]
 
 

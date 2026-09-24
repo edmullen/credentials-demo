@@ -91,8 +91,9 @@
   credential-model §2's rule that an issuer id should resolve to something. The id is a constant
   in `apps/payroll/app/data/issuer.json`, not derived from the incoming request, so a local
   Payroll signs with the same issuer id a deployed one does.
-- **A credential's display color is a demo-only render hint,** `CredDemoIssuerColor` (Ed,
-  2026-09-23, docs/design.md §4 and §13 item 5): one `oklch()` color on VC 2.0's standard
-  `renderMethod` property. The Wallet reads only the hue; lightness and chroma stay fixed in its
-  own `cred.css`, so a signed color hint can't make a card illegible.
+- **A credential's display color is a demo-only render hint,** `CredDemoCardColor` (Ed,
+  2026-09-23, docs/design.md §4 and §13 item 5; renamed from `CredDemoIssuerColor` in Loop 6
+  §5, since one issuer — Benefit Agency — now signs five colors): one `oklch()` color on VC 2.0's
+  standard `renderMethod` property. The Wallet reads only the hue; lightness and chroma stay
+  fixed in its own `cred.css`, so a signed color hint can't make a card illegible.
 - **One-shot generators are allowed; sync scripts are not.** A script under `tools/` may generate files into several apps' directories — the sample data (#6), and the keys, trust lists and signed identity credentials (docs/credential-model.md §2) — provided it is run by hand, its output is committed, and nothing runs it at build or deploy time. What stays ruled out is a script that *keeps* copies aligned on an ongoing basis. (The "no sync script" rule originated in a proposal to sync `cred.css` across apps, which was rejected as unnecessary; each app still owns its own `cred.css`.)

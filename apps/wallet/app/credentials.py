@@ -149,7 +149,7 @@ class CredentialView:
     @property
     def _render_hue(self) -> str | None:
         for entry in self.claims.get("renderMethod") or []:
-            if entry.get("type") == "CredDemoIssuerColor":
+            if entry.get("type") == "CredDemoCardColor":
                 match = _ISSUER_COLOR_RE.match(entry.get("color", ""))
                 if match:
                     return match.group(1)
