@@ -25,6 +25,7 @@ from app.connections import (
 from app.credentials import credentials_for, find_credential, identity_status
 from app.issuance import check_status, maybe_start_check
 from app.people import all_people, get_person
+from app.programs import all_programs
 from app.providers import all_employers, all_providers, get_provider
 from app.verify import Outcome
 
@@ -86,18 +87,26 @@ async def credentials(request: Request, person: dict = Depends(viewed_person)) -
     all_credentials = credentials_for(person["id"])
     identity = [c for c in all_credentials if c.category == "Identity"]
     income = [c for c in all_credentials if c.category == "Income"]
+    order = {p["code"]: p["order"] for p in all_programs()}
+    benefits = sorted(
+        (c for c in all_credentials if c.category == "Benefits"),
+        key=lambda c: order.get(c.program, 99),
+    )
     seen = state.seen_for(person["id"])
     over = len(income) > 5
     drawn = income[:5]
     new_count = sum(1 for c in drawn if c.id not in seen)
+    benefits_new_count = sum(1 for c in benefits if c.id not in seen)
     response = render(
         request, "credentials.html", person, "credentials",
         identity=identity, note=income_note(person["id"]),
         income_total=len(income), drawn=drawn, over=over,
         stack_n=len(drawn) + (1 if over else 0) - 1, new_count=new_count, seen=seen,
         check=income_check_view(person["id"]),
+        benefits=benefits, benefits_new_count=benefits_new_count,
     )
     state.mark_seen(person["id"], (c.id for c in drawn))
+    state.mark_seen(person["id"], (c.id for c in benefits))
     return response
 
 
@@ -129,6 +138,10 @@ async def credential(
     if found.category == "Income":
         return render(
             request, "income-credential.html", person, "credentials", c=found, tampered=tampered
+        )
+    if found.category == "Benefits":
+        return render(
+            request, "benefit-credential.html", person, "credentials", c=found, tampered=tampered
         )
     return render(request, "credential.html", person, "credentials", c=found, tampered=tampered)
 

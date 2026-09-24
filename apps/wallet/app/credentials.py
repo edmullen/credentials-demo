@@ -8,6 +8,7 @@ it says, with a badge that says not to believe it.
 import json
 import re
 from dataclasses import dataclass
+from decimal import ROUND_HALF_UP, Decimal
 from functools import lru_cache
 
 from app import clock, state
@@ -24,6 +25,7 @@ from app.display import (
 )
 from app.outcomes import NO_CREDENTIAL, PRESENTATIONS, Presentation, message_for
 from app.people import DATA_DIR
+from app.programs import get_program
 from app.verify import Outcome, verify
 
 # oklch(L C H) — only H (the third number) is read (docs/design.md §4).
@@ -32,6 +34,12 @@ _ISSUER_COLOR_RE = re.compile(r"oklch\(\s*[\d.]+\s+[\d.]+\s+([\d.]+)\s*\)")
 # Category comes from `type`, not from a claim (credential-model §3, decision 2).
 CATEGORIES = {"IdentityCredential": "Identity", "PaystubCredential": "Income", "BenefitCredential": "Benefits"}
 URN_PREFIX = "urn:uuid:"
+
+
+def _drop_trailing_zero(value) -> str:
+    """92.4 -> '92.4', 100.0 -> '100', 80.0 -> '80' (docs/design.md §11.1)."""
+    text = f"{Decimal(str(value)):.1f}"
+    return text[:-2] if text.endswith(".0") else text
 
 
 @lru_cache
@@ -145,6 +153,69 @@ class CredentialView:
     @property
     def net(self) -> str:
         return money(self.subject.get("netPay") or {"value": 0})
+
+    # --- benefit claims (docs/design.md §11) --------------------------------------------------
+
+    @property
+    def program(self) -> str | None:
+        return self.subject.get("program")
+
+    @property
+    def program_name(self) -> str:
+        program = get_program(self.program)
+        return program["name"] if program else (self.program or "")
+
+    @property
+    def discount_percent(self) -> float | None:
+        return self.subject.get("discountPercent")
+
+    @property
+    def plan_cost(self) -> dict | None:
+        return self.subject.get("planCost")
+
+    @property
+    def plan_cost_money(self) -> str:
+        return money(self.plan_cost) if self.plan_cost else ""
+
+    @property
+    def monthly_payment(self) -> dict | None:
+        return self.subject.get("monthlyPayment")
+
+    @property
+    def monthly_payment_money(self) -> str:
+        return money(self.monthly_payment) if self.monthly_payment else ""
+
+    @property
+    def monthly_price(self) -> str:
+        """Health's price, derived by the Wallet from the signed one-decimal discount percent,
+        rounded to the cent half-up (docs/design.md §16 item 4) — not a claim the credential
+        carries."""
+        if self.plan_cost is None or self.discount_percent is None:
+            return ""
+        cost = Decimal(str(self.plan_cost.get("value", 0)))
+        discount = Decimal(str(self.discount_percent))
+        price = (cost * (100 - discount) / 100).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        return money({"value": price})
+
+    @property
+    def figure(self) -> str:
+        """The stack ledge's headline figure (docs/design.md §11.1)."""
+        if self.program == "health":
+            if self.discount_percent == 0:
+                return "Full price"
+            return f"{_drop_trailing_zero(self.discount_percent)}% off"
+        if self.program == "dividend":
+            return f"{money(self.monthly_payment)} a month"
+        return "Eligible"
+
+    @property
+    def figure_sub(self) -> str | None:
+        """The front card's second line, Health only (docs/design.md §11.1)."""
+        if self.program != "health":
+            return None
+        if self.discount_percent == 0:
+            return f"0% off: {money(self.plan_cost)} a month"
+        return f"{self.monthly_price} a month"
 
     @property
     def _render_hue(self) -> str | None:
