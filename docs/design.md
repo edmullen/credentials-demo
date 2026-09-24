@@ -1,629 +1,1013 @@
-# Design: Loop 5 — Payroll issues credentials
+# Design: Loop 6 — Benefits programs and eligibility
 
-This is the technical design for [Intent 005](intents/005-payroll-issues-credentials.md). It
-covers one issue, [#19](https://github.com/edmullen/credentials-demo/issues/19), and follows
-[decisions.md](decisions.md), the [credential model](credential-model.md) and the Claude Design
-handoff in [design/loop-5/](design/loop-5/README.md). Issue #9, which described the Wallet's
-on-load check, was closed as superseded by #19 and is covered here as part of it.
+This is the technical design for [Intent 006](intents/006-benefits-programs-and-eligibility.md).
+It covers the nine issues in the Loop 6 milestone:
+[#20](https://github.com/edmullen/credentials-demo/issues/20) and
+[#104](https://github.com/edmullen/credentials-demo/issues/104)–[#111](https://github.com/edmullen/credentials-demo/issues/111).
+It follows [decisions.md](decisions.md), the [credential model](credential-model.md),
+[benefit-programs.md](benefit-programs.md), the oracle in
+[sample-data.md](sample-data.md#expected-outcomes), and the Claude Design handoff in
+[design/loop-6/](design/loop-6/README.md).
 
-Loop 4a's design is archived at [design/loop-4a/design.md](design/loop-4a/design.md).
+Loop 5's design is archived at [design/loop-5/design.md](design/loop-5/design.md).
 
 ## 1. Overview
 
-Loop 4 connected the Wallet to Meridian Payroll. This loop makes the connection useful:
+Benefit Agency goes from Loop 0's placeholder to a verifier and an issuer, and the Wallet gets a
+reason to hold everything it has collected:
 
-- **Payroll becomes an issuer.** It gets its own signing key, and signs one income credential
-  (`PaystubCredential`) per paystub, whenever it's asked.
-- **The Wallet receives them.** It asks right after connecting, and again whenever the
-  Credentials page opens. It verifies each credential, keeps it, and shows it in Loop 2's stack,
-  in Payroll's color.
-- **Both apps show their side.** The Wallet gets an income detail page and an "all income
-  credentials" page. Payroll's paystub page shows the credential for that paystub next to the
-  paystub itself.
+- **Benefit Agency publishes five programs** (#20): a landing page and one page per program.
+- **It decides** (#104, #105). It asks for the identity credential and every income credential,
+  verifies them, decides all five programs in one pass, and keeps a determination record.
+- **It issues** (#106) one `BenefitCredential` per eligible program, through the same call 3
+  that Payroll answers.
+- **The Wallet applies** (#107) from **Find government services**, and shows a results screen
+  that leads with what the person got.
+- **The Wallet shows benefit credentials** (#109), each in its program's color.
+- **There's a second way in** (#108): **Apply with Digital Wallet** on a program page.
+- **An admin view** (#111) lays out every application and how it was decided.
+- **The render hint is renamed** (#110), from `CredDemoIssuerColor` to `CredDemoCardColor`.
 
 What changes, by app:
 
-| Where | Changes |
-| --- | --- |
-| `tools/generate_credentials.py` | Adds Payroll's key pair and trust entry; re-keys everything (§3) |
-| `apps/payroll` | Signing key and self-check, JWKS, credential builder, issuance endpoint, `connectionId`, paystub panel, Activity entry (§3–§6) |
-| `apps/wallet` | Trusts Payroll for income, stores received credentials, fetch on connect and on open, income cards and pages, Activity entries (§7–§10) |
-| `apps/benefits` | Nothing. It has no trust list yet; Loop 6's generator run adds Payroll to it (§13 item 9) |
-| `render.yaml`, `.gitignore`, `.claude/launch.json` | Payroll's secret and its local `.env` (§3) |
+| Where | Changes | Issues |
+|---|---|---|
+| `tools/generate_credentials.py` | Adds Benefits' key, `issuer.json` and `.env`; Benefits' trust list; the Wallet trusts Benefits; everything re-keyed (§3) | #105 |
+| `apps/benefits` | Everything: key and self-check, JWKS, engine, request/presentation/credentials API, state, program pages, `/apply`, admin (§3–§8) | #20, #104–#106, #108, #111 |
+| `apps/wallet` | A service in its registry, the apply flow, multi-credential consent, results, benefit cards and detail, arrival from Benefits, a remembered person, the renamed hint (§9–§12) | #107–#110 |
+| `apps/payroll` | The renamed hint only, plus its re-keyed key (§5) | #110 |
+| `render.yaml`, `.claude/launch.json`, `CLAUDE.md` | `BENEFITS_SIGNING_KEY`; local URLs and `--env-file` for Benefits (§3) | #105 |
+| Docs | decisions.md, credential-model.md §1, §3, §4 (§16) | several |
 
 ## 2. The protocol
 
-This is the stand-in for OpenID4VCI that credential-model §4 names: "give me the credentials I
-haven't received." It adds one field to Loop 4's call 2, and one new call.
+The same REST stand-ins as Loops 4 and 5 (credential-model §4): a DCQL-shaped request, an
+enveloped-VC presentation, and "give me the credentials I haven't received". Benefit Agency adds
+two things Payroll doesn't have: a request that can be fetched **by reference**, and a reply that
+carries **five outcomes**.
 
-### Call 2 now returns a connection id
+### Call 1: ask for the request
 
-When Payroll answers a presentation with `connected`, the response gains an opaque id:
-
-```json
-{ "outcome": "connected", "connectionId": "3f9c…" }
+```
+POST {benefits}/api/applications/requests
+{}
 ```
 
-- `connectionId` is a fresh `uuid4().hex`. Payroll keeps it on the person's `Connection` record,
-  and in an index from id to person.
-- The Wallet keeps it on its `Link` (§7). It's the only thing that identifies the person to
-  Payroll from then on. The Wallet never sends a person id or subject id to fetch credentials.
-- Connecting again (Loop 4's overwrite rule) issues a new id, and the old one stops working.
+**201:**
+
+```json
+{
+  "requestId": "9b2e…",
+  "dcql_query": {
+    "credentials": [
+      { "id": "identity", "format": "vc+jwt",
+        "meta": { "type_values": [["IdentityCredential"]] } },
+      { "id": "income", "format": "vc+jwt", "multiple": true,
+        "meta": { "type_values": [["PaystubCredential"]] } }
+    ]
+  },
+  "response_uri": "/api/applications/requests/9b2e…/presentation"
+}
+```
+
+- **Credential types only**, no claims list, as Payroll's request (credential-model §3,
+  decision 1).
+- **`multiple: true`** is DCQL's own flag for "every matching credential, not one". This settles
+  the intent's open question with the real OpenID4VP term, so a later move to OpenID4VP stays a
+  translation.
+- **`response_uri` is a path**, which the Wallet resolves onto the origin it already holds, as
+  for Payroll (CLAUDE.md, "Things that look like mistakes").
+- A pending request lives 15 minutes and answers **one** presentation, as Payroll's does.
+
+### Request by reference (the redirect entry)
+
+```
+GET {benefits}/api/applications/requests/{requestId}
+```
+
+- **200:** the same body as call 1. **404** `{"error": "unknown_request"}`: expired, already
+  answered, or never made.
+- It's OpenID4VP's `request_uri` pattern. The browser carries only a request id to the Wallet,
+  never the request itself or anything personal (§12).
+- It can be fetched any number of times until a presentation answers the request. So "Not you?
+  Switch person" (§12) can reuse it.
+
+### Call 2: the presentation
+
+```
+POST {benefits}/api/applications/requests/{requestId}/presentation
+<a VerifiablePresentation: the identity credential, then every income credential, each an
+ EnvelopedVerifiableCredential — credential-model §4>
+```
+
+**200, decided:**
+
+```json
+{
+  "outcome": "decided",
+  "connectionId": "c41f…",
+  "applicationId": "a7d0…",
+  "decidedAt": "2026-10-01T14:03:00Z",
+  "programs": [
+    { "program": "food",     "outcome": "eligible", "credentialId": "urn:uuid:…" },
+    { "program": "energy",   "outcome": "denied", "reason": "income_over_limit" },
+    { "program": "housing",  "outcome": "denied", "reason": "income_over_limit" },
+    { "program": "health",   "outcome": "eligible", "credentialId": "urn:uuid:…",
+      "discountPercent": 85.4, "planCost": { "type": "MonetaryAmount", "value": 750.0, "currency": "USD" } },
+    { "program": "dividend", "outcome": "eligible", "credentialId": "urn:uuid:…",
+      "monthlyPayment": { "type": "MonetaryAmount", "value": 100.0, "currency": "USD" } }
+  ]
+}
+```
+
+- **Always five entries**, in program order: food, energy, housing, health, dividend.
+- **`reason`** is `income_over_limit` or `not_nj_resident` (credential-model §5). An
+  out-of-state person gets five `not_nj_resident` denials.
+- **An eligible entry repeats its credential's figures and id.** The results screen can then say
+  what the person got before the credentials themselves arrive, and knows which ones are still
+  on the way (§10.7). The figures are protocol data, as the intent says. The credential is what
+  the person holds.
+- **`connectionId`** is issued on every decided application, including all-denied ones: Benefit
+  Agency is a connection either way (§6).
+
+**200, refused:** `{"outcome": "refused", "reason": "credential_invalid" | "subjects_differ"}`.
+No connection is made and nothing is decided.
+
+**400** `{"error": "invalid_presentation"}`: the wrong shape. That means not a VP, or not exactly
+one `IdentityCredential` plus at least one `PaystubCredential`. **404** `{"error":
+"unknown_request"}`.
 
 ### Call 3: fetch credentials
 
-```
-POST {provider url}/api/credentials
-{ "connectionId": "3f9c…", "have": ["urn:uuid:…", "urn:uuid:…"] }
-```
+Exactly Payroll's (Loop 5 design §2):
+`POST {benefits}/api/credentials {"connectionId", "have"}`. **200**
+`{"credentials": [<jwt>, …]}` returns that connection's benefit credentials not in `have`, in
+program order. **404** `unknown_connection`, **400** `invalid_request`, **503** without a valid
+key. So the Wallet's `fetch()` works for Benefit Agency with no protocol change.
 
-- **200** `{ "credentials": ["<jwt>", …] }`: one signed credential for each of the person's
-  paystubs whose credential id isn't in `have`, in the order of §4. An empty list means nothing
-  new.
-- **404** `{ "error": "unknown_connection" }`: Payroll doesn't know that `connectionId`. In
-  practice this means Payroll restarted and forgot the connection (§9).
-- **400** `{ "error": "invalid_request" }`: the body isn't that shape.
+### Timing
 
-The Wallet sends the ids it holds (`have`) instead of fetching everything and filtering. This is
-what Phase 3 describes, and it keeps the response small. It settles the intent's second open
-question.
+The Wallet's `outbound.post_json` (one attempt, 60 seconds, no retry, honest user agent) serves
+every call, with a `get_json` beside it for the request by reference. A cold Benefit Agency
+refuses in about 2 seconds (Loop 4's Render finding). That lands as "Couldn't reach Benefit
+Agency" (§10.6), and **Try again** works once it's awake. **Benefit Agency makes no outbound
+calls at all.** The redirect is the browser's job.
 
-Payroll keeps no record of what it has sent. A restart on either side costs nothing: the Wallet's
-`have` list says what it still holds, and the ids are stable (§4).
-
-### Timing and failure
-
-Call 3 uses the Wallet's existing `outbound.post_json`: one attempt, a 60-second timeout, no
-automatic retry, and the honest `cred-demo-wallet` user agent. Loop 4's Render test found that a
-cold Payroll refuses a server-to-server call in about 2 seconds. That lands as **Couldn't reach
-Meridian Payroll**, and **Check again** works once Payroll is awake. Nothing is engineered around
-it.
-
-## 3. Payroll's key
+## 3. Keys, trust and configuration
 
 ### Generator
 
-`tools/generate_credentials.py` gains Payroll as an issuer. It's still one run, by hand, with
-committed output (decisions.md):
+`tools/generate_credentials.py` gains Benefit Agency, following the pattern Payroll set in Loop 5:
 
-- **A new ES256 key pair**, `kid` `payroll-1`. The private JWK goes to `keys/payroll-1.jwk.json`
-  (gitignored, like the states' keys), and to `apps/payroll/.env` as `PAYROLL_SIGNING_KEY=<jwk>`,
-  on one line. The script prints the same line for pasting into Render.
-- **`apps/payroll/app/data/issuer.json`** (committed): Payroll's issuer id, name, `kid` and public
-  JWK. Payroll reads it for the self-check, for JWKS, and for the `issuer` it signs.
-- **The Wallet's `trust.json`** gains Payroll's entry, trusted for `PaystubCredential` only.
-- **Payroll's own `trust.json`** doesn't change shape: the four states, for `IdentityCredential`.
-  Payroll never verifies its own credentials.
-- **Everything is re-keyed,** as the credential model's "keys are disposable" rule says. The four
-  states get new keys, so every committed identity credential is re-signed. The credential ids
-  are name-based, so they survive, and the Wallet's detail-page URLs don't change.
+- **A new ES256 key pair**, `kid` `benefits-1`. It goes to `keys/benefits-1.jwk.json`
+  (gitignored), and to `apps/benefits/.env` as `BENEFITS_SIGNING_KEY=<jwk>` on one line.
+- **`apps/benefits/app/data/issuer.json`** (committed): id `https://cred-demo-benefits.onrender.com`,
+  name **Benefit Agency**, `kid`, public JWK. The id is Benefits' origin (credential-model §2),
+  not the handoff's placeholder `did:example:benefit-agency` (§16 item 1).
+- **`apps/benefits/app/data/trust.json`** (new): the four states for `IdentityCredential`, and
+  Meridian Payroll for `PaystubCredential`.
+- **The Wallet's `trust.json`** gains Benefit Agency, for `BenefitCredential` only.
+- **Everything is re-keyed.** Each run replaces every key, so Payroll's key changes too, and every
+  identity credential is re-signed (with the same ids).
+- **It no longer prints private keys.** Loop 5's run printed `PAYROLL_SIGNING_KEY=…` to the
+  terminal for pasting. After PR 1's leak (loop-log.md, Loop 5), the script instead prints where
+  each `.env` was written. Ed copies the values from those gitignored files, and Claude hands
+  them over in chat if asked, never on GitHub.
 
-**The issuer id is Payroll's deployed origin,** `https://cred-demo-payroll.onrender.com`, per
-credential-model §2 ("Issuer identifiers"). The handoff's `did:example:meridian-payroll` is a
-placeholder (#93). The id is a constant in `issuer.json`, not derived from the request, so a
-local Payroll signs with the same issuer id and the same trust entry applies.
+### Benefits' signing: `app/signing.py`
+
+A copy of Payroll's (Loop 5 design §3) with `BENEFITS_SIGNING_KEY`. It does the startup
+self-check against `issuer.json`. `/health` returns 200, or 503 with "BENEFITS_SIGNING_KEY is not
+set" / "…does not match the committed public key". `/.well-known/jwks.json` serves the public
+key. Without a valid key, pages still render, and call 2 and call 3 return 503.
 
 ### Configuration
 
-- **`render.yaml`:** Payroll's service gains `PAYROLL_SIGNING_KEY` with `sync: false`. Ed pastes
-  the value in Render's dashboard. It's the demo's first secret in Render.
-- **`.gitignore`** gains `.env`. A committed `apps/payroll/.env.example` names the variable.
-- **Locally,** uvicorn loads it with `--env-file .env` (python-dotenv already comes with
-  `uvicorn[standard]`). `.claude/launch.json`'s `payroll` entry and CLAUDE.md's local-run command
-  gain the flag.
-- **Tests** never use a real key. A fixture generates a throwaway key pair and patches
-  `issuer.json`'s public key to match (credential-model §2, "Key custody").
+| Where | What |
+|---|---|
+| `render.yaml` | `cred-demo-benefits` gains `BENEFITS_SIGNING_KEY` (`sync: false`). **Ed sets it, and Payroll's new key, before PR 2 merges.** |
+| `apps/benefits/.env.example` | Names `BENEFITS_SIGNING_KEY`. `.env` is already gitignored. |
+| Benefits `WALLET_URL` | Where **Apply with Digital Wallet** sends the browser (§7.3). Default `https://cred-demo-wallet.onrender.com`, read in one place, like the Wallet's `MERIDIAN_PAYROLL_URL`. |
+| Wallet `BENEFIT_AGENCY_URL` | Overrides Benefit Agency's URL in the Wallet's registry (§9.1) for local runs. |
+| `.claude/launch.json` | `wallet` gains `BENEFIT_AGENCY_URL=http://localhost:8003`. `benefits` gains `WALLET_URL=http://localhost:8001` and `--env-file .env`. |
+| `CLAUDE.md` | Benefits' local-run command gains `--env-file .env`, with the same "run the generator first" note as Payroll. |
 
-### Self-check and JWKS: `app/signing.py`
+Tests never use a real key. A fixture makes a throwaway pair and patches `issuer.json`, as in
+Payroll.
 
-- On startup, Payroll reads `PAYROLL_SIGNING_KEY`, derives its public key, and compares it with
-  `issuer.json`.
-- **`/health`** returns 200 `{"status": "ok"}` when they match. Otherwise it returns **503** with
-  `{"status": "unhealthy", "reason": "…"}`, the reason being either "PAYROLL_SIGNING_KEY is not
-  set" or "PAYROLL_SIGNING_KEY does not match the committed public key". Render's health check
-  then refuses the deploy and keeps the previous version running, which is the safe outcome.
-- **`GET /.well-known/jwks.json`** returns `{"keys": [<public JWK from issuer.json>]}`.
-- Without a valid key, Payroll still serves its pages. The issuance endpoint returns 503, and the
-  paystub panel leaves out the signed JWT (§6).
+**New Benefits dependencies:** `pyjwt[crypto]>=2.9`, `cryptography<49` (Intel-Mac wheel cap) and
+`tzdata`, all of which Payroll already uses. Benefits has no forms, so no `python-multipart`.
 
-## 4. The income credential
+## 4. The eligibility engine (#104)
 
-`app/issuance.py` builds one credential per paystub, from `paystubs.json`, exactly as
-credential-model §3 describes:
+`app/eligibility.py`: plain functions, no I/O. This is the tested core that §6 and §8 build on.
+
+- **Input:** `region`, `county`, and the list of gross pay amounts (`Decimal`). **Output:** a
+  `Determination` with `monthly`, `annual`, and one `ProgramResult` per program. Each result
+  holds `outcome`, `reason`, and the figures used: the limit or bounds compared against, and the
+  discount or payment.
+- **Rules and variables** are those of benefit-programs.md, held as data in
+  `app/data/rules.json`: FPL 15,960; SMI 50,000; the 21 county AMIs; Health 750, 138%, 500%;
+  Dividend 100, 300, 1,200; and "as of September 2026". The program pages (§7) render their
+  limits from the same file, so page and decision can't disagree.
+- **Arithmetic is `Decimal`,** mirroring `tools/generate_sample_data.py` exactly, because that's
+  what produced the oracle:
+  - `monthly` = sum of gross pay; `annual` = `monthly` × 12.
+  - **Not NJ** (`region != "NJ"`): every program is `denied`, `not_nj_resident`, and nothing is
+    evaluated for income.
+  - **Food** eligible if `annual` ≤ 1.85 × FPL. **Energy** if `annual` ≤ 0.60 × SMI. **Housing**
+    if `annual` ≤ 0.30 × county AMI. Otherwise `denied`, `income_over_limit`. All three are
+    "at or below".
+  - **Health** is always eligible. Its discount is 1 at or below 138% FPL, 0 at or above 500%, and
+    linear between. **`discountPercent`** = `discount × 100` quantized to 0.01 half-up, then to 0.1
+    **half-even**. That's exactly what the generator does when it prints the oracle
+    (`cents(…)` then `:.1f`), so the engine can't land a tenth off (Intent 006).
+  - **Dividend** is always eligible: `100 + max(0, 300 − 0.25 × monthly)`, quantized to cents
+    half-up once, at the end.
+- **The oracle is copied into the tests** (`tests/oracle.json`, since tests can't read `docs/`).
+  All 18 decided rows and the 3 out-of-state rows must match: monthly, annual, Health percent,
+  Food, Energy, Housing and Dividend.
+
+## 5. The benefit credential (#106) and the renamed hint (#110)
+
+`app/issuance.py` builds one credential per eligible program, when the determination is made
+(§6):
 
 ```json
 {
   "@context": ["https://www.w3.org/ns/credentials/v2"],
-  "id": "urn:uuid:<uuid5 of the paystub id>",
-  "type": ["VerifiableCredential", "PaystubCredential"],
-  "issuer": { "id": "https://cred-demo-payroll.onrender.com", "name": "Meridian Payroll" },
-  "validFrom": "2026-09-15T00:00:00Z",
+  "id": "urn:uuid:<uuid4>",
+  "type": ["VerifiableCredential", "BenefitCredential"],
+  "issuer": { "id": "https://cred-demo-benefits.onrender.com", "name": "Benefit Agency" },
+  "validFrom": "2026-10-01T14:03:00Z",
+  "validUntil": "2027-10-01T14:03:00Z",
   "credentialSubject": {
-    "id": "<the person's subjectId>",
-    "employer": { "type": "Organization", "name": "Pinecrest Home Care" },
-    "payPeriodStart": "2026-09-01",
-    "payPeriodEnd": "2026-09-15",
-    "payDate": "2026-09-15",
-    "payFrequency": "semimonthly",
-    "grossPay": { "type": "MonetaryAmount", "value": 1100.00, "currency": "USD" },
-    "netPay":   { "type": "MonetaryAmount", "value": 955.87, "currency": "USD" }
+    "id": "<the subject id from the presented identity credential>",
+    "program": "health",
+    "discountPercent": 92.4,
+    "planCost": { "type": "MonetaryAmount", "value": 750.0, "currency": "USD" }
   },
-  "renderMethod": [{ "type": "CredDemoIssuerColor", "color": "oklch(0.46 0.11 255)" }]
+  "renderMethod": [{ "type": "CredDemoCardColor", "color": "oklch(0.46 0.11 223)" }]
 }
 ```
 
-- **`id`:** `uuid5(PAYSTUB_CREDENTIAL_NAMESPACE, <paystub id>)`, with a namespace constant of
-  Payroll's own. It's different from the paystub's id, as Ed wanted (the two are separate
-  records), but always the same for the same paystub. Nothing is stored, and a restart can't
-  cause duplicates.
-- **`validFrom`** is the pay date at midnight UTC. There's no `validUntil`: a paystub never
-  expires (credential-model §5).
-- **Money** is a JSON number, as in the credential model's example, converted from the paystub's
-  decimal string.
-- **No employee name**, per the credential model: the subject id says whose it is.
-- **JWT header:** `alg: ES256`, `kid: payroll-1`, `typ: vc+jwt`.
-- **Signing happens whenever a credential is asked for,** by call 3 or by the paystub page. ES256
-  signatures differ each time, so the JWT bytes differ, but the id and every claim are the same.
-  The Wallet matches by id, so that doesn't matter.
-- **Order:** newest pay date first, and within a pay date, the order of `paystubs.json`. For p08
-  that's Shoreway, Brightpath, Ridgeline. The Wallet keeps this order (§8).
+- **Claims** follow credential-model §3. Food, Energy and Housing carry `program` alone. Dividend
+  adds `monthlyPayment`, and Health adds `discountPercent` (one decimal, a JSON number) and
+  `planCost`. There's no `decision` claim, no name and no address.
+- **`id`** is a random `urn:uuid:`, created once with the determination and stored with it. So
+  call 3 returns the same id every time, and `have` works.
+- **`validFrom`** is the determination time, **floored to the whole minute**.
+  **`validUntil`** is 12 months later (29 February becomes 28 February). Flooring gives up to a
+  minute of margin against the Wallet's clock being a little behind Benefits'. Otherwise a
+  credential seconds old could show as "Not yet valid", which is Loop 5's hue-bug lesson about
+  moving clocks (§16 item 3).
+- **Signing:** the credential is signed once, when the determination is made, and the JWT is
+  stored. Payroll re-signs on every request because it stores nothing. Benefits keeps the record
+  anyway, and a stable JWT is what the admin view shows as issued. Header: `ES256`, `benefits-1`,
+  `vc+jwt`.
+- **Program hues:** food 169, energy 24, housing 342, health 223, dividend 121, signed on the
+  Wallet's recipe `oklch(0.46 0.11 H)`. They're held in Benefits' `app/data/programs.json` with
+  each program's code, name, landing phrase and order.
 
-### `renderMethod`: the issuer color
+### The rename (#110)
 
-This settles the intent's first open question. The handoff's Wallet takes only a hue from the
-hint (handoff §1.1), so the hint is one color:
+`CredDemoIssuerColor` becomes **`CredDemoCardColor`**, since one issuer now signs five colors.
 
-- **Shape:** `renderMethod` is VC 2.0's reserved property for display hints. Its entries are typed
-  objects. The W3C Render Method draft defines template types (SVG, HTML), not a single color, so
-  the demo uses its own type, `CredDemoIssuerColor`, with one `color` in CSS `oklch()` syntax.
-  This is a subset of the standard, not contrary to it: the property is standard, and new types
-  are how it's meant to be extended. Like our other custom terms, it has no JSON-LD context of
-  its own (credential-model §4, decision 1).
-- **Payroll's value** is `oklch(0.46 0.11 255)`, its own `--accent` recipe at hue 255.
-- **The Wallet** reads the first `CredDemoIssuerColor` entry and takes the hue, the third number
-  in `oklch(L C H)`. It ignores L and C, which its own `cred.css` fixes, so an issuer can't make a
-  card illegible. No entry, an unreadable color, or a tampered credential all mean no hue, and the
-  card falls back to Loop 2's sand.
-- **It's signed,** so the color can't be changed without breaking the signature.
+- **Payroll** signs the new type with its unchanged color, `oklch(0.46 0.11 255)`.
+- **The Wallet** reads only `CredDemoCardColor`. There's no fallback to the old name: Payroll
+  signs on demand, and the Wallet's state resets on every redeploy, so no credential with the old
+  name survives.
+- **The CSS keeps its names** (`cred--issuer`, `--issuer-hue`), as the handoff does (README
+  Part B §1). The rename is a data change, not a stylesheet change.
+- decisions.md's render-hint entry and credential-model §4's "Display rendering" row are
+  updated. Archived design records keep the old name.
 
-credential-model §4's "Display rendering" row changes from "Deferred (#19)" to this, with a
-decision entry (§12, PR 1).
+## 6. Benefits' state and verification (#105)
 
-## 5. Payroll's API and state
+### State: `app/applications.py`
 
-- **`POST /api/credentials`** (call 3, §2). It looks up the person by `connectionId`, builds the
-  credentials for their paystubs not in `have`, and signs them. If there's at least one, Activity
-  logs it (below).
-- **`app/connections.py`:** `Connection` gains `connection_id`. There's a new index,
-  `_by_connection_id: dict[str, str]` (id to person id). `connect()` creates the id, drops the
-  person's old id from the index, and returns the new one. The call-2 route returns it.
-- **Activity:** "2 income credentials sent to your wallet", with the `neutral` dot (handoff §7).
-  It says "1 income credential" for one. A fetch that returns nothing new isn't logged.
+In memory, per process, volatile (decisions.md). Everything is lost when Benefits restarts,
+which the intent accepts.
 
-## 6. Payroll's paystub page
+- **`_pending: dict[request_id, PendingRequest]`** holds `created_at`, with a 15-minute TTL and
+  pruning, as Payroll's.
+- **`_applications: list[Application]`**, newest last. Each `Application` holds:
+  - `id` (`uuid4().hex`) and `received_at`
+  - `subject_id` and `name`: "Given Family" from the identity credential, read even if it failed
+    verification, so the admin view can list it
+  - `presented`: a list of `(token, kind, outcome)`, **the JWTs verbatim**, each with its own
+    verification result
+  - `same_subject`: a bool, or None if not reached
+  - `outcome`: `decided` or `refused`
+  - `reason`: for a refusal
+  - `facts`: region, county, and each paystub's employer, pay date and gross pay
+  - `determination`: §4's, for a decided application
+  - `issued`: program code → `(credential id, JWT)`
+- **`_connections: dict[subject_id, Connection]`** and `_by_connection_id: dict[str, subject_id]`,
+  as Payroll's. A `Connection` points at its application. **Applying again replaces the
+  connection:** a new id, and the old one returns 404. Only all-denied people can re-apply in
+  practice (§10.1).
 
-The paystub page gains the credential panel from `payroll/paystub.html`, in the handoff's
-`.records` grid. It sits beside the paystub from 60rem and below it when narrower:
+### Verifying a presentation: `app/presentation.py`
 
-- **"Paystub"** and **"Credential for this paystub"**, each an `<h2>` heading a `<section>`, with
-  the handoff's `.record__sub` lines.
-- **The panel shows the credential as signed.** The page builds the payload with §4's code, signs
-  it, and renders the claims from that payload. So what's shown is exactly what a wallet would
-  receive. Values are formatted with the paystub page's own `money()` and date helpers, so the
-  two records visibly agree.
-- **Claim names** in mono under each value (`.claim__key`), the id in the deep band, and **View
-  signed credential** (`.disclosure` with `.jwt`) holding the JWT.
-- **Every paystub shows it,** connected or not, with no delivery status (intent).
-- Payroll's `cred.css` becomes the handoff's `payroll/cred.css`, byte for byte.
+A copy of Payroll's shape (`_tokens_from`, the envelope prefix), with Benefits' own `verify.py`,
+a copy of the four checks. Then:
 
-## 7. The Wallet's state
+1. **Shape:** exactly one `IdentityCredential` and at least one `PaystubCredential`, judged by
+   each token's unverified `type`. Anything else is `invalid_presentation` (400), with nothing
+   recorded.
+2. **Checks 1–4** on every credential against Benefits' trust list. Any failure means
+   **refused, `credential_invalid`**. The record keeps every credential's own result, so the
+   admin view shows which one failed.
+3. **Check 5, one subject:** every `credentialSubject.id` equal. Otherwise **refused,
+   `subjects_differ`**.
+4. **Decide:** §4's engine, from the identity credential's `address.addressRegion` and
+   `address.county`, and every paystub's `grossPay.value`.
+5. **Issue:** §5, for each eligible program. Record the application, make the connection, and
+   reply (§2).
+
+A refused application is recorded too, so the admin view can show it, but it gets no connection.
+
+## 7. Benefit Agency's pages (#20)
+
+Benefits' `cred.css` becomes the handoff's `benefits/cred.css`, byte for byte, pinned by length
+and SHA-256 as the other apps' are. `base.html` takes the handoff's header, footer and fonts URL
+(Libre Franklin 600; Public Sans 400/600/700):
+
+- The five programs' links replace the placeholder nav, with `aria-current="page"` on the current
+  program.
+- `.header__admin` sits top right, and becomes the menu's last item (`.nav-menu__admin`) at 40rem
+  and below. It carries `aria-current` on admin pages.
+- The placeholder signed-in user ("Jordan Diaz") is removed.
+
+### 7.1 Routes
+
+| Route | Page | Handoff |
+|---|---|---|
+| `GET /` | Landing: five `.program-card`s in program order, each `data-program` | `landing.html` |
+| `GET /programs/{code}` | A program page; 404 for an unknown code | `food.html`, `energy.html`, `housing.html`, `health.html`, `dividend.html` |
+| `GET /apply` | Starts the redirect (§7.3) | — |
+| `GET /admin`, `GET /admin/applications/{id}` | The admin view (§8) | `admin*.html`, `determination-*.html` |
+
+### 7.2 Program pages
+
+One template, `program.html`, with a partial per shape. The copy is the handoff's, verbatim.
+Every figure is rendered from `rules.json` (§4), never typed into the template:
+
+- **Food, Energy:** one annual limit, $29,526 and $30,000.
+- **Housing:** "30% of your county's AMI", with the 21 county limits in the closed
+  `.disclosure--boxed` table, in the handoff's order.
+- **Health, Dividend:** the three `.facts` and the `.callout`. There are no tables (Ed,
+  2026-09-24; #20 amended).
+- **Every page:** the "as of September 2026" note, and the two `.apply` options. **Apply with
+  Digital Wallet** is an `<a class="btn">` to `/apply`. **Apply here** is disabled, with its note
+  tied by `aria-describedby`.
+
+### 7.3 `GET /apply`
+
+It creates a pending request, exactly as call 1 does, and answers **303** to
+`{WALLET_URL}/requests/benefits/{requestId}`.
+
+- It's a GET because the handoff's button is a link. A GET that creates a request is harmless:
+  it holds nothing personal, expires in 15 minutes, and is pruned.
+- Until PR 10 (§15), `/apply` redirects to the Wallet's landing page, so the button is never a
+  dead link on the deployed site.
+
+## 8. The admin view (#111)
+
+No sign-in, like the rest of the demo. `<title>` and the heading say it's a demo admin view.
+
+### 8.1 Applications list: `GET /admin`
+
+The handoff's `.apps` table. People are grouped by `subject_id` and ordered by their newest
+application, newest first. Within a person, applications are newest first too, and the name
+shows on the first row only (`.apps__start`).
+
+| Column | Content |
+|---|---|
+| Applicant | The name (first row of a group) |
+| Received | `when()`: "1 Oct 2026, 2:03 PM", America/New_York, as Payroll's display |
+| Result | "5 of 5 approved" · "2 of 5 approved" · "Not a New Jersey resident" · "Refused: credential couldn't be verified" · "Refused: credentials aren't about one person" |
+| View | A 44px link with a visually hidden name and time |
+
+With no applications: `admin-empty.html`'s `.empty` state, which explains quietly that records
+are lost when Benefit Agency restarts.
+
+### 8.2 Determination page: `GET /admin/applications/{id}`
+
+The handoff's layout, rendered from the `Application` (§6). 404 for an unknown id.
+
+- **`.meta`:** received, application id, subject id.
+- **`.checks`:** a row per presented credential, with its type, issuer, verification result and a
+  `.disclosure` holding the decoded header, the claims and the raw JWT. **`image` is truncated to
+  "(photo, not shown)"** (handoff decision). Then the plain "Same person" row.
+- **`.submitted`:** state and county, then the paystubs' `.figures` table with the monthly and
+  × 12 totals.
+- **`.decisions`:** a `.decision[data-program]` per program, with:
+  - the **Figure** line, naming the limit
+  - the **Result**
+  - the decorative **`.scale`**, with `--zone-start`, `--zone-width` and `--dot` computed by the
+    view model as percentages of a fixed axis. It's `aria-hidden`, since the text says the same.
+  - **`.decision__foot`**, with the issued credential's id, or the reason code
+- **Variants:**
+  - **Not NJ:** the decisions say "Not evaluated: not a New Jersey resident" (`determination-p19.html`).
+  - **Refused:** `.checks` shows the failing credential. There are no decisions, and a note says
+    so (`determination-refused.html`).
+
+## 9. The Wallet: registry and state
+
+### 9.1 A service in the registry
+
+`providers.json` gains Benefit Agency, and every entry gains a `kind`:
+
+```json
+"benefits": { "kind": "service", "name": "Benefit Agency",
+              "url": "https://cred-demo-benefits.onrender.com", "employers": [] }
+```
+
+- Meridian becomes `"kind": "payroll"`. `all_providers()` still returns both, so `fetch()`,
+  `maybe_start_check()` and `check_status()` already loop over Benefit Agency once it's connected.
+- Employer lookup filters on `kind == "payroll"`, and the services directory on
+  `kind == "service"`.
+- `BENEFIT_AGENCY_URL` overrides the URL, beside `MERIDIAN_PAYROLL_URL`.
+
+**Program display data** lives in the Wallet's own `programs.json`:
+
+| Code | Name |
+|---|---|
+| `food` | Food Assistance |
+| `energy` | Energy Assistance |
+| `housing` | Housing Assistance |
+| `health` | Health |
+| `dividend` | Dividend |
+
+Each entry also holds the program's order. The Wallet's copy is kept separate from Benefits' by
+the monorepo rule, and a test in each app pins the names.
+
+### 9.2 State
 
 `app/state.py` gains:
 
-- **On `Link`:** `connection_id: str | None` and `arrived: int | None`. `arrived` is the count the
-  first fetch brought, shown once on Connections (§10).
-- **`_received: dict[str, dict[str, str]]`**: per person, credential id to JWT, in the order they
-  arrived. Only received credentials live here. The identity credentials are still read from the
-  committed `credentials.json`.
-- **`_seen: dict[str, set[str]]`**: per person, the credential ids that have been rendered. A
-  received id not in it is **New** (handoff §2.3).
-- **`_checks: dict[tuple[str, str], Check]`**: per person and provider, the latest check:
-  `state` (`checking` or `done`), `result` (`none`, `new`, `error` or `lost`), `count`,
-  `finished_at`, and `token`.
+- **On `Link`:**
+  - `determination: Determination | None`: the call 2 reply (application id, `decidedAt`, the five
+    program outcomes), kept for the results and already-applied pages
+  - `refusal: str | None`
+  - `presentation: dict | None`: the approved VP, kept only until call 2 answers, for **Try
+    again** (§10.6)
+- **`PendingRequest.phase`** gains `"applying"` (Benefits' verifying) and `"arrived"` (fetched by
+  reference, §12). `PendingRequest` gains `missing: str | None` (`"identity"` or `"income"`) and
+  `arrived: bool`.
 
-Removing an employer's last link (Loop 4's Remove) removes the link and its check. It keeps the
-received credentials: they're signed and still valid, and the person holds them (§13 item 6).
+There's no server state for "who is signed in": the remembered person is a cookie (§12.1).
 
-Everything is in memory, per process, and lost on restart, as before (decisions.md).
+A Benefit Agency `Link` has no employers. It exists from the first **Apply** until Remove, or
+until a `lost` fetch (§10.8).
 
-## 8. The Wallet's credentials
+## 10. The Wallet applies (#107)
 
-`app/credentials.py`'s `credentials_for()` returns the committed identity credentials followed by
-the received ones, each verified against `trust.json` on every render, as now. So a tampered
-income credential shows as received, with a Tampered badge.
+### 10.1 Find government services
 
-- **Trust:** Payroll's key verifies `PaystubCredential` only. A Payroll-signed
-  `IdentityCredential`, or a state-signed `PaystubCredential`, fails check 2 (trusted for type)
-  and shows as unrecognized.
-- **`CredentialView`** gains the income claims: employer name, period, pay date, frequency, gross
-  and net pay, and `issuer_hue` (§4, None when there's none or the credential isn't verified).
-- **Order:** received credentials keep Payroll's order (§4), newest first.
+On the Credentials page, between Identity and Income:
 
-### Income on the Credentials page
+- **The `.services-entry`** link to `/p/{id}/services`, when the person **holds no benefit
+  credential**. "Holds" counts every received `BenefitCredential`, whatever its verification
+  outcome (§13, table A). A tampered one is still held, and re-applying is not a way to replace
+  it.
+- **The Benefits category** (§11.1) otherwise, in the same place.
+- The entry gets **`id="benefits"`**, the same id as the category. The handoff's script redraws
+  `#income` only. The built script redraws **both** `#income` and `#benefits`, so benefit
+  credentials that arrive in a background check replace the entry in place (§16 item 6).
 
-The Income category renders from what's held (handoff pages `credentials-*.html`):
+### 10.2 Government services: `GET /p/{id}/services`
 
-- **None held:** the three Loop 4a notes, the "connected" one reworded to "You're connected to
-  Meridian Payroll. Your pay will appear here as credentials as soon as they arrive."
-  (handoff §2.4).
-- **One held:** a full `.cred.cred--income` card (handoff §3). No sample person holds exactly one.
-- **Two or more:** Loop 2's `.stack-cards`, with the handoff's retuned stylesheet:
-  - The five newest are drawn, with the newest at the front. Each card gets `--i`, 0 at the back.
-  - More than five adds the **"View all Income credentials (N)"** ledge at `--i: 0`, linking to
-    `/p/{id}/credentials/income`. N is the total.
-  - The stack gets `--n` equal to the highest `--i` (items drawn, minus one). This is what the
-    handoff pages do and what the height formula needs. The CSS comment's "number of cards" is
-    off by one; the pages are right.
-- **Issuer color:** a card with a hue gets `cred--issuer` and `style="--issuer-hue: <h>"`. The
-  ledge never does (handoff §1.2).
-- **New:** a card whose id isn't in `_seen` gets the `.cred__new` pill. After rendering, the page
-  adds every drawn id to `_seen`. The heading meta reads "2 credentials · 2 new" while any are
-  new.
+`services.html`: page head "‹ Credentials | Government services", with one `.people` row per
+service. The row links to `/p/{id}/services/benefits/apply`.
 
-### Income pages
+### 10.3 The apply attempt
 
-- **`/p/{id}/credentials/income`** (`income-p08.html`): page head "‹ Credentials | Income
-  credentials", then every held income credential as a full card, newest first. It declares
-  ahead of the detail route, so `income` isn't read as a credential id.
-- **`/p/{id}/credentials/{credential_id}`** keeps its route. An income credential renders the new
-  `income-credential.html` template (handoff §4): issuer bar, status band, claims, the summary
-  note, "Valid from 15 September 2026" and "Doesn't expire", and **View credential details**
-  (credential id, issuer, type, validFrom "(no validUntil)", display "Issuer colour, hue 255", and
-  the JWT). The tampered variant adds the identity page's note, as the handoff shows. Identity
-  credentials keep `credential.html`.
+It's Loop 4's attempt machinery (`attempt.py`): phases, a fresh token per attempt, the stale-answer
+guard, `outbound.spawn`, and the polling pages. The routes live under
+`/p/{id}/services/{service_id}/`, and `app/application.py` holds what's specific to Benefits.
+
+| Route | Does |
+|---|---|
+| `GET …/apply` | If the person holds a benefit credential, redirect to `…/already`. If an attempt is running, redirect to where it is. Otherwise start one (phase `asking`) and redirect to `…/asking`. A GET, because the handoff's row is a link; the guard makes a repeat GET harmless, like the Credentials page's check. |
+| `GET …/asking` | Loop 4a's `asking.html` with Benefit Agency's name, while call 1 runs. The handoff has no page for this; it reuses the existing component (§16 item 7). |
+| `GET …/request` | Consent (phase `consent`) or can't-apply (phase `missing`) |
+| `POST …/request` | `decision` = `approve`, `deny`, `close` or `retry` |
+| `GET …/applying` | "Checking your eligibility…" while call 2 and the fetch run |
+| `GET …/error` | Couldn't reach Benefit Agency |
+| `GET …/results` | The results screen |
+| `GET …/already` | Already applied |
+| `GET …/status?page=` | The poller's endpoint, as Loop 4's |
+
+**Call 1** (`asking`): `POST /api/applications/requests`. Then:
+
+- `response_uri` is resolved onto Benefits' origin, or the attempt ends as `no_response`.
+- A credential is **missing** when a DCQL entry has no held credential of its type: none for a
+  single entry, zero for a `multiple` one.
+- **Identity leads:** p24 has neither, and gets the identity page (handoff Part B §5).
+- Missing → phase `missing`, `missing` set, and Activity logs it (§10.9). Otherwise → `consent`.
+
+**Deny** ends the attempt and logs "Request from Benefit Agency denied. Nothing was shared." as
+Loop 4 does. **Close** on a can't-apply page ends it silently.
+
+### 10.4 Consent: `request.html` for a service
+
+The handoff's `consent-p01.html` / `consent-p08.html`:
+
+- Page head "‹ Government services | Request from Benefit Agency" ("‹ Credentials" when
+  arrived, §12). The heading: "Do you want to share N credentials with Benefit Agency?"
+- **Approve and share / Deny** come first. With more than three credentials, they're repeated
+  after the list, with the handoff's lines.
+- **Identity:** Loop 4a's panel, unchanged, marked "1 of N".
+- **Income:** one panel **per issuer**, marked "2–N of N". It has:
+  - the issuer bar, in that issuer's hue
+  - the status area ("6 paystubs · September 2026", **All verified** or the worst badge present)
+  - `.shares`, one `<details class="share">` per credential, newest first, holding every claim and
+    the credential id
+
+  "September 2026" is the month (or "Aug–Sep 2026" span) of the held pay dates. A tampered
+  paystub is still offered, whatever its badge, as Loop 4 decided. Benefit Agency then refuses.
+- **Approve** builds the VP (identity, then income in held order), keeps it on the link, logs
+  "Application sent to Benefit Agency: identity credential and N income credentials shared", sets
+  phase `applying` and spawns call 2.
+
+### 10.5 Can't apply
+
+`cant-apply-income.html` and `cant-apply-identity.html`, rendered by `GET …/request` in phase
+`missing`:
+
+- **Income:** "Connect your payroll provider first". **Find your employer** goes to
+  `/p/{id}/connections/employers`.
+- **Identity:** "You need an identity credential first". **Switch person** goes to the switcher.
+- The `.needs` rows come from what's held: **In your wallet** with its badge, or **None yet** /
+  **None**.
+
+### 10.6 Applying and its failures
+
+- **`applying.html`** (`checking.html`): Loop 4's `.pending` with its polling script and **Check
+  again**. The script is the same code as `verifying.html`'s.
+- **Call 2** posts the VP to the resolved `response_uri`. Then, by answer:
+  - **`decided`:** store `determination`, set `connected_at` and `connection_id`, clear
+    `presentation`, and log it (§10.9). Then **await `fetch()`** before ending the attempt, as
+    Payroll's connect does (Loop 5 design §9). The applying page is still polling, so the
+    credentials are usually in hand when the results page renders.
+  - **`refused`:** store `refusal`, clear `presentation`, and log it. No connection.
+  - **Anything else** (timeout, refusal to connect, 5xx, bad JSON, 404 `unknown_request`): end as
+    `no_response`, **keeping `presentation`**, and log "Couldn't reach Benefit Agency to send your
+    application" (`caution`).
+- **`error.html`** (`checking-error.html`): "Couldn't reach Benefit Agency", with **Try again**
+  (`decision=retry`) and **Back to credentials**. What **Try again** does:
+  - With a kept `presentation` and the request not yet answered, it re-posts the same approved
+    VP (phase `applying`). The person approved exactly this.
+  - If that answer is 404 `unknown_request` (Benefits restarted, or 15 minutes passed), or if
+    nothing was approved yet (call 1 failed), it starts over at call 1, and the person consents
+    again.
+
+  A call 1 failure lands on the same page, since nothing was shared either way.
+
+### 10.7 Results: `GET …/results`
+
+Rendered from `link.determination` (or `link.refusal`) and the benefit credentials held. With
+neither, it redirects to the Credentials page. The order is the handoff's (README Part B §7):
+
+1. **The verdict** (`.verdict`) is an `<h2>` plus one sentence, composed by the Wallet from the
+   outcomes:
+
+   | Case | Heading | Sentence |
+   |---|---|---|
+   | 5 of 5 | "You qualify for all 5 programs" | Pass/fail names, the Dividend payment, and Health's discount and price. For 100%: "free". |
+   | 1–4 of 5 | "You qualify for N programs" (1: "1 program") | Only what they got |
+   | Health 0% | as above | Health's sentence becomes "Health gives no discount at your income: you may buy the Public Option plan at its full price, $750.00 a month." |
+   | 0 of 5 (`not_nj_resident`) | "You don't qualify for any programs" | "Benefit Agency's programs are for New Jersey residents, and your identity credential gives your address in {state}." `{state}` is from the Wallet's own identity credential. |
+
+2. **Added to your wallet:** the eligible programs' cards in program order, full and flat
+   (`.stack-cards--flat`), without **New**. A card is drawn when its `credentialId` is held. If
+   any eligible id isn't held yet, the whole block is replaced by the handoff's **On the way to
+   your wallet** state (spinner meta **Collecting**), and the Credentials page's background check
+   brings them.
+3. **Programs you don't qualify for:** `.outcomes`, one line per denial, with a grey marker. The
+   heading is "Each program" when all five are denied. The line is "**{Name}:** your income is
+   above this program's limit." or "…: this program is for New Jersey residents."
+4. **Go to your credentials**, with "Benefit credentials are valid for 12 months, until {date}."
+   On a 0-of-5 page it says instead: "Find government services stays on your Credentials page, so
+   you can apply again."
+
+**Refused:** "Your application couldn't be decided" and the error band (**Refused** ✕).
+
+- **Which sentence:** the Wallet works out which kind failed from **its own** verification of what
+  it shared. That's "One of your income credentials…" or "Your identity credential…"
+  (credential-model §5), or "One of the credentials you shared couldn't be verified" when all of
+  its own checks pass (a clock edge at Benefits). No protocol field is added.
+- **`subjects_differ`** uses its credential-model sentence.
+
+The visually hidden `role="status"` paragraph gives the verdict ("You qualify for 2 programs. Not
+eligible for 3."). Focus stays at the top.
+
+### 10.8 Fetching from Benefit Agency
+
+`fetch()` is unchanged in protocol. Its wording is chosen by the provider's `kind`:
+
+| | Payroll (as now) | Benefit Agency |
+|---|---|---|
+| Received | "N income credentials received from Meridian Payroll" | "N benefit credentials received from Benefit Agency" |
+| Unverified | "N income credential(s) from … couldn't be verified" | "N benefit credential(s) from Benefit Agency couldn't be verified" |
+| Unreachable | "Couldn't reach … to check for new credentials" | same |
+| Announcement | "N new income credentials from …" | "N new benefit credentials from Benefit Agency." |
+
+**`lost`** (Benefits restarted and forgot the connection) removes the Benefit Agency link
+silently, keeping any credentials held. There's nothing to reconnect to: a person holding
+credentials can't re-apply, and a person holding none gets Find government services back. If
+Benefits restarted before the credentials were collected, they're lost with it. That's the
+volatile-state limitation, accepted.
+
+### 10.9 Connections and Activity
+
+**Connections** (`connections-p07.html`):
+
+- A Benefit Agency panel sits above Meridian Payroll (links newest first). It shows "Government
+  service", **Connected** since the decision, and "Benefit Agency sent you N benefit credentials."
+  (count of held benefit credentials; the line is left out at 0).
+- **Remove** is a `.link-btn`, with "Removing Benefit Agency keeps your benefit credentials." tied
+  by `aria-describedby`. It posts to the existing remove route, which logs "Benefit Agency
+  removed" (`neutral`). Payroll's "…removed, with {employers}" needs employers, and a service has
+  none.
+
+**Activity:** each program gets its own entry, so a denial can be found afterwards
+(`activity-p07.html`). Newest first:
+
+| Event | Message | Dot |
+|---|---|---|
+| Can't apply (identity) | "Application to Benefit Agency not made: you don't have an identity credential to share." | `caution` |
+| Can't apply (income) | "Application to Benefit Agency not made: you don't have income credentials to share." | `caution` |
+| Denied consent | "Request from Benefit Agency denied. Nothing was shared." | `neutral` |
+| Approved | "Application sent to Benefit Agency: identity credential and N income credentials shared" | `neutral` |
+| Decided | "New connection to Benefit Agency established" | `verified` |
+| Each eligible program | "{Name}: eligible" · "Dividend: eligible, $100.00 a month" · "Health: eligible, 85.4% off: $109.50 a month" | `verified` |
+| Health at 0% | "Health: full price, 0% off: $750.00 a month" | `neutral` |
+| Each denial | "{Name}: not eligible. Your income is above this program's limit." / "…This program is for New Jersey residents." | `neutral` |
+| Credentials arrive | §10.8 | `verified` |
+| Refused | "Your application couldn't be decided: N credential(s) couldn't be verified" / "…the credentials you shared aren't all about the same person" | `error` |
+| No answer | "Couldn't reach Benefit Agency to send your application" | `caution` |
+
+The two "Can't apply" messages aren't in the handoff. They follow Loop 4's missing-credential
+entry.
+
+## 11. Benefit credentials in the Wallet (#109)
+
+### 11.1 The Benefits category
+
+`credentials-benefits.html` / `credentials-p09.html`: a `.category` with `id="benefits"` and a
+stack, as Income, between Identity and Income:
+
+- **Order:** program order (food, energy, housing, health, dividend), with the last drawn at the
+  front. At most five exist, so there's no "View all" ledge.
+- **Each ledge:** `.stack-cards__program` (the name, from `programs.json`) and
+  `.stack-cards__figure`:
+
+  | Program | Figure | Front card also shows |
+  |---|---|---|
+  | Food, Energy, Housing | "Eligible" | — |
+  | Health, 0 < d | "{d}% off" | `.cred__figure-sub` "{price} a month" |
+  | Health, d = 100 | "100% off" | "$0.00 a month" |
+  | Health, d = 0 | "Full price" | "0% off: $750.00 a month" |
+  | Dividend | "{payment} a month" | — |
+
+  - **Percent formatting** drops a trailing ".0" ("80% off", "94.5% off").
+  - **Money** is Loop 5's `money()`.
+  - **The price** is `planCost × (100 − d) / 100`, quantized to cents half-up. The Wallet derives
+    it from the signed percent (§16 item 4).
+- **The front card** adds "Valid until {date}" and the badge.
+- **New:** Loop 5's pill after the program name, and "N credentials · N new" in the heading meta.
+- **Hue:** `cred--issuer` and `--issuer-hue` per card, by §13 table A.
+
+### 11.2 The detail page
+
+`benefit-credential.html`, for a `BenefitCredential` at `/p/{id}/credentials/{credential_id}`
+(`benefit-health.html`, `benefit-food.html`, `benefit-energy-tampered.html`). From top to bottom:
+
+- **Page head:** "‹ Credentials | Benefit credential".
+- **Program bar:** "Program: {Name}", in the hue as received (as income's
+  `detail_issuer_hue`).
+- **Status band.**
+- **Claims:** Program, Issued by.
+- **Benefit:**
+  - Health: Discount, Plan, and You pay, with "Worked out by your wallet from the discount".
+  - Pass/fail: Result "Eligible", with "{Name} carries no amount. Holding this credential shows you
+    qualify."
+  - Dividend: Payment.
+- **Validity:** "Valid from {date}" and "Valid until {date}".
+- **View credential details:** id, issuer, type, `validFrom`/`validUntil`, the program code and
+  signed figures, "Program colour, hue N", and the JWT.
+
+The tampered text is the handoff's: "Something in this credential was changed after Benefit
+Agency issued it, so it can't be trusted or used."
+
+`CredentialView` gains `program`, `program_name`, `discount_percent`, `plan_cost`,
+`monthly_price` (derived), `monthly_payment`, and `figure` / `figure_sub` for the ledge. The route
+picks the template by category, as income does now.
 
 The Wallet's `cred.css` becomes the handoff's `wallet/cred.css`, byte for byte.
 
-## 9. Fetching: `app/issuance.py`
+## 12. Arriving from Benefit Agency (#108)
 
-One function does the work for both moments: `fetch(person_id, provider_id)`.
+### 12.1 The remembered person
 
-1. It reads the link. It stops if there's no `connection_id`.
-2. It records a `Check` in state `checking` with a fresh token, and posts call 3 with the held
-   income ids for that provider's issuer as `have`.
-3. When the answer comes, it writes only if the check's token is still current, the same
-   stale-answer rule as Loop 4's attempts. A Remove or a newer check makes the answer harmless.
-4. Then, by answer:
-   - **200:** verify each credential, add it to `_received`, and finish as `new` (count > 0) or
-     `none`. Log "N income credentials received from Meridian Payroll" (`verified`) for those
-     that verified, and "N income credential(s) from Meridian Payroll couldn't be verified"
-     (`error`) for any that didn't (handoff §7). No sample person produces the second.
-   - **404 `unknown_connection`:** Payroll has forgotten the connection. The Wallet clears
-     `connected_at` and `connection_id` and keeps the employers, so the person is back at
-     "Now connect your payroll". It finishes as `lost` and logs nothing: Loop 4 decided that a
-     lost connection looks like no connection (Loop 4 design §13, item 11).
-   - **Anything else** (timeout, refusal, 5xx, bad JSON): finish as `error`. Log "Couldn't reach
-     Meridian Payroll to check for new credentials" (`caution`), unless the previous check for
-     this provider also ended in `error`. Repeated page loads while Payroll is down then log once,
-     not every time.
+The Wallet has no sign-in: a person is "signed in" by being in the URL (Loop 4a). To answer "who
+is signed in?" when a browser arrives from Benefits, the Wallet **remembers the last person
+viewed in a cookie**:
 
-### Right after connecting
+- Every `/p/{id}/…` page response sets `wallet_person={id}`: `HttpOnly`, `SameSite=Lax`, `Path=/`,
+  and `Secure` when the request came over HTTPS (Render's proxy says so in `X-Forwarded-Proto`).
+- **Sign out** changes from a link to `/` into a link to `GET /sign-out`, which clears the cookie
+  and redirects to `/`.
 
-When call 2 returns `connected`, `run_call_two` stores the `connectionId`, then awaits `fetch()`
-before it ends the attempt. The pending-verify page is still polling, so the person waits the
-extra second or two there. Payroll is warm at that moment.
+It's navigation, not authentication, exactly like **Sign in**. It amends decisions.md's "Signing
+out clears nothing" (Loop 4a design §3). **Confirmed (Ed, 2026-09-24).**
 
-If the fetch brought credentials, `link.arrived` holds the count, and Connections adds the
-handoff's line to the Connected band: "2 income credentials received. View credentials." The
-Connections page clears `arrived` after rendering it once. If the fetch failed or brought
-nothing, the line is left out, and the Credentials page picks it up (handoff §5).
+### 12.2 Routes
 
-### Whenever the Credentials page opens
+| Route | Does |
+|---|---|
+| `GET /requests/{service_id}/{request_id}` | Validates the service id against the registry, and the request id as 32 hex characters (404 otherwise). **Cookie holds a known person:** 303 to that person's route below. **No cookie:** the landing page's `landing-request.html` variant, whose **Sign in** goes to `/p/p01/requests/benefits/{request_id}`. |
+| `GET /p/{id}/requests/{service_id}/{request_id}` | Holds a benefit credential: `…/already`. Otherwise start an attempt whose call 1 is **the request by reference** (`GET …/api/applications/requests/{rid}`), with `arrived` set, then `…/asking`. From there it's §10's flow. |
 
-A GET of the Credentials page, for a connected person:
+- **The Wallet only ever fetches from the registry's URL for that service id.** Nothing in the
+  query string or path can steer an outbound call elsewhere.
+- **Consent when arrived** (`consent-arrived.html`) adds the `.arrival` row: the photo, "Benefit
+  Agency sent you here. You're applying as {name}.", and **Not you? Switch person**.
+- **Switch person** carries the request: the switcher accepts `request={service_id}:{request_id}`,
+  validated as above. Each row then links to that person's `/p/{id}/requests/…` route. A
+  by-reference request can be fetched any number of times until answered (§2).
+- **Already applied** (`already-applied.html`) says "You've already applied", "Benefit Agency
+  decided your programs on {date}…" (from `link.determination`, or "earlier" if the link is gone),
+  and **View your benefit credentials** (`/p/{id}/credentials#benefits`).
+- **An expired or unknown request** (404 by reference) ends as the `error` page. There, **Try
+  again** starts a fresh call 1, so the person can still apply.
+- **Nothing sends the person back to Benefit Agency.**
 
-- **Starts a check** by spawning `fetch()` (the existing `outbound.spawn` seam), unless one is
-  already running for that provider or the last one finished less than 30 seconds ago. The
-  30-second window matters because the handoff's script re-requests the page to redraw (below).
-  Without it, every redraw would start another check. It also keeps reloads from hammering
-  Payroll.
-- **Never waits on it.** The page renders straight away from what's held.
-- **Renders the check's state** in the Income heading and below the cards (handoff §2.1):
+## 13. Outcome tables (Loop 5 retro)
 
-| The provider's check | Heading meta | Below the cards | `data-check` |
-| --- | --- | --- | --- |
-| Running | the count (the script shows "Checking issuers") | the no-JS form | the status URL |
-| Finished, with cards not yet seen | "2 credentials · 2 new" | nothing | empty |
-| Finished `none` or `lost` | the count | the no-JS form | empty |
-| Finished `error`, most recent | the count | the error note with **Check again** | empty |
+Every display rule below names each value it can receive, instead of "the happy path and
+everything else".
 
-The no-JS form (`.category__check`) is a GET of the same page, so it starts a new check if the
-30-second window has passed. The server renders it without `hidden`; the script hides it.
+**A. A held `BenefitCredential`, by verification outcome**
 
-**`GET /p/{id}/credentials/check`** is the status endpoint the script polls. It returns
-`{"state": "checking"}` while any check for the person is running. When they're all finished it
-returns `none`, `new` or `error`, with `announce` set for `new` ("2 new income credentials from
-Meridian Payroll.") and `error` (handoff §2.2). A `lost` result reports `new`, with no
-announcement, so the script redraws the section into its not-connected state.
+| Outcome | Card hue | Badge | Counts as "holds" (hides Find government services) | Shown on results |
+|---|---|---|---|---|
+| Verified | program hue | Verified | yes | yes |
+| Not yet valid | program hue | Not yet valid | yes | yes |
+| Expired | program hue | Expired | yes | yes |
+| Tampered | none (sand) | Tampered | yes | yes, badged |
+| Unrecognized issuer | none (sand) | Unrecognized issuer | yes | yes, badged |
 
-### The script
+**B. A program outcome**
 
-The handoff's inline script goes into `credentials.html` as delivered. It runs only when
-`data-check` holds a URL, and the page works fully without it. This is the Wallet's second use of
-JavaScript, under the same rule as the pending pages (decisions.md). decisions.md's "The first
-and only use is the Wallet's pending pages" and CLAUDE.md's "The one script is inline on the
-Wallet's two pending pages" are updated to name the Credentials page too (§12, PR 5). The test
-that pins which pages may contain a `<script>` gains `credentials.html`.
+| Outcome | Credential | Results | Activity dot | Admin |
+|---|---|---|---|---|
+| eligible (pass/fail) | yes | card, "Eligible" | `verified` | Result "Eligible", credential id |
+| eligible, Health 0 < d ≤ 100 | yes | card, "{d}% off" / "100% off" | `verified` | discount and price |
+| eligible, Health d = 0 | yes | card, "Full price" | `neutral` | "0% off" |
+| eligible, Dividend | yes | card, payment | `verified` | payment |
+| denied, `income_over_limit` | no | `.outcomes` line | `neutral` | figure against limit, reason |
+| denied, `not_nj_resident` | no | `.outcomes` line (all five) | `neutral` | "Not evaluated" |
 
-## 10. The Wallet's other screens
+**C. How an application attempt ends, in the Wallet**
 
-- **Connections** (`connections-connected.html`): the one-time "N income credentials received.
-  View credentials" line (§9). Nothing else changes.
-- **Activity** (`activity.html`): the three new entry types from §9, grouped by day as now.
-- **Credentials when the connection was lost:** the person still holds their income cards, and
-  the Income note is Loop 4a's employer-chosen note with **Finish connecting**, shown below the
-  cards in the same `.category__waiting-note--action` slot the error note uses. The handoff
-  doesn't show this combination; it uses only existing components (§13 item 4).
+| End | Page | Activity | Connection | Find government services afterwards |
+|---|---|---|---|---|
+| Missing identity | can't apply (identity) | `caution` | none | stays |
+| Missing income | can't apply (income) | `caution` | none | stays |
+| Denied consent | back to the services page | `neutral` | none | stays |
+| No answer (call 1 or 2) | error | `caution` | none | stays |
+| Refused (`credential_invalid`, `subjects_differ`) | results, refused | `error` | none | stays |
+| Decided, 0 eligible | results, "don't qualify" | per program | yes | stays |
+| Decided, ≥ 1 eligible | results | per program + received | yes | replaced by Benefits once any credential is held |
 
-## 11. Tests
+**D. Benefit Agency's view of a presentation**
 
-**Write the first one from the credential model's example** (Loop 4's improvement, carried
-forward): a Payroll test that builds p01's first credential and compares its structure, key by
-key, with credential-model §3's paystub example and envelope.
+| Case | HTTP | Recorded | Connection |
+|---|---|---|---|
+| Bad shape | 400 | no | no |
+| Unknown or expired request | 404 | no | no |
+| A credential fails checks 1–4 | 200 refused `credential_invalid` | yes | no |
+| Subjects differ | 200 refused `subjects_differ` | yes | no |
+| Decided | 200 decided | yes | yes, replacing any earlier one for that subject |
 
-**Payroll:**
-- The credential: fields and types as §4; `id` stable across calls, a `urn:uuid:`, and not the
-  paystub's id; `validFrom` is the pay date; no `validUntil`; the header's `alg`, `kid` and `typ`;
-  the issuer id is the origin; `renderMethod` as §4.
-- The signature verifies with `issuer.json`'s public key.
-- Call 2 returns a `connectionId`; connecting again replaces it and the old one gets 404.
-- Call 3: returns the credentials not in `have`, in §4's order; empty when all are held; 404 for
-  an unknown id; 400 for a bad body.
-- Activity logs a send with its count and singular form, and logs nothing for an empty send.
-- `/health`: 200 with a matching key, 503 with each reason. JWKS serves the public key.
-- The paystub page: the panel's `<h2>`, the credential id, each claim key, values that match the
-  paystub's, the JWT in the disclosure, and no "sent" wording, for a connected and an unconnected
-  person.
+## 14. Tests
+
+**First, from the documents** (Loop 4's improvement, carried forward):
+
+- The engine against **every row of the oracle** (§4).
+- A benefit credential compared key by key with credential-model §3's envelope and the Health
+  claims.
+
+**Benefits:**
+- **Engine:** the oracle rows; each limit at exactly the limit (eligible) and one cent over
+  (denied); Health's rounding at a half-tenth boundary; Dividend at 0, 1,200 and above.
+- **Credential:** fields, types, `validFrom` floored to the minute, `validUntil` +12 months
+  (29 February too), header, issuer id, `CredDemoCardColor` hue per program, and that the
+  signature verifies with `issuer.json`.
+- **API:**
+  - Call 1 shape, including `multiple`; the by-reference GET, repeatable, then 404 once answered
+    or expired.
+  - Call 2: decided (five entries, in order, with ids and figures), refused for each reason, 400
+    for each bad shape, 404.
+  - Re-applying replaces the connection. Call 3 as Payroll's tests.
+- **`/health` and JWKS**, as Payroll's.
+- **Pages:** landing cards and order; each program page's figures from `rules.json`; Housing's 21
+  rows; no Health or Dividend table; the Apply options and `aria-describedby`; `/apply` 303s to
+  the Wallet with a live request id.
+- **Admin:** grouping and order, each Result wording, empty state, each determination variant,
+  image truncated, 404.
+- `cred.css` pinned; no `<script>` on any Benefits page.
 
 **Wallet:**
-- Trust: a Payroll-signed paystub verifies; a Payroll-signed identity credential and a
-  state-signed paystub don't.
-- `fetch()`: stores new credentials and sends the held ids; counts and logs; drops a stale
-  answer; `lost` clears the connection and logs nothing; `error` logs once across repeats; a
-  tampered credential is kept and logged as `error`.
-- Hue: read from a valid `CredDemoIssuerColor`; none for a missing or unreadable hint, or for a
-  tampered credential.
-- Credentials page: each row of §9's table; the stack's `--i` and `--n` for 2, 5 and 6
-  credentials; the ledge's count and link; `cred--issuer` and the hue on cards but never on the
-  ledge; the New pill once, then gone on the next render; the lost-connection note.
-- The status endpoint's four answers, and the 30-second window.
-- The income list and detail pages, including "Doesn't expire" and the tampered variant; `income`
-  isn't treated as a credential id.
-- Connections' one-time line; Activity's new entries.
-- Script scope: exactly the two pending pages and the Credentials page contain a `<script>`, and
-  no page loads one from a URL.
+- **Registry:** kinds, the URL override, employer lookup unchanged.
+- **Trust:** a Benefits-signed `BenefitCredential` verifies; a Benefits-signed paystub and a
+  Payroll-signed benefit credential don't.
+- **Hue:** read from `CredDemoCardColor` only; §13 table A row by row.
+- **Credentials page:** the entry, or the category, per table A. The ledge figure rows of §11.1;
+  New once; `id="benefits"` on both; the script redraws both sections.
+- **Attempt:**
+  - Missing identity leads over missing income. Consent with 1 + 2 and 1 + 6, repeated actions
+    above three, per-issuer panels.
+  - Approve builds the VP in order. Each call 2 answer and the resulting phase; fetch awaited on
+    decided.
+  - Try again re-sends, and falls back to call 1 on 404. Stale answers are dropped.
+- **Results:** every row of the verdict table; flat cards; "on the way" when an id isn't held;
+  denials; the refused sentence chosen by the Wallet's own verification; redirect with no
+  determination.
+- **Fetch:** kind-specific wording, and `lost` removing a Benefits link silently.
+- **Connections and Activity:** each row of §10.9.
+- **Detail page:** each program, including the derived price and tampered.
+- **Arrival:**
+  - Cookie set on `/p/…` pages and cleared by `/sign-out`.
+  - With a cookie → redirect; without → the landing variant. Bad service or request ids → 404.
+  - Already applied; the switcher carrying the request; the outbound URL always the registry's.
+- **Script scope:** the pending pages, the applying page and the Credentials page contain a
+  `<script>`, and no page loads one from a URL.
+- `cred.css` pinned.
 
-**Both apps:** `cred.css` is the handoff's file, pinned by length and SHA-256, as in Loop 4a.
-Tests generate throwaway keys and never read `keys/` or `.env`.
+**Payroll:** the renamed hint type; the Wallet reads only the new name.
 
-## 12. Build order
+Tests use throwaway keys and never read `keys/` or `.env`.
 
-Six PRs, one branch each, each saying "Refs #19" and the last closing it. Per the Loop 4a retro,
-the reconciliation pass and the side-by-side setup are done before PR 1, and a UI PR merges only
-with green CI **and** a clean side-by-side table. Hands-off merges apply as before.
+## 15. Build order
 
-1. **Keys and trust** (§3, §4's `renderMethod` decision). Generator, re-keyed committed output,
-   `issuer.json`, `signing.py`, self-check, JWKS, `render.yaml`, `.gitignore`, `.env.example`,
-   `launch.json`, CLAUDE.md's run command, and credential-model §2 and §4 updates. **Ed sets
-   `PAYROLL_SIGNING_KEY` in Render before this merges.** It redeploys the Wallet (re-signed
-   identity credentials) and Payroll.
-2. **Payroll issues** (§4, §5). The credential builder, `connectionId`, call 3, and Activity. No
-   screen changes.
-3. **Payroll's paystub panel** (§6) and Payroll's `cred.css`.
-4. **The Wallet receives on connect** (§7, §8, the first half of §9, §10's Connections line and
-   Activity). Stores and shows income credentials: the stack, the issuer color, New, the income
-   list and detail pages, and the Wallet's `cred.css`.
-5. **The Wallet checks on open** (the rest of §9, §10's lost-connection note). The check, the
-   status endpoint, the script, the no-JS form, the error and lost paths, and the decisions.md
-   and CLAUDE.md updates for the script.
-6. **Live pass on Render** (docs only). Connect a person on the deployed apps, check both sides,
-   and record the result. As in earlier loops, Ed confirms from Render's events log that each PR
-   redeployed only the services it should.
+Ten build PRs and a live pass. There's one branch each, and each says "Refs #N" or "Closes #N".
+Per the Loop 4a retro, **the plan step comes before PR 1**: a reconciliation pass (each handoff
+page against this design, each acceptance criterion against its mechanism, and each dependency
+against Ed's machine), and the side-by-side setup, dry-run. A UI PR merges only with green CI
+**and** a clean side-by-side table. Hands-off merges apply.
+
+| PR | Issue | Scope | Redeploys |
+|---|---|---|---|
+| 1 | #110 | The rename (§5): Payroll signs, the Wallet reads, docs | Wallet, Payroll |
+| 2 | #105 (part) | Keys and trust (§3): generator, re-keyed output, Benefits' `signing.py`, `/health`, JWKS, trust lists, `render.yaml`, `.env.example`, `launch.json`, CLAUDE.md. **Ed sets `BENEFITS_SIGNING_KEY` and the new `PAYROLL_SIGNING_KEY` in Render before it merges.** | all three |
+| 3 | #104 | The engine and `rules.json` (§4) | Benefits |
+| 4 | #20 | Benefits' `cred.css`, `base.html`, landing and program pages; `/apply` to the Wallet's landing for now (§7) | Benefits |
+| 5 | #105 | Call 1, by reference, call 2, verification, the application record, connections (§2, §6); credential-model §1 updates | Benefits |
+| 6 | #106 | The benefit credential and call 3 (§5) | Benefits |
+| 7 | #111 | The admin view (§8); decisions.md's admin amendment | Benefits |
+| 8 | #109 | The Wallet's `cred.css`, `programs.json`, `CredentialView`, the Benefits category and the detail page (§11), tested with fixture-signed credentials | Wallet |
+| 9 | #107 | The registry entry, services, the apply attempt, consent, can't apply, applying, error, results, fetch wording, Connections, Activity, the script change (§9, §10); decisions.md and CLAUDE.md script sentences | Wallet |
+| 10 | #108 | `/apply` by reference (Benefits); arrival, the cookie, `/sign-out`, the landing variant, consent-arrived, already applied, the switcher carry (Wallet) (§12); decisions.md (cookie) | Wallet, Benefits |
+| 11 | — | Live pass on Render (docs only) | none |
 
 ### Checking the build against the handoff
 
-Loop 4a's side-by-side check carries over. The handoff pages are served on port 8010 from
-`.claude/launch.json`, at `/loop-5/wallet/…` and `/loop-5/payroll/…`. For each built page and its
-handoff counterpart, compare the rendered top and height of the page head, the Income category
-and its first card (or the panel on detail pages) at **375px and 480px**. For the paystub, compare
-both records at **375px and 992px**. Positions must agree within 1px, and the computed font size,
-padding and gap must match. Each UI PR records the table. There are no screenshots (Ed,
-2026-09-23).
+The `handoff` server (port 8010) serves `/loop-6/benefits/…` and `/loop-6/wallet/…`. For each
+built page and its handoff counterpart, compare the rendered top and height of the page head
+(Benefits: `.intro` or `.program-band`), the main section and its first card or panel. Benefits
+pages are compared at **375px and 992px**, and Wallet pages at **375px and 480px**. Positions agree
+within 1px, and computed font size, padding and gap match. Each UI PR (4, 7, 8, 9, 10) records the
+table. There are no screenshots.
 
-## 13. Decisions and deviations
+## 16. Decisions and deviations
 
-1. **The issuer id is Payroll's origin,** not the handoff's `did:example:meridian-payroll`
-   (credential-model §2; #93).
-2. **A connection id authenticates call 3** (§2). It's the stand-in for OpenID4VCI's access
-   token, and it means one person's wallet can't ask for another's credentials by guessing a
-   person id.
-3. **The Wallet sends `have`** (§2), settling the intent's open question as Phase 3 describes.
-4. **The lost-connection state** (§9, §10) is new. It follows Loop 4's rule that a lost connection
-   looks like no connection, and it's built from existing components. It's reachable when
-   Payroll restarts while the Wallet doesn't, for example a Payroll-only redeploy. **Confirmed
-   (Ed, 2026-09-23).**
-5. **`renderMethod` uses a demo type,** `CredDemoIssuerColor`, with one `oklch()` color, and the
-   Wallet uses only its hue (§4). **Confirmed (Ed, 2026-09-23).**
-6. **Removing an employer keeps received credentials** (§7). They're valid signed credentials the
-   person holds, and the Wallet has no "delete credential" feature. A later reconnect sends their
-   ids in `have`, so nothing duplicates.
-7. **The 30-second window** between page-open checks (§9) isn't in the handoff. It stops the
-   redraw from starting a second check, and limits reload traffic.
-8. **The stack's `--n` follows the handoff pages, not the CSS comment** (§8).
-9. **Benefits doesn't gain Payroll's key this loop,** though the intent listed it. Benefits has no
-   trust list yet; the generator adds Payroll to it when Loop 6 creates one.
-10. **The script and the JavaScript rule:** the Credentials page becomes the second page with a
-    script (§9). The rule is unchanged; the two sentences that say "only the pending pages" are
-    updated. **This amends decisions.md; confirmed (Ed, 2026-09-23).**
+1. **Benefits' issuer id is its origin**, `https://cred-demo-benefits.onrender.com`, not the
+   handoff's `did:example:benefit-agency` (credential-model §2; Payroll's precedent).
+2. **`multiple: true`** asks for every income credential (§2). It's DCQL's own term, and settles
+   the intent's question.
+3. **`validFrom` is floored to the minute** (§5): a small margin for clock skew between services.
+   Credential-model §5's "the moment of issue" still holds to the minute.
+4. **Health's price is derived by the Wallet** from the signed one-decimal percent, rounded to
+   the cent half-up (Intent 006; Grace $57.00).
+5. **The Wallet remembers the last person in a cookie** (§12.1), so an arrival from Benefits knows
+   who is signed in. It amends "Signing out clears nothing". **Confirmed (Ed, 2026-09-24).** Without it, every
+   arrival lands on the signed-out variant and **Sign in** opens p01.
+6. **The Credentials script redraws `#benefits` as well as `#income`**, and the services entry
+   carries `id="benefits"` (§10.1). It's a two-line change to the handoff's script, and an added id.
+7. **The apply attempt reuses Loop 4a's asking page** while call 1 runs (§10.3). The handoff
+   doesn't show that moment.
+8. **Starting an attempt is a GET** (`…/apply`, `/apply` on Benefits), because the handoff's
+   controls are links. Both are guarded so a repeat is harmless.
+9. **Try again re-sends the approved presentation**, falling back to a fresh request and fresh
+   consent when Benefits no longer knows the request (§10.6).
+10. **The refused sentence comes from the Wallet's own verification** of what it shared, so the
+    refusal reply needs no new field (§10.7).
+11. **A `lost` Benefits connection removes the link** instead of offering "Finish connecting"
+    (§10.8), since there's nothing to reconnect to.
+12. **Benefit credentials are signed once and stored** (§5), unlike Payroll's sign-on-demand,
+    because Benefits keeps the record anyway.
+13. **The generator stops printing private keys** (§3), after Loop 5's leak.
+14. **Docs changed this loop:**
+    - decisions.md: the admin view, the render hint's name, the script and pending-page
+      sentences, and the cookie
+    - credential-model.md: §1 Phase 4 steps 7 and 9, and "When it fails" (a tampered identity
+      is stopped at Payroll); §3's Health claim precision; §4's `renderMethod` row and the DCQL
+      `multiple` note
+    - CLAUDE.md: the scripts sentence, Benefits' local run, and the Sign out link
 
-## 14. Acceptance criteria
+## 17. Acceptance criteria
 
-1. Running `uv run tools/generate_credentials.py` writes Payroll's key pair, `issuer.json`, the
-   Wallet's trust entry for Payroll (`PaystubCredential` only) and `apps/payroll/.env`, and
-   re-signs every identity credential with the same ids. No private key is committed.
-2. Payroll's `/health` returns 200 on Render with `PAYROLL_SIGNING_KEY` set, and 503 with a reason
-   when the key is missing or doesn't match `issuer.json`.
-3. `/.well-known/jwks.json` on Payroll serves the public key from `issuer.json`.
-4. Every paystub's credential matches credential-model §3: `PaystubCredential`, the origin as
-   issuer id, `validFrom` equal to the pay date, no `validUntil`, gross and net pay as
-   `MonetaryAmount`, no employee name, and a `CredDemoIssuerColor` render hint. Its header is
-   ES256, `payroll-1`, `vc+jwt`.
-5. A paystub's credential id is a `urn:uuid:` that differs from the paystub's id and is the same
-   on every request and after a restart.
-6. A successful connection returns a `connectionId`. `POST /api/credentials` with it returns the
-   person's credentials not listed in `have`, newest first, and returns 404 for an unknown id.
-7. Payroll's Activity logs "N income credentials sent to your wallet" for each non-empty send, and
-   nothing for an empty one.
-8. Every paystub page shows "Credential for this paystub" beside the paystub from 60rem and below
-   it when narrower, with the credential id, each claim and its claim name, values matching the
-   paystub, the signed JWT, and no delivery status, whether or not the person is connected.
-9. After connecting, a person reaches Connections with "N income credentials received. View
-   credentials." once, and their income credentials are on the Credentials page, verified.
-10. Two to five income credentials show as Loop 2's stack, newest at the front. More than five
-    draw the five newest plus "View all Income credentials (N)", linking to a page listing all N
-    as full cards, newest first. p08 shows six.
-11. Each income card with a verified Payroll hint is filled in Payroll's color (hue 255); the
-    "View all" ledge stays sand; identity cards stay white; badges keep their own colors.
-12. A newly received card shows **New** and the heading reads "N credentials · N new" the first
-    time; neither appears on the next visit.
-13. Opening the Credentials page never waits on Payroll: held credentials render at once, and a
-    check runs in the background at most once per 30 seconds per provider.
-14. With JavaScript, the heading shows "Checking issuers" during a check; new arrivals redraw the
-    Income section and are announced through the `role="status"` region without moving focus;
-    nothing new restores the count silently.
-15. Without JavaScript, the page shows what's held and a **Check for new credentials** button that
-    re-checks by reloading.
-16. When Payroll can't be reached, the Income section shows "Couldn't reach Meridian Payroll to
-    check for new credentials." with **Check again**, and Activity logs it once, not on every
-    repeat.
-17. When Payroll no longer knows the connection, the Wallet shows the person as not connected,
-    keeps their income cards, offers **Finish connecting**, and logs nothing.
-18. The income detail page shows the issuer bar, status, claims, the summary note, the pay date as
-    "Valid from", "Doesn't expire", and the technical details with the JWT. A tampered income
-    credential shows the Tampered status and the note under the issuer color.
-19. The Wallet's Activity logs "N income credentials received from Meridian Payroll" for each
-    arrival, and a separate error entry for any that fail verification.
-20. A Payroll-signed identity credential and a state-signed paystub credential are both refused by
-    the Wallet's trust check.
-21. Only the two pending pages and the Credentials page contain a `<script>`, and no page loads a
-    script from a URL.
-22. Each app's `cred.css` is its handoff file, byte for byte.
-23. Every built page matches its handoff page within 1px at the §12 widths, recorded in a table in
-    each UI PR.
-24. All three apps' test suites pass in CI, and a live pass on Render connects a person, receives
-    their credentials, and shows the matching credential on Payroll's paystub page.
-
-## 15. Reconciliation (plan step)
-
-This is the plan step's reconciliation pass (Loop 2's improvement, kept since — see Loop 4a's
-retro, [loop-log.md](loop-log.md)). It checks each handoff page against this design, each
-acceptance criterion against the mechanism that satisfies it, and each dependency against Ed's
-machine. It was written before any PR, with the side-by-side setup (§16). No findings below
-change what §1–14 already say; everything confirms this design as written, with one deviation
-already on record (item 1 below) and one small addition to CLAUDE.md.
-
-### Handoff pages against the design
-
-Each page was diffed against the current committed template or stylesheet, whitespace ignored.
-
-| Handoff page | PR | Diff from current | Design | Finding |
-|---|---|---|---|---|
-| `payroll/cred.css` | 3 | strict superset: 77 new lines (`.record`/`.records`, `.panel--cred`, `.claimlist`, `.disclosure`, `.jwt`) after the Loop 4a baseline | §6 | As designed. |
-| `wallet/cred.css` | 4 | strict superset: 100 new lines (stack retunes, `.cred--issuer`, `.cred--income`, `.cred__new`, `.panel__issuer`, `.category__status`/`.spinner`) after the Loop 4a baseline | §4, §8, §9 | As designed. |
-| `payroll/activity.html` | 2 | two new `log__item`s ("N income credentials sent…", `neutral` dot; "New connection…", `verified` dot, already built in Loop 4) | §5 | Only the send entry is new; the connection entry already exists. |
-| `payroll/paystub.html` | 3 | adds the `.records` two-column grid, the `.record` wrapper around the existing paystub `<section>`, and the whole `.panel--cred` credential section with its `.disclosure` | §6 | As designed. The existing paystub markup is untouched, just wrapped. |
-| `wallet/activity.html` | 4 | template-only diff (static page vs. Jinja loop); no new markup shapes beyond the three new entry types in §9's table | §9, §10 | As designed. |
-| `connections-connected.html` | 4 | one new line in the Connected band: "N income credentials received. View credentials." | §10 | As designed. |
-| `credentials-p01.html`, `credentials-waiting.html`, `credentials-nojs.html`, `credentials-new.html`, `credentials-checking.html`, `credentials-error.html`, `credentials-p08.html` | 4, 5 | new pages: none/one/stack states, the four `data-check` rows, the inline script | §8, §9 | As designed. Checked the stack math directly: p08's page has `--n: 5`, ledge at `--i: 0` ("View all Income credentials (6)"), five cards `--i: 1`..`--i: 5` — matches §8's "`--n` equal to the highest `--i`" exactly. |
-| `income-p08.html` | 4 | new page: full `.cred.cred--income.cred--issuer` cards, newest first | §8 | As designed. |
-| `income-credential.html`, `income-credential-tampered.html` | 4 | new page: issuer bar, status band, claims, "Valid from"/"Doesn't expire", disclosure | §8 | As designed. The disclosure's `Issuer` line reads the handoff's placeholder `did:example:meridian-payroll`; the built page renders the real issuer id per item 1 below — not a new finding, already decided. |
-
-### Acceptance criteria against their mechanisms
-
-| Criterion (§14) | Mechanism | Test | Check |
-|---|---|---|---|
-| 1 | generator's `ISSUERS`/`make_keys`/`trust_list` (§3) | new generator test, or a diff of committed output | — |
-| 2, 3 | `app/signing.py`, `/health`, `/.well-known/jwks.json` (§3) | new `test_signing.py` | Render `/health` after PR 1 |
-| 4, 5 | `app/issuance.py` payload builder (§4) | spec-example test (§11) + field tests | — |
-| 6, 7 | `connections.py` connection id, `POST /api/credentials`, Activity (§5) | new `test_issuance_api.py` | — |
-| 8 | `paystub.html`'s `.panel--cred` (§6) | new `test_paystub_credential.py` | paystub pair, 375/992px |
-| 9 | `run_call_two` → `fetch()`, `link.arrived` (§9) | `test_attempt_call_two.py` additions | credentials-waiting, connections-connected pairs |
-| 10, 11, 12 | `credentials.py`, Income section rendering (§8) | new `test_credentials_income.py` | credentials-p01/-p08/-new pairs |
-| 13, 14, 15, 16 | `fetch()`, the 30s window, `/credentials/check`, the script (§9) | new `test_issuance_fetch.py`, `test_credentials_check.py` | credentials-checking/-error/-nojs pairs |
-| 17 | the `unknown_connection` branch, lost-connection note (§9, §10) | `test_issuance_fetch.py` | — |
-| 18 | `income-credential.html` template (§8) | `test_credentials_income.py` | income-credential(-tampered) pairs |
-| 19 | Activity entries in `fetch()` (§9) | `test_activity_log.py` additions | activity pair |
-| 20 | trust check in `credentials.py`/`verify.py` (§8) | `test_credentials.py`/`test_verify.py` additions | — |
-| 21 | script scope (§9) | `test_no_javascript_scope.py` extended | — |
-| 22 | adopted `cred.css` files (this section) | `test_stylesheet.py` in both apps | — |
-| 23 | all of the above | — | the side-by-side table in each UI PR (§16) |
-| 24 | everything | all three suites in CI | live pass on Render (PR 6) |
-
-### Dependencies against Ed's machine
-
-- **No new packages** in any app: Payroll already has `pyjwt[crypto]>=2.9` and
-  `cryptography<49`; the generator's inline deps (same two) are unchanged.
-- `uv 0.12.15` is on this machine; both apps pin Python 3.12, matching `render.yaml`'s
-  `PYTHON_VERSION`.
-- **New finding:** uvicorn's `--env-file .env` (§3, "Configuration") fails to start if the file
-  doesn't exist. Locally, `apps/payroll/.env` is only written by the generator (§3), so
-  CLAUDE.md's "Commands" section gains a line: run the generator once before starting Payroll
-  locally for the first time, or after cloning fresh. `.claude/launch.json`'s `payroll` entry is
-  unaffected — the file exists once the generator has run, same as `keys/`.
-- **Side-by-side tooling only:** `python3 -m http.server` (already in `launch.json`'s `handoff`
-  entry) and a browser measuring script (§16), nothing new.
-
-## 16. Side-by-side setup
-
-Set up once, reused by every UI PR (3, 4, 5), per Loop 4a's retro:
-
-- `wallet` (:8001), `payroll` (:8002, pointed at `wallet`) and `handoff` (:8010) run together
-  from `.claude/launch.json`.
-- A measuring script (kept with the working files, not committed) reads, for a built page and
-  its handoff counterpart: the page head's top and height, the Income category (or the
-  `.records` panel) and its first card's top and height, and the computed font-size, padding and
-  gap of each. Run at 375px and 480px for Wallet pages, 375px and 992px for the paystub, per
-  §12. A dry run against the current `credentials.html`/`credentials-p01.html` pair (both
-  showing 1 identity credential, no income yet) confirms the script reads matching numbers
-  before any Loop 5 code exists.
-
-## 17. Live pass on Render (PR 6, AC 24)
-
-Run 2026-09-23, against both apps' production URLs, once PR 5 (#100) had merged and redeployed.
-
-- **Payroll's health and JWKS.** `GET /health` → `200 {"status":"ok"}` — the deployed
-  `PAYROLL_SIGNING_KEY` (rotated after the leak recorded in `no-secrets-in-pr-descriptions`,
-  Ed's memory) matches the committed `issuer.json`. `GET /.well-known/jwks.json` serves that
-  same rotated public key.
-- **Connected p08 (Nadia Haddad) to Shoreway**, live, through the Wallet's UI: call 1, the
-  consent screen, **Approve and share**, call 2, then the Wallet's own post-connect fetch — all
-  server-to-server between the two Render services. Landed on Connections as connected; the
-  Credentials page showed **"6 credentials · 5 new"**, the stack, the ledge ("View all Income
-  credentials (6)"), and Payroll's hue on every verified card. Three of the six read "Not yet
-  valid" — correctly: their `payDate` is 30 Sep 2026, after today's real date, so `validFrom` is
-  in the future. This is a live-clock artifact the loop's own fixed-clock tests don't hit
-  (design.md §11, "no sample person produces [an unverified credential] under the fixed test
-  clock"), not a bug.
-- **Matched one credential end to end.** Payroll's paystub page for Brightpath Early Learning,
-  1–15 Sep 2026, showed its `.panel--cred` with id `urn:uuid:111e78a4-d2f7-5529-ac7a-ed39ac63b662`,
-  gross `$330.00`, net `$300.71`. The Wallet's income detail page for the same card showed the
-  identical id, gross, net, pay period and date, issuer id
-  `https://cred-demo-payroll.onrender.com`, and a JWT that verified with the real deployed key —
-  the same credential, independently rendered by both apps from the same signed JWT.
-- **AC 24 is satisfied:** all three suites passed in CI on every PR (§12), and this pass connects
-  a person, receives their credentials, and shows the matching credential on Payroll's paystub
-  page, on the deployed services.
-
-Ed confirms separately, from Render's events log, that each PR redeployed only the services
-§12 says it should have (PR 1: Wallet and Payroll; PRs 2–3: Payroll only; PRs 4–5: Wallet only;
-docs PRs: neither).
+1. Running `uv run tools/generate_credentials.py` writes Benefits' key pair, `issuer.json`
+   (origin id, Benefit Agency, `benefits-1`), Benefits' trust list (the four states for identity,
+   Payroll for paystubs), the Wallet's trust entry for Benefits (`BenefitCredential` only), and
+   both apps' `.env`. It re-signs every identity credential with the same ids, and prints no
+   private key. No private key is committed.
+2. Benefits' `/health` returns 200 on Render with `BENEFITS_SIGNING_KEY` set, and 503 with a reason
+   when it's missing or doesn't match. `/.well-known/jwks.json` serves the public key. Payroll's
+   `/health` returns 200 with its new key.
+3. The eligibility engine reproduces every row of sample-data.md's expected outcomes: monthly,
+   annual, Health discount to one decimal, Food, Energy, Housing and Dividend. Out-of-state people
+   get `not_nj_resident` for all five programs.
+4. Each limit is inclusive: income exactly at a limit is eligible, and one cent over is denied
+   with `income_over_limit`.
+5. Benefit Agency's landing page shows five program cards in program order, each named and
+   colored, linking to its page. The nav links the five programs and Admin, and no placeholder
+   user remains.
+6. Each program page shows its requirements with annual figures rendered from the rules data and
+   an "as of September 2026" note. Housing lists all 21 county limits in a disclosure. Health and
+   Dividend show their three figures and the "earning more" callout, with no table.
+7. Every program page offers a disabled **Apply here** with its note, and **Apply with Digital
+   Wallet**, which sends the browser to the Wallet carrying only a request id.
+8. Call 1 and the request by reference return a DCQL query naming `IdentityCredential` and
+   `PaystubCredential` with `multiple: true`, and a `response_uri` path. The by-reference request
+   can be fetched until it's answered, then returns 404.
+9. Call 2 with a valid presentation returns `decided`, a `connectionId`, and five program outcomes
+   in order. Eligible ones carry their credential id and figures, and denied ones their reason
+   code.
+10. Call 2 refuses with `credential_invalid` when any credential fails checks 1–4, and
+    `subjects_differ` when the subjects differ. It returns 400 for a presentation without exactly
+    one identity credential and at least one income credential.
+11. Each eligible program yields one `BenefitCredential` matching credential-model §3. It carries
+    a random `urn:uuid:` id, `validFrom` at the determination time floored to the minute,
+    `validUntil` 12 months later, and one-decimal `discountPercent` for Health. It has no name or
+    address, a `CredDemoCardColor` hint with its program's hue, and an ES256 `benefits-1`
+    `vc+jwt` header. A denial yields no credential.
+12. Call 3 returns a connection's benefit credentials not in `have`, with the same id and JWT
+    every time. It returns 404 for an unknown connection. Applying again replaces the connection.
+13. Payroll signs `CredDemoCardColor`, and the Wallet reads only `CredDemoCardColor`.
+14. The admin list shows every application grouped by person, newest first, with the time and a
+    one-line result. It shows the empty state when there are none.
+15. Each determination page shows the received time and ids, and each presented credential's
+    result with its decoded claims (photo not shown) and raw JWT. It shows the same-person check,
+    the submitted state, county and paystubs with monthly and annual totals, and per program the
+    figure against its limit, the result and the issued credential or reason. Not-NJ and refused
+    applications show their variants.
+16. A person holding no benefit credential sees **Find government services** between Identity and
+    Income. It leads to a services list with Benefit Agency, and on to its request.
+17. A person with no identity credential gets the "identity credential first" page, and one with
+    identity but no income gets "Connect your payroll provider first" with **Find your employer**.
+    Each is logged in Activity.
+18. The consent page lists every requested credential, with the income credentials grouped by
+    issuer, each openable to every claim. It is all-or-nothing, and repeats the actions below the
+    list when there are more than three credentials. Deny shares nothing and is logged.
+19. After **Approve and share**, the person waits on "Checking your eligibility…" (polling, with
+    **Check again** without JavaScript), then lands on the results screen.
+20. The results screen leads with the verdict sentence for the person's case (p01, p04, p07, p09,
+    p19 as in the handoff). It shows the benefit cards in program order, then each denial as a
+    plain line, then **Go to your credentials**. The verdict is announced without moving focus.
+21. If the outcomes are known but credentials haven't arrived, the results screen says they're on
+    the way, and the Credentials page's check brings them.
+22. If Benefit Agency can't be reached, the person sees "Couldn't reach Benefit Agency", which is
+    logged once. **Try again** re-sends the approved application, or starts over when Benefits no
+    longer knows the request.
+23. A refused application shows "Your application couldn't be decided" with the right sentence for
+    what failed, is logged as an error, and makes no connection.
+24. Once any benefit credential is held, the Benefits category replaces **Find government
+    services**. Each card is in its program's hue (by §13 table A), shows its name and figure
+    (Eligible, "92.4% off" with "$57.00 a month", "Full price", "$100.00 a month"), and shows
+    **New** once.
+25. The benefit detail page shows the program bar, status, claims, the benefit's figures (Health's
+    price marked as worked out by the wallet), valid from and until, and the technical details
+    with the JWT. A tampered one shows the Tampered status and its note.
+26. Connections shows Benefit Agency as a connected government service with its credential count,
+    and **Remove** keeps the benefit credentials. Activity logs the application, each program's
+    outcome, the credentials received, and failures, with §10.9's dots.
+27. Arriving from Benefit Agency with a remembered person opens that person's consent page, with
+    "You're applying as {name}" and **Not you? Switch person** (which keeps the request). Without
+    one, it opens the landing page with the request notice, and **Sign in** continues to consent.
+    A person who already holds benefit credentials gets "You've already applied".
+28. The Wallet only ever calls Benefit Agency at its registry URL, whatever the arrival URL says.
+29. Only the Wallet's pending pages, applying page and Credentials page contain a `<script>`, and
+    no page in any app loads a script from a URL.
+30. Each app's `cred.css` is its handoff file, byte for byte. Every built page matches its handoff
+    page within 1px at the §15 widths, recorded in each UI PR.
+31. All three suites pass in CI. A live pass on Render applies for p01 from the Wallet and p07
+    from a program page, and matches one credential's id, claims and signature between Benefits'
+    admin page and the Wallet's detail page. Ed confirms from Render's events log that each PR
+    redeployed only the services §15 lists.
