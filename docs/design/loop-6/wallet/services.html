@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" data-app="wallet">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Government services — Wallet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;600&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="credentials-p01.html">
+        <span class="header__mark header__mark--wallet" aria-hidden="true"></span>
+        Wallet
+      </a>
+      <span class="initials" role="img" aria-label="Grace Okafor">GO</span>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <nav class="nav-menu__panel" aria-label="Main">
+          <a href="credentials-p01.html" aria-current="page">Credentials</a>
+          <a href="connections.html">Connections</a>
+          <a href="activity.html">Activity</a>
+          <a class="nav-menu__signout" href="landing.html">Sign out</a>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <div class="wrap stack">
+      <div class="pagehead">
+        <a class="back" href="credentials-p01.html">Credentials</a>
+        <span class="pagehead__sep" aria-hidden="true"></span>
+        <h1 class="pagehead__title">Government services</h1>
+      </div>
+      <h2 class="intro__title">Choose a service</h2>
+      <p class="intro__purpose">These services accept credentials from your wallet. Each one asks for what it needs, and you decide whether to share it.</p>
+      <ul class="people services" aria-label="Government services">
+        <li>
+          <a class="people__row" href="consent-p01.html">
+            <span class="people__meta">
+              <span class="people__name">Benefit Agency</span>
+              <span class="people__place">Five programs, applied for together: Food, Energy and Housing Assistance, Health, and Dividend</span>
+            </span>
+            <span class="employers__go" aria-hidden="true"></span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p class="footer__note"><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></p>
+      <span class="footer__aside"><a href="person-switcher.html">Switch person</a></span>
+    </div>
+  </footer>
+</body>
+</html>

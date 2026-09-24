@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" data-app="wallet">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>You qualify for 2 programs — Wallet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;600&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="credentials-p09.html">
+        <span class="header__mark header__mark--wallet" aria-hidden="true"></span>
+        Wallet
+      </a>
+      <span class="initials" role="img" aria-label="Daniel Walsh">DW</span>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <nav class="nav-menu__panel" aria-label="Main">
+          <a href="credentials-p09.html">Credentials</a>
+          <a href="connections.html">Connections</a>
+          <a href="activity.html">Activity</a>
+          <a class="nav-menu__signout" href="landing.html">Sign out</a>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <div class="wrap stack">
+      <div class="pagehead">
+        <h1 class="pagehead__title">Results from Benefit Agency</h1>
+      </div>
+      <section class="verdict" aria-labelledby="verdict">
+        <h2 class="verdict__title" id="verdict">You qualify for 2 programs</h2>
+        <p class="verdict__worth"><strong>$100.00 a month</strong> from Dividend. Health gives no discount at your income: you may buy the Public Option plan at its full price, <strong>$750.00 a month</strong>.</p>
+      </section>
+      <p class="visually-hidden" role="status">You qualify for 2 programs. Not eligible for 3.</p>
+      <section class="category" id="added" aria-labelledby="cat-added">
+        <div class="category__head">
+          <h3 class="category__title" id="cat-added">Added to your wallet</h3>
+          <span class="card__meta">2 credentials</span>
+        </div>
+        <div class="stack-cards stack-cards--flat">
+          <a class="stack-cards__card cred--issuer" href="benefit-health.html" style="--i: 0; --issuer-hue: 223">
+            <span class="stack-cards__row">
+              <span class="stack-cards__program">Health</span>
+              <span class="stack-cards__figure">Full price</span>
+            </span>
+            <span class="stack-cards__row stack-cards__row--bottom">
+              <span class="stack-s">
+                <span class="cred__figure-sub">0% off: $750.00 a month</span>
+                <span class="stack-cards__period">Valid until 1 Oct 2027</span>
+              </span>
+              <span class="badge badge--verified"><span class="badge__icon" aria-hidden="true">&#10003;</span>Verified</span>
+            </span>
+          </a>
+          <a class="stack-cards__card cred--issuer" href="benefit-health.html" style="--i: 1; --issuer-hue: 121">
+            <span class="stack-cards__row">
+              <span class="stack-cards__program">Dividend</span>
+              <span class="stack-cards__figure">$100.00 a month</span>
+            </span>
+            <span class="stack-cards__row stack-cards__row--bottom">
+              <span class="stack-s">
+                <span class="stack-cards__period">Valid until 1 Oct 2027</span>
+              </span>
+              <span class="badge badge--verified"><span class="badge__icon" aria-hidden="true">&#10003;</span>Verified</span>
+            </span>
+          </a>
+        </div>
+      </section>
+      <section class="stack-s" aria-labelledby="not">
+        <h3 class="category__title" id="not">Programs you don&rsquo;t qualify for</h3>
+        <ul class="outcomes">
+          <li class="outcomes__item"><span class="outcomes__mark" aria-hidden="true"></span><p><strong>Food Assistance:</strong> your income is above this program&rsquo;s limit.</p></li>
+          <li class="outcomes__item"><span class="outcomes__mark" aria-hidden="true"></span><p><strong>Energy Assistance:</strong> your income is above this program&rsquo;s limit.</p></li>
+          <li class="outcomes__item"><span class="outcomes__mark" aria-hidden="true"></span><p><strong>Housing Assistance:</strong> your income is above this program&rsquo;s limit.</p></li>
+        </ul>
+      </section>
+      <div class="results__next">
+        <a class="btn btn--block" href="credentials-p09.html">Go to your credentials</a>
+        <p>Benefit credentials are valid for 12 months, until 1&nbsp;October&nbsp;2027.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p class="footer__note"><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></p>
+      <span class="footer__aside"><a href="person-switcher.html">Switch person</a></span>
+    </div>
+  </footer>
+</body>
+</html>

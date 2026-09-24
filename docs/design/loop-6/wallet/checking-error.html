@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" data-app="wallet">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Couldn’t reach Benefit Agency — Wallet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;600&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="credentials-p01.html">
+        <span class="header__mark header__mark--wallet" aria-hidden="true"></span>
+        Wallet
+      </a>
+      <span class="initials" role="img" aria-label="Grace Okafor">GO</span>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <nav class="nav-menu__panel" aria-label="Main">
+          <a href="credentials-p01.html">Credentials</a>
+          <a href="connections.html">Connections</a>
+          <a href="activity.html">Activity</a>
+          <a class="nav-menu__signout" href="landing.html">Sign out</a>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <div class="wrap stack">
+      <div class="pagehead">
+        <h1 class="pagehead__title">Applying to Benefit Agency</h1>
+      </div>
+      <h2 class="intro__title">Couldn&rsquo;t reach Benefit Agency</h2>
+      <section class="panel" aria-labelledby="status">
+        <div class="panel__status panel__status--caution">
+          <h3 class="visually-hidden" id="status">Status</h3>
+          <span class="badge badge--caution">No answer</span>
+          <p>Benefit Agency didn&rsquo;t answer, so your application wasn&rsquo;t decided and no credentials were issued. Try again in a moment.</p>
+        </div>
+      </section>
+      <form class="decision" method="post" action="checking.html">
+        <div class="actions">
+          <button class="btn" type="submit" name="decision" value="retry">Try again</button>
+          <a class="btn btn--secondary" href="credentials-p01.html">Back to credentials</a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p class="footer__note"><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></p>
+      <span class="footer__aside"><a href="person-switcher.html">Switch person</a></span>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en" data-app="benefits">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Luis Ferreira · Determination · Benefit Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@600&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="landing.html">
+        <span class="header__mark" aria-hidden="true"></span>
+        Benefit Agency
+      </a>
+      <nav class="header__nav" aria-label="Main">
+        <a href="food.html">Food Assistance</a>
+        <a href="energy.html">Energy Assistance</a>
+        <a href="housing.html">Housing Assistance</a>
+        <a href="health.html">Health</a>
+        <a href="dividend.html">Dividend</a>
+      </nav>
+      <a class="header__admin" href="admin.html" aria-current="page">Admin</a>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <div class="nav-menu__panel">
+          <a href="food.html">Food Assistance</a>
+          <a href="energy.html">Energy Assistance</a>
+          <a href="housing.html">Housing Assistance</a>
+          <a href="health.html">Health</a>
+          <a href="dividend.html">Dividend</a>
+          <a class="nav-menu__admin" href="admin.html" aria-current="page">Admin (demo)</a>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <div class="wrap det">
+      <div class="stack-s">
+        <a class="back" href="admin.html">‹ Applications</a>
+        <p class="intro__eyebrow">Determination · demo admin view</p>
+        <h1 class="intro__title">Luis Ferreira</h1>
+        <p class="det__summary">2 of 5 approved</p>
+        <dl class="meta">
+          <div><dt>Received</dt><dd>1 Oct 2026, 10:05:40 AM</dd></div>
+          <div><dt>Application id</dt><dd class="mono">urn:uuid:a8f4cf67-6adb-59b5-a185-c3d6b7045f9e</dd></div>
+          <div><dt>Subject id</dt><dd class="mono">urn:uuid:6688372d-3de5-5ec7-b8a2-a8f0590c599e</dd></div>
+        </dl>
+      </div>
+
+      <section class="stack-s" aria-labelledby="checks">
+        <h2 class="section__title section__title--sm" id="checks">1. Credential checks</h2>
+        <ul class="checks">
+          <li>
+            <details class="disclosure">
+              <summary>
+                <span class="check__text"><span class="check__label">Identity credential</span><span class="check__detail">State of New Jersey · signature matches State of New Jersey’s key</span></span>
+                <span class="check__end"><span class="badge badge--verified">Verified</span><span class="disclosure__chev" aria-hidden="true"></span></span>
+              </summary>
+              <dl class="disclosure__body">
+                <dt>Header</dt>
+                <dd><pre class="code">{
+  &quot;alg&quot;: &quot;ES256&quot;,
+  &quot;kid&quot;: &quot;nj-1&quot;,
+  &quot;typ&quot;: &quot;vc+jwt&quot;
+}</pre></dd>
+                <dt>Claims</dt>
+                <dd><pre class="code code--tall">{
+  &quot;@context&quot;: [
+    &quot;https://www.w3.org/ns/credentials/v2&quot;
+  ],
+  &quot;id&quot;: &quot;urn:uuid:dddc1c78-66d9-57a5-af3d-dd67533d7f08&quot;,
+  &quot;type&quot;: [
+    &quot;VerifiableCredential&quot;,
+    &quot;IdentityCredential&quot;
+  ],
+  &quot;issuer&quot;: {
+    &quot;id&quot;: &quot;did:example:state-of-new-jersey&quot;,
+    &quot;name&quot;: &quot;State of New Jersey&quot;
+  },
+  &quot;validFrom&quot;: &quot;2026-01-15T00:00:00Z&quot;,
+  &quot;validUntil&quot;: &quot;2030-01-15T00:00:00Z&quot;,
+  &quot;credentialSubject&quot;: {
+    &quot;id&quot;: &quot;urn:uuid:6688372d-3de5-5ec7-b8a2-a8f0590c599e&quot;,
+    &quot;givenName&quot;: &quot;Luis&quot;,
+    &quot;familyName&quot;: &quot;Ferreira&quot;,
+    &quot;birthDate&quot;: &quot;1988-07-02&quot;,
+    &quot;image&quot;: &quot;data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ… (photo, not shown)&quot;,
+    &quot;address&quot;: {
+      &quot;type&quot;: &quot;PostalAddress&quot;,
+      &quot;streetAddress&quot;: &quot;140 Ferry Street&quot;,
+      &quot;addressLocality&quot;: &quot;Newark&quot;,
+      &quot;county&quot;: &quot;Essex&quot;,
+      &quot;addressRegion&quot;: &quot;NJ&quot;,
+      &quot;postalCode&quot;: &quot;07105&quot;
+    }
+  }
+}</pre></dd>
+                <dt>Raw JWT</dt>
+                <dd class="jwt">eyJhbGciOiJFUzI1NiIsImtpZCI6Im5qLTEiLCJ0eXAiOiJ2Yytqd3QifQ.eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvbnMvY3JlZGVudGlhbHMvdjIiXSwiaWQiOiJ1cm46dXVpZDpkZGRjMWM3OC02NmQ5LTU3YTUtYWYzZC1kZDY3NTMzZDdmMDgiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiSWRlbnRpdHlDcmVkZW50aWFsIl0sImlzc3VlciI6eyJpZCI6ImRpZDpleGFtcGxlOnN0YXRlLW9mLW5ldy1qZXJzZXkiLCJuYW1lIjoiU3RhdGUgb2YgTmV3IEplcnNleSJ9LCJ2YWxpZEZyb20iOiIyMDI2LTAxLTE1VDAwOjAwOjAwWiIsInZhbGlkVW50aWwiOiIyMDMwLTAxLTE1VDAwOjAwOjAwWiIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoidXJuOnV1aWQ6NjY4ODM3MmQtM2RlNS01ZWM3LWI4YTItYThmMDU5MGM1OTllIiwiZ2l2ZW5OYW1lIjoiTHVpcyIsImZhbWlseU5hbWUiOiJGZXJyZWlyYSIsImJpcnRoRGF0ZSI6IjE5ODgtMDctMDIiLCJpbWFnZSI6ImRhdGE6aW1hZ2UvanBlZztiYXNlNjQsLzlqLzRBQVFTa1pKUmdBQkFR4oCmIChwaG90bywgbm90IHNob3duKSIsImFkZHJlc3MiOnsidHlwZSI6IlBvc3RhbEFkZHJlc3MiLCJzdHJlZXRBZGRyZXNzIjoiMTQwIEZlcnJ5IFN0cmVldCIsImFkZHJlc3NMb2NhbGl0eSI6Ik5ld2FyayIsImNvdW50eSI6IkVzc2V4IiwiYWRkcmVzc1JlZ2lvbiI6Ik5KIiwicG9zdGFsQ29kZSI6IjA3MTA1In19fQ.KvqYLlbRtZuqgr9n9jXncriSsiDvb7l3i1xDWPxT_oxRJhjFbN6WTxlG8BSlp-nn</dd>
+              </dl>
+            </details>
+          </li>
+          <li>
+            <details class="disclosure">
+              <summary>
+                <span class="check__text"><span class="check__label">Income credential</span><span class="check__detail">Pinecrest Home Care · paid Sep 15, 2026 · signature matches Meridian Payroll’s key</span></span>
+                <span class="check__end"><span class="badge badge--verified">Verified</span><span class="disclosure__chev" aria-hidden="true"></span></span>
+              </summary>
+              <dl class="disclosure__body">
+                <dt>Header</dt>
+                <dd><pre class="code">{
+  &quot;alg&quot;: &quot;ES256&quot;,
+  &quot;kid&quot;: &quot;payroll-1&quot;,
+  &quot;typ&quot;: &quot;vc+jwt&quot;
+}</pre></dd>
+                <dt>Claims</dt>
+                <dd><pre class="code code--tall">{
+  &quot;@context&quot;: [
+    &quot;https://www.w3.org/ns/credentials/v2&quot;
+  ],
+  &quot;id&quot;: &quot;urn:uuid:714c7405-5d36-5b5d-ae55-851437f21128&quot;,
+  &quot;type&quot;: [
+    &quot;VerifiableCredential&quot;,
+    &quot;PaystubCredential&quot;
+  ],
+  &quot;issuer&quot;: {
+    &quot;id&quot;: &quot;https://cred-demo-payroll.onrender.com&quot;,
+    &quot;name&quot;: &quot;Meridian Payroll&quot;
+  },
+  &quot;validFrom&quot;: &quot;2026-09-15T00:00:00Z&quot;,
+  &quot;credentialSubject&quot;: {
+    &quot;id&quot;: &quot;urn:uuid:6688372d-3de5-5ec7-b8a2-a8f0590c599e&quot;,
+    &quot;employer&quot;: {
+      &quot;type&quot;: &quot;Organization&quot;,
+      &quot;name&quot;: &quot;Pinecrest Home Care&quot;
+    },
+    &quot;payPeriodStart&quot;: &quot;2026-09-01&quot;,
+    &quot;payPeriodEnd&quot;: &quot;2026-09-15&quot;,
+    &quot;payDate&quot;: &quot;2026-09-15&quot;,
+    &quot;grossPay&quot;: {
+      &quot;type&quot;: &quot;MonetaryAmount&quot;,
+      &quot;value&quot;: &quot;540.00&quot;,
+      &quot;currency&quot;: &quot;USD&quot;
+    }
+  }
+}</pre></dd>
+                <dt>Raw JWT</dt>
+                <dd class="jwt">eyJhbGciOiJFUzI1NiIsImtpZCI6InBheXJvbGwtMSIsInR5cCI6InZjK2p3dCJ9.eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvbnMvY3JlZGVudGlhbHMvdjIiXSwiaWQiOiJ1cm46dXVpZDo3MTRjNzQwNS01ZDM2LTViNWQtYWU1NS04NTE0MzdmMjExMjgiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiUGF5c3R1YkNyZWRlbnRpYWwiXSwiaXNzdWVyIjp7ImlkIjoiaHR0cHM6Ly9jcmVkLWRlbW8tcGF5cm9sbC5vbnJlbmRlci5jb20iLCJuYW1lIjoiTWVyaWRpYW4gUGF5cm9sbCJ9LCJ2YWxpZEZyb20iOiIyMDI2LTA5LTE1VDAwOjAwOjAwWiIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoidXJuOnV1aWQ6NjY4ODM3MmQtM2RlNS01ZWM3LWI4YTItYThmMDU5MGM1OTllIiwiZW1wbG95ZXIiOnsidHlwZSI6Ik9yZ2FuaXphdGlvbiIsIm5hbWUiOiJQaW5lY3Jlc3QgSG9tZSBDYXJlIn0sInBheVBlcmlvZFN0YXJ0IjoiMjAyNi0wOS0wMSIsInBheVBlcmlvZEVuZCI6IjIwMjYtMDktMTUiLCJwYXlEYXRlIjoiMjAyNi0wOS0xNSIsImdyb3NzUGF5Ijp7InR5cGUiOiJNb25ldGFyeUFtb3VudCIsInZhbHVlIjoiNTQwLjAwIiwiY3VycmVuY3kiOiJVU0QifX19.QglQzfC9uS3yxca8pXeNaJZxmtOoNepl063sW2HgeY72BAleAVfnyWgd2lPzdoDR</dd>
+              </dl>
+            </details>
+          </li>
+          <li>
+            <details class="disclosure">
+              <summary>
+                <span class="check__text"><span class="check__label">Income credential</span><span class="check__detail">Pinecrest Home Care · paid Sep 30, 2026 · signature matches Meridian Payroll’s key</span></span>
+                <span class="check__end"><span class="badge badge--verified">Verified</span><span class="disclosure__chev" aria-hidden="true"></span></span>
+              </summary>
+              <dl class="disclosure__body">
+                <dt>Header</dt>
+                <dd><pre class="code">{
+  &quot;alg&quot;: &quot;ES256&quot;,
+  &quot;kid&quot;: &quot;payroll-1&quot;,
+  &quot;typ&quot;: &quot;vc+jwt&quot;
+}</pre></dd>
+                <dt>Claims</dt>
+                <dd><pre class="code code--tall">{
+  &quot;@context&quot;: [
+    &quot;https://www.w3.org/ns/credentials/v2&quot;
+  ],
+  &quot;id&quot;: &quot;urn:uuid:6b4a2bfc-ec53-5efb-ae15-997d2aad71ca&quot;,
+  &quot;type&quot;: [
+    &quot;VerifiableCredential&quot;,
+    &quot;PaystubCredential&quot;
+  ],
+  &quot;issuer&quot;: {
+    &quot;id&quot;: &quot;https://cred-demo-payroll.onrender.com&quot;,
+    &quot;name&quot;: &quot;Meridian Payroll&quot;
+  },
+  &quot;validFrom&quot;: &quot;2026-09-30T00:00:00Z&quot;,
+  &quot;credentialSubject&quot;: {
+    &quot;id&quot;: &quot;urn:uuid:6688372d-3de5-5ec7-b8a2-a8f0590c599e&quot;,
+    &quot;employer&quot;: {
+      &quot;type&quot;: &quot;Organization&quot;,
+      &quot;name&quot;: &quot;Pinecrest Home Care&quot;
+    },
+    &quot;payPeriodStart&quot;: &quot;2026-09-16&quot;,
+    &quot;payPeriodEnd&quot;: &quot;2026-09-30&quot;,
+    &quot;payDate&quot;: &quot;2026-09-30&quot;,
+    &quot;grossPay&quot;: {
+      &quot;type&quot;: &quot;MonetaryAmount&quot;,
+      &quot;value&quot;: &quot;540.00&quot;,
+      &quot;currency&quot;: &quot;USD&quot;
+    }
+  }
+}</pre></dd>
+                <dt>Raw JWT</dt>
+                <dd class="jwt">eyJhbGciOiJFUzI1NiIsImtpZCI6InBheXJvbGwtMSIsInR5cCI6InZjK2p3dCJ9.eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvbnMvY3JlZGVudGlhbHMvdjIiXSwiaWQiOiJ1cm46dXVpZDo2YjRhMmJmYy1lYzUzLTVlZmItYWUxNS05OTdkMmFhZDcxY2EiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiUGF5c3R1YkNyZWRlbnRpYWwiXSwiaXNzdWVyIjp7ImlkIjoiaHR0cHM6Ly9jcmVkLWRlbW8tcGF5cm9sbC5vbnJlbmRlci5jb20iLCJuYW1lIjoiTWVyaWRpYW4gUGF5cm9sbCJ9LCJ2YWxpZEZyb20iOiIyMDI2LTA5LTMwVDAwOjAwOjAwWiIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoidXJuOnV1aWQ6NjY4ODM3MmQtM2RlNS01ZWM3LWI4YTItYThmMDU5MGM1OTllIiwiZW1wbG95ZXIiOnsidHlwZSI6Ik9yZ2FuaXphdGlvbiIsIm5hbWUiOiJQaW5lY3Jlc3QgSG9tZSBDYXJlIn0sInBheVBlcmlvZFN0YXJ0IjoiMjAyNi0wOS0xNiIsInBheVBlcmlvZEVuZCI6IjIwMjYtMDktMzAiLCJwYXlEYXRlIjoiMjAyNi0wOS0zMCIsImdyb3NzUGF5Ijp7InR5cGUiOiJNb25ldGFyeUFtb3VudCIsInZhbHVlIjoiNTQwLjAwIiwiY3VycmVuY3kiOiJVU0QifX19.WLmnrZmDiS12VpBcgglx7MmOHXP3jKZxcaVqH1o4cAYc2Q0uEetrITcQh9vDWOhN</dd>
+              </dl>
+            </details>
+          </li>
+          <li>
+            <details class="disclosure">
+              <summary>
+                <span class="check__text"><span class="check__label">Income credential</span><span class="check__detail">Crossroads Diner Group · paid Sep 15, 2026 · signature matches Meridian Payroll’s key</span></span>
+                <span class="check__end"><span class="badge badge--verified">Verified</span><span class="disclosure__chev" aria-hidden="true"></span></span>
+              </summary>
+              <dl class="disclosure__body">
+                <dt>Header</dt>
+                <dd><pre class="code">{
+  &quot;alg&quot;: &quot;ES256&quot;,
+  &quot;kid&quot;: &quot;payroll-1&quot;,
+  &quot;typ&quot;: &quot;vc+jwt&quot;
+}</pre></dd>
+                <dt>Claims</dt>
+                <dd><pre class="code code--tall">{
+  &quot;@context&quot;: [
+    &quot;https://www.w3.org/ns/credentials/v2&quot;
+  ],
+  &quot;id&quot;: &quot;urn:uuid:fd51cd97-c406-5681-a5ab-baa29ba7ea54&quot;,
+  &quot;type&quot;: [
+    &quot;VerifiableCredential&quot;,
+    &quot;PaystubCredential&quot;
+  ],
+  &quot;issuer&quot;: {
+    &quot;id&quot;: &quot;https://cred-demo-payroll.onrender.com&quot;,
+    &quot;name&quot;: &quot;Meridian Payroll&quot;
+  },
+  &quot;validFrom&quot;: &quot;2026-09-15T00:00:00Z&quot;,
+  &quot;credentialSubject&quot;: {
+    &quot;id&quot;: &quot;urn:uuid:6688372d-3de5-5ec7-b8a2-a8f0590c599e&quot;,
+    &quot;employer&quot;: {
+      &quot;type&quot;: &quot;Organization&quot;,
+      &quot;name&quot;: &quot;Crossroads Diner Group&quot;
+    },
+    &quot;payPeriodStart&quot;: &quot;2026-09-01&quot;,
+    &quot;payPeriodEnd&quot;: &quot;2026-09-15&quot;,
+    &quot;payDate&quot;: &quot;2026-09-15&quot;,
+    &quot;grossPay&quot;: {
+      &quot;type&quot;: &quot;MonetaryAmount&quot;,
+      &quot;value&quot;: &quot;320.00&quot;,
+      &quot;currency&quot;: &quot;USD&quot;
+    }
+  }
+}</pre></dd>
+                <dt>Raw JWT</dt>
+                <dd class="jwt">eyJhbGciOiJFUzI1NiIsImtpZCI6InBheXJvbGwtMSIsInR5cCI6InZjK2p3dCJ9.eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvbnMvY3JlZGVudGlhbHMvdjIiXSwiaWQiOiJ1cm46dXVpZDpmZDUxY2Q5Ny1jNDA2LTU2ODEtYTVhYi1iYWEyOWJhN2VhNTQiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiUGF5c3R1YkNyZWRlbnRpYWwiXSwiaXNzdWVyIjp7ImlkIjoiaHR0cHM6Ly9jcmVkLWRlbW8tcGF5cm9sbC5vbnJlbmRlci5jb20iLCJuYW1lIjoiTWVyaWRpYW4gUGF5cm9sbCJ9LCJ2YWxpZEZyb20iOiIyMDI2LTA5LTE1VDAwOjAwOjAwWiIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoidXJuOnV1aWQ6NjY4ODM3MmQtM2RlNS01ZWM3LWI4YTItYThmMDU5MGM1OTllIiwiZW1wbG95ZXIiOnsidHlwZSI6Ik9yZ2FuaXphdGlvbiIsIm5hbWUiOiJDcm9zc3JvYWRzIERpbmVyIEdyb3VwIn0sInBheVBlcmlvZFN0YXJ0IjoiMjAyNi0wOS0wMSIsInBheVBlcmlvZEVuZCI6IjIwMjYtMDktMTUiLCJwYXlEYXRlIjoiMjAyNi0wOS0xNSIsImdyb3NzUGF5Ijp7InR5cGUiOiJNb25ldGFyeUFtb3VudCIsInZhbHVlIjoiMzIwLjAwIiwiY3VycmVuY3kiOiJVU0QifX19.qWwsY81PPMkA-gQOEEkGmMRij8UFdXJN4eN9zc-9fYZOZhRkoosoNfJULwEJcviV</dd>
+              </dl>
+            </details>
+          </li>
+          <li>
+            <details class="disclosure">
+              <summary>
+                <span class="check__text"><span class="check__label">Income credential</span><span class="check__detail">Crossroads Diner Group · paid Sep 30, 2026 · signature matches Meridian Payroll’s key</span></span>
+                <span class="check__end"><span class="badge badge--verified">Verified</span><span class="disclosure__chev" aria-hidden="true"></span></span>
+              </summary>
+              <dl class="disclosure__body">
+                <dt>Header</dt>
+                <dd><pre class="code">{
+  &quot;alg&quot;: &quot;ES256&quot;,
+  &quot;kid&quot;: &quot;payroll-1&quot;,
+  &quot;typ&quot;: &quot;vc+jwt&quot;
+}</pre></dd>
+                <dt>Claims</dt>
+                <dd><pre class="code code--tall">{
+  &quot;@context&quot;: [
+    &quot;https://www.w3.org/ns/credentials/v2&quot;
+  ],
+  &quot;id&quot;: &quot;urn:uuid:f74f858e-1a78-5d3b-a1fd-abc377f609e2&quot;,
+  &quot;type&quot;: [
+    &quot;VerifiableCredential&quot;,
+    &quot;PaystubCredential&quot;
+  ],
+  &quot;issuer&quot;: {
+    &quot;id&quot;: &quot;https://cred-demo-payroll.onrender.com&quot;,
+    &quot;name&quot;: &quot;Meridian Payroll&quot;
+  },
+  &quot;validFrom&quot;: &quot;2026-09-30T00:00:00Z&quot;,
+  &quot;credentialSubject&quot;: {
+    &quot;id&quot;: &quot;urn:uuid:6688372d-3de5-5ec7-b8a2-a8f0590c599e&quot;,
+    &quot;employer&quot;: {
+      &quot;type&quot;: &quot;Organization&quot;,
+      &quot;name&quot;: &quot;Crossroads Diner Group&quot;
+    },
+    &quot;payPeriodStart&quot;: &quot;2026-09-16&quot;,
+    &quot;payPeriodEnd&quot;: &quot;2026-09-30&quot;,
+    &quot;payDate&quot;: &quot;2026-09-30&quot;,
+    &quot;grossPay&quot;: {
+      &quot;type&quot;: &quot;MonetaryAmount&quot;,
+      &quot;value&quot;: &quot;320.00&quot;,
+      &quot;currency&quot;: &quot;USD&quot;
+    }
+  }
+}</pre></dd>
+                <dt>Raw JWT</dt>
+                <dd class="jwt">eyJhbGciOiJFUzI1NiIsImtpZCI6InBheXJvbGwtMSIsInR5cCI6InZjK2p3dCJ9.eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvbnMvY3JlZGVudGlhbHMvdjIiXSwiaWQiOiJ1cm46dXVpZDpmNzRmODU4ZS0xYTc4LTVkM2ItYTFmZC1hYmMzNzdmNjA5ZTIiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiUGF5c3R1YkNyZWRlbnRpYWwiXSwiaXNzdWVyIjp7ImlkIjoiaHR0cHM6Ly9jcmVkLWRlbW8tcGF5cm9sbC5vbnJlbmRlci5jb20iLCJuYW1lIjoiTWVyaWRpYW4gUGF5cm9sbCJ9LCJ2YWxpZEZyb20iOiIyMDI2LTA5LTMwVDAwOjAwOjAwWiIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoidXJuOnV1aWQ6NjY4ODM3MmQtM2RlNS01ZWM3LWI4YTItYThmMDU5MGM1OTllIiwiZW1wbG95ZXIiOnsidHlwZSI6Ik9yZ2FuaXphdGlvbiIsIm5hbWUiOiJDcm9zc3JvYWRzIERpbmVyIEdyb3VwIn0sInBheVBlcmlvZFN0YXJ0IjoiMjAyNi0wOS0xNiIsInBheVBlcmlvZEVuZCI6IjIwMjYtMDktMzAiLCJwYXlEYXRlIjoiMjAyNi0wOS0zMCIsImdyb3NzUGF5Ijp7InR5cGUiOiJNb25ldGFyeUFtb3VudCIsInZhbHVlIjoiMzIwLjAwIiwiY3VycmVuY3kiOiJVU0QifX19._LO837L9fmEiDHACY1Ft-Oh_cXFd0pWtKaRH-QOKVfZbCRbw8Ysj3c8FjZ3O9FHF</dd>
+              </dl>
+            </details>
+          </li>
+          <li>
+            <details class="disclosure">
+              <summary>
+                <span class="check__text"><span class="check__label">Income credential</span><span class="check__detail">Beacon Security Services · paid Sep 15, 2026 · signature matches Meridian Payroll’s key</span></span>
+                <span class="check__end"><span class="badge badge--verified">Verified</span><span class="disclosure__chev" aria-hidden="true"></span></span>
+              </summary>
+              <dl class="disclosure__body">
+                <dt>Header</dt>
+                <dd><pre class="code">{
+  &quot;alg&quot;: &quot;ES256&quot;,
+  &quot;kid&quot;: &quot;payroll-1&quot;,
+  &quot;typ&quot;: &quot;vc+jwt&quot;
+}</pre></dd>
+                <dt>Claims</dt>
+                <dd><pre class="code code--tall">{
+  &quot;@context&quot;: [
+    &quot;https://www.w3.org/ns/credentials/v2&quot;
+  ],
+  &quot;id&quot;: &quot;urn:uuid:f942bcc1-f464-501d-a1f6-7dd0e4afcba0&quot;,
+  &quot;type&quot;: [
+    &quot;VerifiableCredential&quot;,
+    &quot;PaystubCredential&quot;
+  ],
+  &quot;issuer&quot;: {
+    &quot;id&quot;: &quot;https://cred-demo-payroll.onrender.com&quot;,
+    &quot;name&quot;: &quot;Meridian Payroll&quot;
+  },
+  &quot;validFrom&quot;: &quot;2026-09-15T00:00:00Z&quot;,
+  &quot;credentialSubject&quot;: {
+    &quot;id&quot;: &quot;urn:uuid:6688372d-3de5-5ec7-b8a2-a8f0590c599e&quot;,
+    &quot;employer&quot;: {
+      &quot;type&quot;: &quot;Organization&quot;,
+      &quot;name&quot;: &quot;Beacon Security Services&quot;
+    },
+    &quot;payPeriodStart&quot;: &quot;2026-09-01&quot;,
+    &quot;payPeriodEnd&quot;: &quot;2026-09-15&quot;,
+    &quot;payDate&quot;: &quot;2026-09-15&quot;,
+    &quot;grossPay&quot;: {
+      &quot;type&quot;: &quot;MonetaryAmount&quot;,
+      &quot;value&quot;: &quot;408.00&quot;,
+      &quot;currency&quot;: &quot;USD&quot;
+    }
+  }
+}</pre></dd>
+                <dt>Raw JWT</dt>
+                <dd class="jwt">eyJhbGciOiJFUzI1NiIsImtpZCI6InBheXJvbGwtMSIsInR5cCI6InZjK2p3dCJ9.eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvbnMvY3JlZGVudGlhbHMvdjIiXSwiaWQiOiJ1cm46dXVpZDpmOTQyYmNjMS1mNDY0LTUwMWQtYTFmNi03ZGQwZTRhZmNiYTAiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiUGF5c3R1YkNyZWRlbnRpYWwiXSwiaXNzdWVyIjp7ImlkIjoiaHR0cHM6Ly9jcmVkLWRlbW8tcGF5cm9sbC5vbnJlbmRlci5jb20iLCJuYW1lIjoiTWVyaWRpYW4gUGF5cm9sbCJ9LCJ2YWxpZEZyb20iOiIyMDI2LTA5LTE1VDAwOjAwOjAwWiIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoidXJuOnV1aWQ6NjY4ODM3MmQtM2RlNS01ZWM3LWI4YTItYThmMDU5MGM1OTllIiwiZW1wbG95ZXIiOnsidHlwZSI6Ik9yZ2FuaXphdGlvbiIsIm5hbWUiOiJCZWFjb24gU2VjdXJpdHkgU2VydmljZXMifSwicGF5UGVyaW9kU3RhcnQiOiIyMDI2LTA5LTAxIiwicGF5UGVyaW9kRW5kIjoiMjAyNi0wOS0xNSIsInBheURhdGUiOiIyMDI2LTA5LTE1IiwiZ3Jvc3NQYXkiOnsidHlwZSI6Ik1vbmV0YXJ5QW1vdW50IiwidmFsdWUiOiI0MDguMDAiLCJjdXJyZW5jeSI6IlVTRCJ9fX0._BJbtcUF_N2rEZYUejNzgPXoVrvkV4eVRgEMs9wNDR4Rp5cGsgQtaV1aoAtReKGx</dd>
+              </dl>
+            </details>
+          </li>
+          <li>
+            <details class="disclosure">
+              <summary>
+                <span class="check__text"><span class="check__label">Income credential</span><span class="check__detail">Beacon Security Services · paid Sep 30, 2026 · signature matches Meridian Payroll’s key</span></span>
+                <span class="check__end"><span class="badge badge--verified">Verified</span><span class="disclosure__chev" aria-hidden="true"></span></span>
+              </summary>
+              <dl class="disclosure__body">
+                <dt>Header</dt>
+                <dd><pre class="code">{
+  &quot;alg&quot;: &quot;ES256&quot;,
+  &quot;kid&quot;: &quot;payroll-1&quot;,
+  &quot;typ&quot;: &quot;vc+jwt&quot;
+}</pre></dd>
+                <dt>Claims</dt>
+                <dd><pre class="code code--tall">{
+  &quot;@context&quot;: [
+    &quot;https://www.w3.org/ns/credentials/v2&quot;
+  ],
+  &quot;id&quot;: &quot;urn:uuid:f34074b8-9a20-5753-aead-bda1d7c73282&quot;,
+  &quot;type&quot;: [
+    &quot;VerifiableCredential&quot;,
+    &quot;PaystubCredential&quot;
+  ],
+  &quot;issuer&quot;: {
+    &quot;id&quot;: &quot;https://cred-demo-payroll.onrender.com&quot;,
+    &quot;name&quot;: &quot;Meridian Payroll&quot;
+  },
+  &quot;validFrom&quot;: &quot;2026-09-30T00:00:00Z&quot;,
+  &quot;credentialSubject&quot;: {
+    &quot;id&quot;: &quot;urn:uuid:6688372d-3de5-5ec7-b8a2-a8f0590c599e&quot;,
+    &quot;employer&quot;: {
+      &quot;type&quot;: &quot;Organization&quot;,
+      &quot;name&quot;: &quot;Beacon Security Services&quot;
+    },
+    &quot;payPeriodStart&quot;: &quot;2026-09-16&quot;,
+    &quot;payPeriodEnd&quot;: &quot;2026-09-30&quot;,
+    &quot;payDate&quot;: &quot;2026-09-30&quot;,
+    &quot;grossPay&quot;: {
+      &quot;type&quot;: &quot;MonetaryAmount&quot;,
+      &quot;value&quot;: &quot;408.00&quot;,
+      &quot;currency&quot;: &quot;USD&quot;
+    }
+  }
+}</pre></dd>
+                <dt>Raw JWT</dt>
+                <dd class="jwt">eyJhbGciOiJFUzI1NiIsImtpZCI6InBheXJvbGwtMSIsInR5cCI6InZjK2p3dCJ9.eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvbnMvY3JlZGVudGlhbHMvdjIiXSwiaWQiOiJ1cm46dXVpZDpmMzQwNzRiOC05YTIwLTU3NTMtYWVhZC1iZGExZDdjNzMyODIiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiUGF5c3R1YkNyZWRlbnRpYWwiXSwiaXNzdWVyIjp7ImlkIjoiaHR0cHM6Ly9jcmVkLWRlbW8tcGF5cm9sbC5vbnJlbmRlci5jb20iLCJuYW1lIjoiTWVyaWRpYW4gUGF5cm9sbCJ9LCJ2YWxpZEZyb20iOiIyMDI2LTA5LTMwVDAwOjAwOjAwWiIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoidXJuOnV1aWQ6NjY4ODM3MmQtM2RlNS01ZWM3LWI4YTItYThmMDU5MGM1OTllIiwiZW1wbG95ZXIiOnsidHlwZSI6Ik9yZ2FuaXphdGlvbiIsIm5hbWUiOiJCZWFjb24gU2VjdXJpdHkgU2VydmljZXMifSwicGF5UGVyaW9kU3RhcnQiOiIyMDI2LTA5LTE2IiwicGF5UGVyaW9kRW5kIjoiMjAyNi0wOS0zMCIsInBheURhdGUiOiIyMDI2LTA5LTMwIiwiZ3Jvc3NQYXkiOnsidHlwZSI6Ik1vbmV0YXJ5QW1vdW50IiwidmFsdWUiOiI0MDguMDAiLCJjdXJyZW5jeSI6IlVTRCJ9fX0.5lb-9X9BkJ1jHmU0sGG2rF58f5stoRZRgFeMP34FuZb8BJAGD3nEkchOrGv4hrfl</dd>
+              </dl>
+            </details>
+          </li>
+          <li class="check">
+            <span class="check__text"><span class="check__label">Same person</span><span class="check__detail">All 7 credentials name subject 6688372d…</span></span>
+            <span class="badge badge--verified">Same subject</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="stack-s" aria-labelledby="submitted">
+        <h2 class="section__title section__title--sm" id="submitted">2. Submitted data</h2>
+        <div class="submitted">
+          <div class="card card--flat stack-s">
+            <h3 class="card__meta">From the identity credential</h3>
+            <dl class="claims claims--grid">
+              <dt>State</dt><dd class="claims__value--strong">New Jersey (NJ)</dd>
+              <dt>County</dt><dd class="claims__value--strong">Essex</dd>
+            </dl>
+          </div>
+          <div class="card card--flat figures__scroll">
+            <table class="figures">
+              <caption>From the income credentials</caption>
+              <thead><tr><th scope="col">Employer</th><th scope="col">Pay date</th><th scope="col">Gross pay</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Pinecrest Home Care</th><td>Sep 15, 2026</td><td>$540.00</td></tr>
+                <tr><th scope="row">Pinecrest Home Care</th><td>Sep 30, 2026</td><td>$540.00</td></tr>
+                <tr><th scope="row">Crossroads Diner Group</th><td>Sep 15, 2026</td><td>$320.00</td></tr>
+                <tr><th scope="row">Crossroads Diner Group</th><td>Sep 30, 2026</td><td>$320.00</td></tr>
+                <tr><th scope="row">Beacon Security Services</th><td>Sep 15, 2026</td><td>$408.00</td></tr>
+                <tr><th scope="row">Beacon Security Services</th><td>Sep 30, 2026</td><td>$408.00</td></tr>
+              </tbody>
+              <tfoot>
+                <tr><th scope="row" colspan="2">Monthly income</th><td>$2,536.00</td></tr>
+                <tr><th scope="row" colspan="2">Annual income (× 12)</th><td>$30,432.00</td></tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="stack-s" aria-labelledby="programs">
+        <h2 class="section__title section__title--sm" id="programs">3. Program decisions</h2>
+        <ul class="decisions">
+          <li class="decision" data-program="food">
+            <div class="decision__head">
+              <h3 class="decision__name">Food Assistance</h3>
+              <span class="badge badge--neutral">Not eligible</span>
+            </div>
+            <div class="decision__body">
+              <dl class="decision__facts">
+                <dt>Figure</dt><dd>Annual income $30,432.00, limit $29,526.00</dd>
+                <dt>Result</dt><dd class="decision__result">$906.00 over the limit ($75.50 a month)</dd>
+              </dl>
+              <div class="scale" aria-hidden="true" style="--zone-start: 0%; --zone-width: 77.62%; --dot: 80.00%;">
+                <div class="scale__track"><div class="scale__zone"></div><div class="scale__dot"></div></div>
+                <div class="scale__legend"><span>Qualifies up to $29,526.00</span><span>● $30,432.00</span></div>
+              </div>
+            </div>
+            <div class="decision__foot decision__foot--plain">No credential issued · reason <code>income_over_limit</code></div>
+          </li>
+          <li class="decision" data-program="energy">
+            <div class="decision__head">
+              <h3 class="decision__name">Energy Assistance</h3>
+              <span class="badge badge--neutral">Not eligible</span>
+            </div>
+            <div class="decision__body">
+              <dl class="decision__facts">
+                <dt>Figure</dt><dd>Annual income $30,432.00, limit $30,000.00</dd>
+                <dt>Result</dt><dd class="decision__result">$432.00 over the limit ($36.00 a month)</dd>
+              </dl>
+              <div class="scale" aria-hidden="true" style="--zone-start: 0%; --zone-width: 78.86%; --dot: 80.00%;">
+                <div class="scale__track"><div class="scale__zone"></div><div class="scale__dot"></div></div>
+                <div class="scale__legend"><span>Qualifies up to $30,000.00</span><span>● $30,432.00</span></div>
+              </div>
+            </div>
+            <div class="decision__foot decision__foot--plain">No credential issued · reason <code>income_over_limit</code></div>
+          </li>
+          <li class="decision" data-program="housing">
+            <div class="decision__head">
+              <h3 class="decision__name">Housing Assistance</h3>
+              <span class="badge badge--neutral">Not eligible</span>
+            </div>
+            <div class="decision__body">
+              <dl class="decision__facts">
+                <dt>Figure</dt><dd>Annual income $30,432.00, limit $23,013.60</dd>
+                <dt>Result</dt><dd class="decision__result">$7,418.40 over the limit ($618.20 a month)</dd>
+              </dl>
+              <div class="scale" aria-hidden="true" style="--zone-start: 0%; --zone-width: 60.50%; --dot: 80.00%;">
+                <div class="scale__track"><div class="scale__zone"></div><div class="scale__dot"></div></div>
+                <div class="scale__legend"><span>Qualifies up to $23,013.60</span><span>● $30,432.00</span></div>
+              </div>
+            </div>
+            <div class="decision__foot decision__foot--plain">No credential issued · reason <code>income_over_limit</code></div>
+          </li>
+          <li class="decision" data-program="health">
+            <div class="decision__head">
+              <h3 class="decision__name">Health</h3>
+              <span class="badge badge--verified">Eligible</span>
+            </div>
+            <div class="decision__body">
+              <dl class="decision__facts">
+                <dt>Figure</dt><dd>Annual income $30,432.00</dd>
+                <dt>Result</dt><dd class="decision__result">85.4% off: $109.50 a month</dd>
+              </dl>
+              <div class="scale" aria-hidden="true" style="--zone-start: 24.47%; --zone-width: 64.19%; --dot: 33.81%;">
+                <div class="scale__track"><div class="scale__zone"></div><div class="scale__dot"></div></div>
+                <div class="scale__legend"><span>Scale $22,024.80–$79,800.00</span><span>● $30,432.00</span></div>
+              </div>
+            </div>
+            <div class="decision__foot">
+              <span class="decision__foot-label">Issued credential · valid until 1 Oct 2027</span>
+              <span class="mono">urn:uuid:632131f5-3afc-5c5d-a769-a524124625fa</span>
+              <span class="mono">discountPercent: 85.4 · planCost: $750.00 USD</span>
+            </div>
+          </li>
+          <li class="decision" data-program="dividend">
+            <div class="decision__head">
+              <h3 class="decision__name">Dividend</h3>
+              <span class="badge badge--verified">Eligible</span>
+            </div>
+            <div class="decision__body">
+              <dl class="decision__facts">
+                <dt>Figure</dt><dd>Monthly income $2,536.00</dd>
+                <dt>Result</dt><dd class="decision__result">$100.00 a month (base only, above $1,200.00)</dd>
+              </dl>
+              <div class="scale" aria-hidden="true" style="--zone-start: 0%; --zone-width: 37.85%; --dot: 80.00%;">
+                <div class="scale__track"><div class="scale__zone"></div><div class="scale__dot"></div></div>
+                <div class="scale__legend"><span>Extra paid up to $1,200.00</span><span>● $2,536.00</span></div>
+              </div>
+            </div>
+            <div class="decision__foot">
+              <span class="decision__foot-label">Issued credential · valid until 1 Oct 2027</span>
+              <span class="mono">urn:uuid:99f2cee6-2aee-508d-afd6-f2956382940c</span>
+              <span class="mono">monthlyPayment: $100.00 USD</span>
+            </div>
+          </li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></span>
+    </div>
+  </footer>
+</body>
+</html>

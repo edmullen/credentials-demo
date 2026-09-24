@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" data-app="wallet">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Do you want to share 3 credentials with Benefit Agency? — Wallet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;600&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="credentials-p01.html">
+        <span class="header__mark header__mark--wallet" aria-hidden="true"></span>
+        Wallet
+      </a>
+      <span class="initials" role="img" aria-label="Grace Okafor">GO</span>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <nav class="nav-menu__panel" aria-label="Main">
+          <a href="credentials-p01.html">Credentials</a>
+          <a href="connections.html">Connections</a>
+          <a href="activity.html">Activity</a>
+          <a class="nav-menu__signout" href="landing.html">Sign out</a>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <div class="wrap stack">
+      <div class="pagehead">
+        <a class="back" href="credentials-p01.html">Credentials</a>
+        <span class="pagehead__sep" aria-hidden="true"></span>
+        <h1 class="pagehead__title">Request from Benefit Agency</h1>
+      </div>
+      <div class="arrival">
+        <img class="arrival__photo" src="photos/p01.jpg" alt="" width="44" height="55">
+        <div class="arrival__text">
+          <p>Benefit Agency sent you here. You&rsquo;re applying as <strong>Grace Okafor</strong>.</p>
+          <a href="person-switcher.html">Not you? Switch person</a>
+        </div>
+      </div>
+      <h2 class="intro__title">Do you want to share 3 credentials with Benefit Agency?</h2>
+      <p class="intro__purpose">Benefit Agency uses your identity and your September pay to decide five programs at once: Food, Energy and Housing Assistance, Health, and Dividend.</p>
+      <form class="decision" method="post" action="checking.html">
+        <p class="decision__lead">This applies to the whole request: all 3 credentials.</p>
+        <div class="actions">
+          <button class="btn" type="submit" name="decision" value="approve">Approve and share</button>
+          <button class="btn btn--secondary" type="submit" name="decision" value="deny">Deny</button>
+        </div>
+      </form>
+      <ol class="request">
+        <li class="request__item">
+          <div class="category__head">
+            <h2 class="category__title" id="r1">Identity credential</h2>
+            <span class="card__meta">1 of 3</span>
+          </div>
+          <div class="panel" aria-labelledby="r1">
+            <div class="panel__status panel__status--plain">
+              <h3 class="visually-hidden" id="r1-status">Status</h3>
+              <span class="cred__top">
+                <span class="cred__issuer">
+                  <span class="card__meta">Issuer:</span>
+                  <span class="cred__issuer-name">State of New Jersey</span>
+                </span>
+                <span class="badge badge--verified"><span class="badge__icon" aria-hidden="true">&#10003;</span>Verified</span>
+              </span>
+              <p>Nothing in this credential has changed since the State of New Jersey issued it.</p>
+            </div>
+            <div class="panel__section panel__section--id">
+              <img class="cred__photo cred__photo--lg" src="photos/p01.jpg" alt="Grace Okafor" width="120" height="150">
+              <dl class="claims">
+                <div>
+                  <dt class="card__meta">Name</dt>
+                  <dd class="claims__value--strong">Grace Okafor</dd>
+                </div>
+                <div>
+                  <dt class="card__meta">Date of birth</dt>
+                  <dd>11 March 1982</dd>
+                </div>
+                <div>
+                  <dt class="card__meta">Issued by</dt>
+                  <dd>State of New Jersey</dd>
+                </div>
+              </dl>
+            </div>
+            <div class="panel__section">
+              <h3 class="panel__title">Address</h3>
+              <dl class="claims claims--grid">
+                <dt>Street</dt>
+                <dd>118 Mine Street</dd>
+                <dt>City or town</dt>
+                <dd>Flemington</dd>
+                <dt>County</dt>
+                <dd>Hunterdon</dd>
+                <dt>State</dt>
+                <dd>New Jersey</dd>
+                <dt>ZIP code</dt>
+                <dd>08822</dd>
+              </dl>
+            </div>
+            <div class="panel__section panel__section--meta">
+              <span>Valid from 10 February 2026</span>
+              <span>Valid until 10 February 2030</span>
+            </div>
+            <details class="disclosure">
+              <summary>View credential details<span class="disclosure__chev" aria-hidden="true"></span></summary>
+              <dl class="disclosure__body">
+                <div>
+                  <dt>Credential id</dt>
+                  <dd>urn:uuid:3f0cb8da-5bb0-5d92-bee0-7ec5410b22f5</dd>
+                </div>
+                <div>
+                  <dt>Issuer</dt>
+                  <dd>did:example:state-of-new-jersey</dd>
+                </div>
+                <div>
+                  <dt>Type</dt>
+                  <dd>VerifiableCredential, IdentityCredential</dd>
+                </div>
+                <div>
+                  <dt>validFrom / validUntil</dt>
+                  <dd>2026-02-10T00:00:00Z / 2030-02-10T00:00:00Z</dd>
+                </div>
+                <div>
+                  <dt>Signed JWT</dt>
+                  <dd class="jwt">eyJhbGciOiJFUzI1NiIsImtpZCI6Im5qLTEiLCJ0eXAiOiJ2Yytqd3QifQ.eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvbnMvY3JlZGVudGlhbHMvdjIiXSwiaWQiOiJ1cm46dXVpZDozZjBjYjhkYS01YmIwLTVkOTItYmVlMC03ZWM1NDEwYjIyZjUiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiSWRlbnRpdHlDcmVkZW50aWFsIl0sImlzc3VlciI6eyJpZCI6ImRpZDpleGFtcGxlOnN0YXRlLW9mLW5ldy1qZXJzZXkiLCJuYW1lIjoiU3RhdGUgb2YgTmV3IEplcnNleSJ9&hellip;</dd>
+                </div>
+              </dl>
+            </details>
+          </div>
+        </li>
+        <li class="request__item">
+          <div class="category__head">
+            <h2 class="category__title" id="r2">Income credentials</h2>
+            <span class="card__meta">2&ndash;3 of 3</span>
+          </div>
+          <div class="panel cred--issuer" style="--issuer-hue: 255" aria-labelledby="r2">
+            <div class="panel__issuer">
+              <span class="card__meta">Issuer:</span>
+              <span class="panel__issuer-name">Meridian Payroll</span>
+            </div>
+            <div class="panel__status panel__status--plain">
+              <h3 class="visually-hidden" id="r2-status">Status</h3>
+              <span class="cred__top">
+                <span class="cred__issuer">
+                  <span class="card__meta">2 paystubs</span>
+                  <span class="cred__issuer-name">September 2026</span>
+                </span>
+                <span class="badge badge--verified"><span class="badge__icon" aria-hidden="true">&#10003;</span>All verified</span>
+              </span>
+              <p>Nothing in these 2 credentials has changed since Meridian Payroll issued them. Open one to see every claim it shares.</p>
+            </div>
+            <ul class="shares" aria-label="Income credentials">
+              <li>
+                <details class="share">
+                  <summary>
+                    <span class="share__who">
+                      <span class="share__employer">Pinecrest Home Care</span>
+                      <span class="share__period">1&ndash;15 Sep 2026</span>
+                    </span>
+                    <span class="share__gross"><span class="visually-hidden">Gross pay </span>$1,100.00</span>
+                    <span class="disclosure__chev" aria-hidden="true"></span>
+                  </summary>
+                  <div class="share__body">
+                    <dl class="claims claims--grid">
+                      <dt>Employer</dt>
+                      <dd class="claims__value--strong">Pinecrest Home Care</dd>
+                      <dt>Issued by</dt>
+                      <dd>Meridian Payroll</dd>
+                      <dt>Pay period</dt>
+                      <dd>1&ndash;15 September 2026</dd>
+                      <dt>Pay date</dt>
+                      <dd>15 September 2026</dd>
+                      <dt>Frequency</dt>
+                      <dd>Semimonthly</dd>
+                      <dt>Gross pay</dt>
+                      <dd class="claims__value--strong">$1,100.00</dd>
+                      <dt>Net pay</dt>
+                      <dd>$955.87</dd>
+                    </dl>
+                    <p class="share__id">urn:uuid:8a51d3c9-4e27-5b8f-a0c6-13f9e2d74b08</p>
+                  </div>
+                </details>
+              </li>
+              <li>
+                <details class="share">
+                  <summary>
+                    <span class="share__who">
+                      <span class="share__employer">Pinecrest Home Care</span>
+                      <span class="share__period">16&ndash;30 Sep 2026</span>
+                    </span>
+                    <span class="share__gross"><span class="visually-hidden">Gross pay </span>$1,100.00</span>
+                    <span class="disclosure__chev" aria-hidden="true"></span>
+                  </summary>
+                  <div class="share__body">
+                    <dl class="claims claims--grid">
+                      <dt>Employer</dt>
+                      <dd class="claims__value--strong">Pinecrest Home Care</dd>
+                      <dt>Issued by</dt>
+                      <dd>Meridian Payroll</dd>
+                      <dt>Pay period</dt>
+                      <dd>16&ndash;30 September 2026</dd>
+                      <dt>Pay date</dt>
+                      <dd>30 September 2026</dd>
+                      <dt>Frequency</dt>
+                      <dd>Semimonthly</dd>
+                      <dt>Gross pay</dt>
+                      <dd class="claims__value--strong">$1,100.00</dd>
+                      <dt>Net pay</dt>
+                      <dd>$955.87</dd>
+                    </dl>
+                    <p class="share__id">urn:uuid:c27e0b64-91d3-5a48-b6f2-0e8d3a7c5194</p>
+                  </div>
+                </details>
+              </li>
+            </ul>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p class="footer__note"><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></p>
+      <span class="footer__aside"><a href="person-switcher.html">Switch person</a></span>
+    </div>
+  </footer>
+</body>
+</html>
