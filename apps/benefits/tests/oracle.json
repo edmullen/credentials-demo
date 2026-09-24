@@ -1,0 +1,24 @@
+{
+  "_comment": "Copied from docs/sample-data.md's Expected outcomes table (Loop 6's test oracle). Tests can't read docs/, so it's copied here rather than referenced.",
+  "rows": [
+    {"person": "Grace Okafor", "county": "Hunterdon", "monthly": "2200.00", "annual": "26400.00", "health_discount": "92.4", "food": true, "energy": true, "housing": true, "dividend": "100.00"},
+    {"person": "Rosa Medina", "county": "Cumberland", "monthly": "2200.00", "annual": "26400.00", "health_discount": "92.4", "food": true, "energy": true, "housing": false, "dividend": "100.00"},
+    {"person": "Tomasz Nowak", "county": "Union", "monthly": "2480.00", "annual": "29760.00", "health_discount": "86.6", "food": false, "energy": true, "housing": true, "dividend": "100.00"},
+    {"person": "Aisha Rahman", "county": "Middlesex", "monthly": "640.00", "annual": "7680.00", "health_discount": "100.0", "food": true, "energy": true, "housing": true, "dividend": "240.00"},
+    {"person": "Frank Russo", "county": "Ocean", "monthly": "960.00", "annual": "11520.00", "health_discount": "100.0", "food": true, "energy": true, "housing": true, "dividend": "160.00"},
+    {"person": "Tanya Brooks", "county": "Camden", "monthly": "1120.00", "annual": "13440.00", "health_discount": "100.0", "food": true, "energy": true, "housing": true, "dividend": "120.00"},
+    {"person": "Luis Ferreira", "county": "Essex", "monthly": "2536.00", "annual": "30432.00", "health_discount": "85.4", "food": false, "energy": false, "housing": false, "dividend": "100.00"},
+    {"person": "Nadia Haddad", "county": "Passaic", "monthly": "2100.00", "annual": "25200.00", "health_discount": "94.5", "food": true, "energy": true, "housing": true, "dividend": "100.00"},
+    {"person": "Daniel Walsh", "county": "Morris", "monthly": "7666.66", "annual": "91999.92", "health_discount": "0.0", "food": false, "energy": false, "housing": false, "dividend": "100.00"},
+    {"person": "Priya Shah", "county": "Hudson", "monthly": "5666.66", "annual": "67999.92", "health_discount": "20.4", "food": false, "energy": false, "housing": false, "dividend": "100.00"},
+    {"person": "Kevin Tran", "county": "Middlesex", "monthly": "8750.00", "annual": "105000.00", "health_discount": "0.0", "food": false, "energy": false, "housing": false, "dividend": "100.00"},
+    {"person": "Helen Cho", "county": "Somerset", "monthly": "9833.34", "annual": "118000.08", "health_discount": "0.0", "food": false, "energy": false, "housing": false, "dividend": "100.00"},
+    {"person": "Marcus Reed", "county": "Gloucester", "monthly": "4472.00", "annual": "53664.00", "health_discount": "45.2", "food": false, "energy": false, "housing": false, "dividend": "100.00"},
+    {"person": "Andre Pierre", "county": "Mercer", "monthly": "3268.00", "annual": "39216.00", "health_discount": "70.2", "food": false, "energy": false, "housing": false, "dividend": "100.00"},
+    {"person": "Jenna Kowalski", "county": "Monmouth", "monthly": "3520.00", "annual": "42240.00", "health_discount": "65.0", "food": false, "energy": false, "housing": false, "dividend": "100.00"},
+    {"person": "Isaiah Coleman", "county": "Burlington", "monthly": "3040.00", "annual": "36480.00", "health_discount": "75.0", "food": false, "energy": false, "housing": false, "dividend": "100.00"},
+    {"person": "Jun Park", "county": "Bergen", "monthly": "2800.00", "annual": "33600.00", "health_discount": "80.0", "food": false, "energy": false, "housing": true, "dividend": "100.00"},
+    {"person": "Ana Reyes", "county": "Atlantic", "monthly": "2720.00", "annual": "32640.00", "health_discount": "81.6", "food": false, "energy": false, "housing": false, "dividend": "100.00"}
+  ],
+  "out_of_state": ["Emily Carter", "Nikos Pappas", "Jamal Wright"]
+}

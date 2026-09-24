@@ -1,0 +1,41 @@
+{
+  "as_of": "September 2026",
+  "federal_poverty_level": "15960",
+  "state_median_income": "50000",
+  "food_limit_pct": "1.85",
+  "energy_limit_pct": "0.60",
+  "housing_share_pct": "0.30",
+  "health": {
+    "plan_cost": "750",
+    "full_discount_ceiling_pct": "1.38",
+    "zero_discount_floor_pct": "5.00"
+  },
+  "dividend": {
+    "base": "100",
+    "max_bump": "300",
+    "phase_out": "1200"
+  },
+  "county_ami": {
+    "Hunterdon": "139453",
+    "Somerset": "135960",
+    "Morris": "134929",
+    "Bergen": "123715",
+    "Monmouth": "122727",
+    "Sussex": "114316",
+    "Middlesex": "109028",
+    "Burlington": "105271",
+    "Gloucester": "102807",
+    "Union": "100117",
+    "Warren": "99596",
+    "Mercer": "96333",
+    "Hudson": "90032",
+    "Cape May": "88046",
+    "Passaic": "87137",
+    "Ocean": "86411",
+    "Camden": "86384",
+    "Salem": "78412",
+    "Atlantic": "76819",
+    "Essex": "76712",
+    "Cumberland": "64499"
+  }
+}
