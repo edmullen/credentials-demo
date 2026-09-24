@@ -32,13 +32,16 @@
         <div class="panel__section">
           <div class="provider__head">
             <span class="cred__issuer">
-              <span class="card__meta">Payroll provider</span>
+              <span class="card__meta">{{ "Government service" if panel.kind == "service" else "Payroll provider" }}</span>
               <h2 class="card__title" id="prov-{{ panel.provider_id }}">{{ panel.name }}</h2>
             </span>
             <form method="post" action="/p/{{ person.id }}/connections/{{ panel.provider_id }}/remove">
-              <button class="link-btn" type="submit" aria-describedby="prov-{{ panel.provider_id }}">{{ "Disconnect" if panel.connected else "Remove" }}</button>
+              <button class="link-btn" type="submit" aria-describedby="{{ 'remove-note-' ~ panel.provider_id if panel.kind == 'service' else 'prov-' ~ panel.provider_id }}">{{ "Remove" if panel.kind == "service" else ("Disconnect" if panel.connected else "Remove") }}</button>
             </form>
           </div>
+          {% if panel.kind == "service" %}
+          <p class="card__meta" id="remove-note-{{ panel.provider_id }}">Removing {{ panel.name }} keeps your benefit credentials.</p>
+          {% else %}
           <ul class="provider__emps" aria-label="Employers">
             {% for name in panel.employers %}
             <li class="provider__emp">{{ name }}</li>
@@ -48,6 +51,7 @@
           <form method="post" action="/p/{{ person.id }}/connections/{{ panel.provider_id }}/connect">
             <button class="btn btn--block" type="submit">{{ "Try again" if panel.band else "Connect payroll" }}</button>
           </form>
+          {% endif %}
           {% endif %}
         </div>
       </section>

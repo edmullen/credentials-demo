@@ -31,6 +31,8 @@ def income_note(person_id: str) -> dict:
     "chosen" with an employer added but not connected (including after a failed attempt), or
     "connected". "chosen" names the most recently added employer."""
     for provider_id, provider in all_providers().items():
+        if provider["kind"] != "payroll":
+            continue
         link = state.get_link(person_id, provider_id)
         if link is None:
             continue
@@ -56,6 +58,8 @@ def income_check_view(person_id: str) -> dict | None:
     person still holds their income cards, but needs to reconnect.
     """
     for provider_id, provider in all_providers().items():
+        if provider["kind"] != "payroll":
+            continue
         link = state.get_link(person_id, provider_id)
         if link is None:
             continue
@@ -74,9 +78,27 @@ def income_check_view(person_id: str) -> dict | None:
     return None
 
 
-def band_for(person_id: str, provider_name: str, link: state.Link) -> dict | None:
+def _service_band(person_id: str, provider_name: str, link: state.Link) -> dict:
+    """A service's connected band names how many benefit credentials it sent instead of
+    Payroll's per-employer sentence, and leaves that line out at zero (docs/design.md §10.9)."""
+    from app.credentials import credentials_for  # local import: avoids a cycle at module load
+
+    s = CONNECTION_STATES["connected"]
+    held = sum(1 for c in credentials_for(person_id) if c.category == "Benefits")
+    sentences = [f"Connected since {when(link.connected_at)}."]
+    if held:
+        sentences.append(f"{provider_name} sent you {held} benefit credential{'' if held == 1 else 's'}.")
+    return {
+        "variant": s.variant, "glyph": s.glyph, "label": s.label,
+        "sentences": sentences, "credential_link": None, "arrived": None,
+    }
+
+
+def band_for(person_id: str, provider_name: str, link: state.Link, kind: str = "payroll") -> dict | None:
     """The provider panel's status band, or None when there's nothing to say yet."""
     if link.connected_at:
+        if kind == "service":
+            return _service_band(person_id, provider_name, link)
         s = CONNECTION_STATES["connected"]
         sentences = connection_sentences("connected", provider_name, when(link.connected_at))
         arrived = link.arrived
@@ -101,7 +123,8 @@ def band_for(person_id: str, provider_name: str, link: state.Link) -> dict | Non
 
 
 def provider_panels(person_id: str) -> list[dict]:
-    """One panel per provider the person has a link to (only ever Meridian this loop)."""
+    """One panel per provider the person has a link to, services above payroll providers —
+    "newest first" in the only order this loop's demo produces (docs/design.md §10.9)."""
     panels = []
     for provider_id, provider in all_providers().items():
         link = state.get_link(person_id, provider_id)
@@ -110,10 +133,12 @@ def provider_panels(person_id: str) -> list[dict]:
         panels.append({
             "provider_id": provider_id,
             "name": provider["name"],
+            "kind": provider["kind"],
             "employers": employer_names(link.employers),
             "connected": link.connected_at is not None,
-            "band": band_for(person_id, provider["name"], link),
+            "band": band_for(person_id, provider["name"], link, provider["kind"]),
         })
+    panels.sort(key=lambda p: p["kind"] != "service")
     return panels
 
 
@@ -150,7 +175,11 @@ def remove_link(person_id: str, provider_id: str) -> dict | None:
     link = state.remove_link(person_id, provider_id)
     if link is None:
         return None
-    if link.connected_at is not None:
+    if provider["kind"] == "service":
+        # A service has no employers, so Payroll's "…removed, with {employers}" doesn't apply
+        # (docs/design.md §10.9); Remove always reads this way, connected or not.
+        message = f"{provider['name']} removed"
+    elif link.connected_at is not None:
         message = f"Disconnected from {provider['name']}"
     else:
         message = f"{provider['name']} removed, with {join_and(employer_names(link.employers))}"

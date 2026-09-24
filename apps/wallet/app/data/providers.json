@@ -1,5 +1,6 @@
 {
   "meridian": {
+    "kind": "payroll",
     "name": "Meridian Payroll",
     "url": "https://cred-demo-payroll.onrender.com",
     "employers": [
@@ -7,5 +8,12 @@
       "harborline", "ironbound", "libertycrest", "northfield", "palisade",
       "pinecrest", "raritan", "ridgeline", "shoreway"
     ]
+  },
+  "benefits": {
+    "kind": "service",
+    "name": "Benefit Agency",
+    "url": "https://cred-demo-benefits.onrender.com",
+    "employers": [],
+    "blurb": "Five programs, applied for together: Food, Energy and Housing Assistance, Health, and Dividend"
   }
 }

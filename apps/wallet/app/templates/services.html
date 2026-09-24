@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% set page_title = "Government services" %}
+{% block main %}
+    <div class="wrap stack">
+      <div class="pagehead">
+        <a class="back" href="/p/{{ person.id }}/credentials">Credentials</a>
+        <span class="pagehead__sep" aria-hidden="true"></span>
+        <h1 class="pagehead__title">Government services</h1>
+      </div>
+      <h2 class="intro__title">Choose a service</h2>
+      <p class="intro__purpose">These services accept credentials from your wallet. Each one asks for what it needs, and you decide whether to share it.</p>
+      <ul class="people services" aria-label="Government services">
+        {% for service in services %}
+        <li>
+          <a class="people__row" href="/p/{{ person.id }}/services/{{ service.id }}/apply">
+            <span class="people__meta">
+              <span class="people__name">{{ service.name }}</span>
+              <span class="people__place">{{ service.blurb }}</span>
+            </span>
+            <span class="employers__go" aria-hidden="true"></span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+{% endblock %}

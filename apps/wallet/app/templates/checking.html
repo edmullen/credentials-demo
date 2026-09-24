@@ -1,16 +1,16 @@
 {% extends "base.html" %}
-{% set page_title = "Wait while " ~ provider.name ~ " prepares its request" %}
+{% set page_title = "Checking your eligibility" %}
 {% block main %}
     <div class="wrap stack">
       <div class="pagehead">
-        <h1 class="pagehead__title">Connecting to {{ provider.name }}</h1>
+        <h1 class="pagehead__title">Applying to Benefit Agency</h1>
       </div>
-      <h2 class="intro__title">Wait while {{ provider.name }} prepares its request</h2>
-      <div class="pending" role="status" data-poll="{{ poll_url or ('/p/' ~ person.id ~ '/connections/' ~ provider.id ~ '/status?page=asking') }}">
+      <h2 class="intro__title">Checking your eligibility&hellip;</h2>
+      <div class="pending" role="status" data-poll="/p/{{ person.id }}/services/{{ service_id }}/status?page=applying">
         <div class="progress" aria-hidden="true"></div>
-        <p>Waiting for {{ provider.name }} to say what it needs from you. This can take up to half a minute.</p>
+        <p>Benefit Agency is checking the credentials you shared and deciding all five programs. Your benefit credentials will follow straight away.</p>
       </div>
-      <form class="pending__fallback" method="get" action="{{ fallback_action or ('/p/' ~ person.id ~ '/connections/' ~ provider.id ~ '/asking') }}">
+      <form class="pending__fallback" method="get" action="/p/{{ person.id }}/services/{{ service_id }}/applying">
         <button class="btn btn--secondary" type="submit">Check again</button>
       </form>
     </div>
