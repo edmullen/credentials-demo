@@ -1,11 +1,15 @@
+from decimal import Decimal
 from pathlib import Path
 
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app import signing
+from app.display import money, money_whole
+from app.eligibility import rules
+from app.programs import all_programs, get_program
 
 BASE_DIR = Path(__file__).parent
 
@@ -24,16 +28,155 @@ SITE = {
     "name": "Benefit Agency",
     "fonts_url": (
         "https://fonts.googleapis.com/css2?"
-        "family=Libre+Franklin:wght@500;600;700&family=Public+Sans:wght@400;600&display=swap"
+        "family=Libre+Franklin:wght@600&family=Public+Sans:wght@400;600;700&display=swap"
     ),
-    "nav": ["About the program", "Who can apply", "Contact us"],
-    "user": {"name": "Jordan Diaz", "initials": "JD"},
 }
+
+INCOME_NOTE = (
+    "Income means gross pay, before tax, from the income credentials in your wallet. "
+    "Annual income is one month’s total × 12."
+)
+MONTHLY_INCOME_NOTE = (
+    "Monthly income is one month of gross pay, before tax, from the income credentials "
+    "in your wallet."
+)
+
+
+def render(request: Request, template: str, active: str | None, **context) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request,
+        template,
+        {"site": SITE, "programs": all_programs(), "active": active, **context},
+    )
+
+
+def _pass_fail_context(limit_pct_label: str, r: dict, limit) -> dict:
+    return {
+        "rule_text": f"Your annual income is at or below {money(limit)}.",
+        "rule_note": f"{limit_pct_label}, as of {r['as_of']}.",
+        "income_note": INCOME_NOTE,
+    }
 
 
 @app.get("/", response_class=HTMLResponse)
-async def index(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(request, "index.html", {"site": SITE})
+async def landing(request: Request) -> HTMLResponse:
+    return render(request, "landing.html", None)
+
+
+@app.get("/programs/{code}", response_class=HTMLResponse)
+async def program_page(request: Request, code: str) -> HTMLResponse:
+    program = get_program(code)
+    if program is None:
+        raise HTTPException(status_code=404)
+    r = rules()
+    fpl = r["federal_poverty_level"]
+
+    if code == "food":
+        limit = Decimal(r["food_limit_pct"]) * Decimal(fpl)
+        context = _pass_fail_context("185% of the federal poverty level", r, limit)
+        context["intro_purpose"] = (
+            "Food Assistance helps with the cost of groceries. It is decided on a single "
+            "income limit."
+        )
+        return render(request, "program.html", code, program=program, **context)
+
+    if code == "energy":
+        limit = Decimal(r["energy_limit_pct"]) * Decimal(r["state_median_income"])
+        context = _pass_fail_context("60% of the state median income", r, limit)
+        context["intro_purpose"] = (
+            "Energy Assistance helps with heating, cooling and electricity bills. It is "
+            "decided on a single income limit."
+        )
+        return render(request, "program.html", code, program=program, **context)
+
+    if code == "housing":
+        county_limits = [
+            {
+                "county": county,
+                "ami": money_whole(ami),
+                "limit": money(Decimal(ami) * Decimal(r["housing_share_pct"])),
+            }
+            for county, ami in r["county_ami"].items()
+        ]
+        return render(
+            request,
+            "program_housing.html",
+            code,
+            program=program,
+            rules=r,
+            county_limits=county_limits,
+            intro_purpose=(
+                "Housing Assistance helps with the cost of rent. Housing costs differ across "
+                "New Jersey, so the income limit depends on the county you live in."
+            ),
+            rule_text="Your annual income is at or below the limit for your county.",
+            rule_note=f"30% of your county’s area median income, as of {r['as_of']}.",
+            income_note=INCOME_NOTE,
+        )
+
+    if code == "health":
+        ceiling = Decimal(r["health"]["full_discount_ceiling_pct"]) * Decimal(fpl)
+        floor = Decimal(r["health"]["zero_discount_floor_pct"]) * Decimal(fpl)
+        plan_cost = r["health"]["plan_cost"]
+        per_1000 = Decimal(plan_cost) / (floor - ceiling) * 1000
+        facts = {
+            "full_price": money(plan_cost),
+            "free_at_or_below": money(ceiling),
+            "full_price_at_or_above": money(floor),
+            "marginal_per_1000": money(per_1000),
+        }
+        return render(
+            request,
+            "program_health.html",
+            code,
+            program=program,
+            facts=facts,
+            intro_purpose=(
+                f"Health gives you a discount on the Public Option health plan, which costs "
+                f"{facts['full_price']} a month at full price. Anyone may buy the plan. Your "
+                f"income sets how much of that price you pay."
+            ),
+            rule_text="Any income. Your annual income sets your discount.",
+            rule_note=(
+                f"Free at or below {facts['free_at_or_below']} a year, full price at or above "
+                f"{facts['full_price_at_or_above']}, as of {r['as_of']}."
+            ),
+            income_note=INCOME_NOTE,
+        )
+
+    # dividend
+    base = r["dividend"]["base"]
+    max_bump = r["dividend"]["max_bump"]
+    phase_out = r["dividend"]["phase_out"]
+    facts = {
+        "base": money_whole(base),
+        "max_bump": money_whole(max_bump),
+        "phase_out": money_whole(phase_out),
+    }
+    return render(
+        request,
+        "program_dividend.html",
+        code,
+        program=program,
+        facts=facts,
+        intro_purpose=(
+            f"Dividend is a monthly payment to New Jersey residents who apply. Everyone "
+            f"receives {facts['base']} a month, and people earning less receive more."
+        ),
+        rule_text="Any income. Your monthly income sets your payment.",
+        rule_note=(
+            f"{facts['base']} a month for everyone, plus up to {facts['max_bump']} more below "
+            f"{facts['phase_out']} a month, as of {r['as_of']}."
+        ),
+        income_note=MONTHLY_INCOME_NOTE,
+    )
+
+
+@app.get("/apply")
+async def apply() -> RedirectResponse:
+    # Until PR 10 wires the real by-reference request, this points at the Wallet's landing page
+    # so the button is never a dead link on the deployed site (docs/design.md §7.3).
+    return RedirectResponse("https://cred-demo-wallet.onrender.com", status_code=303)
 
 
 @app.get("/health")

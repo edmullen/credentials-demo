@@ -1,0 +1,37 @@
+[
+  {
+    "code": "food",
+    "order": 1,
+    "name": "Food Assistance",
+    "landing_phrase": "Help buying groceries each month.",
+    "hue": 169
+  },
+  {
+    "code": "energy",
+    "order": 2,
+    "name": "Energy Assistance",
+    "landing_phrase": "Help paying heating, cooling and electricity bills.",
+    "hue": 24
+  },
+  {
+    "code": "housing",
+    "order": 3,
+    "name": "Housing Assistance",
+    "landing_phrase": "Help with rent, with a limit set by your county.",
+    "hue": 342
+  },
+  {
+    "code": "health",
+    "order": 4,
+    "name": "Health",
+    "landing_phrase": "A discount on the Public Option health plan.",
+    "hue": 223
+  },
+  {
+    "code": "dividend",
+    "order": 5,
+    "name": "Dividend",
+    "landing_phrase": "A monthly payment of at least $100.",
+    "hue": 121
+  }
+]

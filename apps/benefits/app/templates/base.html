@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ site.title }}</title>
+  <title>{% block page_title %}{{ site.title }}{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="{{ site.fonts_url }}" rel="stylesheet">
@@ -18,23 +18,24 @@
         {{ site.name }}
       </a>
       <nav class="header__nav" aria-label="Main">
-        {% for item in site.nav %}
-        <a href="#">{{ item }}</a>
+        {% for program in programs %}
+        <a href="/programs/{{ program.code }}"{% if active == program.code %} aria-current="page"{% endif %}>{{ program.name }}</a>
         {% endfor %}
       </nav>
-      <span class="initials" role="img" aria-label="{{ site.user.name }}">{{ site.user.initials }}</span>
+      <a class="header__admin" href="/admin"{% if active == "admin" %} aria-current="page"{% endif %}>Admin</a>
       <details class="nav-menu">
         <summary>Menu</summary>
         <div class="nav-menu__panel">
-          {% for item in site.nav %}
-          <a href="#">{{ item }}</a>
+          {% for program in programs %}
+          <a href="/programs/{{ program.code }}"{% if active == program.code %} aria-current="page"{% endif %}>{{ program.name }}</a>
           {% endfor %}
+          <a class="nav-menu__admin" href="/admin"{% if active == "admin" %} aria-current="page"{% endif %}>Admin (demo)</a>
         </div>
       </details>
     </div>
   </header>
 
-  <main class="main" id="main">
+  <main class="main{% block main_class %}{% endblock %}" id="main">
     {% block main %}{% endblock %}
   </main>
 

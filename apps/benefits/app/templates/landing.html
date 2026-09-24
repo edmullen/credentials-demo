@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block main_class %}{% endblock %}
+{% block main %}
+<div class="wrap stack">
+  <div class="stack-s">
+    <p class="intro__eyebrow">Benefit Agency</p>
+    <h1 class="intro__title">Programs to support your needs</h1>
+  </div>
+  <p class="intro__purpose">Benefit Agency runs five programs for New Jersey residents. You apply for all five at once with your digital wallet, so there's no form to fill in and no pay stubs to upload.</p>
+  <hr class="rule">
+  <h2 class="section__title section__title--sm">Our programs</h2>
+  <ul class="programs">
+    {% for program in programs %}
+    <li>
+      <a class="program-card" data-program="{{ program.code }}" href="/programs/{{ program.code }}">
+        <span class="program-card__name">{{ program.name }}</span>
+        <span class="program-card__phrase">{{ program.landing_phrase }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
