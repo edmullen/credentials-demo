@@ -1,35 +1,21 @@
 """Call 1, the request by reference, and call 2 (docs/design.md §2, §6, #105)."""
 
-import json
-import uuid
-from datetime import UTC, datetime
-
-import jwt
 import pytest
-from cryptography.hazmat.primitives.asymmetric import ec
 from fastapi.testclient import TestClient
-from jwt.algorithms import ECAlgorithm
 
 from app import trust
 from app.main import app
+from tests.helpers import PAYROLL_ISSUER, STATE_ISSUER, SUBJECT_ID, keypair
+from tests.helpers import identity_token as _identity_token
+from tests.helpers import paystub_token as _paystub_token
+from tests.helpers import vp as _vp
 
 client = TestClient(app)
-
-STATE_ISSUER = "did:example:state-of-new-jersey"
-PAYROLL_ISSUER = "https://cred-demo-payroll.onrender.com"
-SUBJECT_ID = "urn:uuid:11111111-1111-5111-8111-111111111111"
-
-
-def _keypair(kid: str):
-    key = ec.generate_private_key(ec.SECP256R1())
-    public = json.loads(ECAlgorithm.to_jwk(key.public_key()))
-    public["kid"] = kid
-    return key, public
 
 
 @pytest.fixture
 def keys():
-    return {"state": _keypair("nj-test-1"), "payroll": _keypair("payroll-test-1")}
+    return {"state": keypair("nj-test-1"), "payroll": keypair("payroll-test-1")}
 
 
 @pytest.fixture(autouse=True)
@@ -50,82 +36,6 @@ def patched_trust(monkeypatch, keys):
     }
     monkeypatch.setattr(trust, "trust_list", lambda: trust_list)
     return trust_list
-
-
-def _identity_token(key, kid, *, subject_id=SUBJECT_ID, region="NJ", county="Hunterdon", tamper=False):
-    payload = {
-        "@context": ["https://www.w3.org/ns/credentials/v2"],
-        "id": f"urn:uuid:{uuid.uuid4()}",
-        "type": ["VerifiableCredential", "IdentityCredential"],
-        "issuer": {"id": STATE_ISSUER, "name": "State of New Jersey"},
-        "validFrom": "2026-01-01T00:00:00Z",
-        "validUntil": "2030-01-01T00:00:00Z",
-        "credentialSubject": {
-            "id": subject_id,
-            "givenName": "Grace",
-            "familyName": "Okafor",
-            "birthDate": "1990-01-01",
-            "address": {
-                "type": "PostalAddress",
-                "streetAddress": "1 Main St",
-                "addressLocality": "Flemington",
-                "county": county,
-                "addressRegion": region,
-                "postalCode": "08822",
-            },
-        },
-    }
-    token = jwt.encode(payload, key, algorithm="ES256", headers={"kid": kid, "typ": "vc+jwt"})
-    if tamper:
-        token = _flip(token)
-    return token
-
-
-def _paystub_token(key, kid, *, subject_id=SUBJECT_ID, gross=1100.0, employer="Pinecrest Home Care", tamper=False):
-    payload = {
-        "@context": ["https://www.w3.org/ns/credentials/v2"],
-        "id": f"urn:uuid:{uuid.uuid4()}",
-        "type": ["VerifiableCredential", "PaystubCredential"],
-        "issuer": {"id": PAYROLL_ISSUER, "name": "Meridian Payroll"},
-        "validFrom": "2026-09-15T00:00:00Z",
-        "credentialSubject": {
-            "id": subject_id,
-            "employer": {"type": "Organization", "name": employer},
-            "payPeriodStart": "2026-09-01",
-            "payPeriodEnd": "2026-09-15",
-            "payDate": "2026-09-15",
-            "payFrequency": "semimonthly",
-            "grossPay": {"type": "MonetaryAmount", "value": gross, "currency": "USD"},
-            "netPay": {"type": "MonetaryAmount", "value": gross * 0.85, "currency": "USD"},
-        },
-    }
-    token = jwt.encode(payload, key, algorithm="ES256", headers={"kid": kid, "typ": "vc+jwt"})
-    if tamper:
-        token = _flip(token)
-    return token
-
-
-def _flip(token: str) -> str:
-    header, payload, signature = token.split(".")
-    claims = json.loads(jwt.utils.base64url_decode(payload + "=" * (-len(payload) % 4)))
-    claims["credentialSubject"]["grossPay"] = {"type": "MonetaryAmount", "value": 999999.0, "currency": "USD"}
-    body = jwt.utils.base64url_encode(json.dumps(claims, separators=(",", ":")).encode()).decode()
-    return ".".join([header, body, signature])
-
-
-def _vp(*tokens: str) -> dict:
-    return {
-        "@context": ["https://www.w3.org/ns/credentials/v2"],
-        "type": ["VerifiablePresentation"],
-        "verifiableCredential": [
-            {
-                "@context": "https://www.w3.org/ns/credentials/v2",
-                "type": "EnvelopedVerifiableCredential",
-                "id": f"data:application/vc+jwt,{token}",
-            }
-            for token in tokens
-        ],
-    }
 
 
 def _new_request() -> str:
@@ -196,6 +106,8 @@ def test_call_two_decided_returns_five_programs_in_order_with_figures(keys) -> N
     assert energy["outcome"] == "eligible"
     assert housing["outcome"] == "eligible"
     assert health["outcome"] == "eligible"
+    for entry in programs:
+        assert entry["credentialId"].startswith("urn:uuid:")
     assert health["discountPercent"] == 92.4
     assert health["planCost"] == {"type": "MonetaryAmount", "value": 750.0, "currency": "USD"}
     assert dividend["outcome"] == "eligible"
@@ -256,7 +168,7 @@ def test_call_two_refused_credential_invalid_when_a_credential_is_tampered(keys)
 
 def test_call_two_refused_credential_invalid_for_an_unrecognized_issuer(keys) -> None:
     request_id = _new_request()
-    other_key, _ = _keypair("someone-else-1")
+    other_key, _ = keypair("someone-else-1")
     identity = _identity_token(other_key, "someone-else-1")
     income = _paystub_token(keys["payroll"][0], "payroll-test-1")
     response = client.post(f"/api/applications/requests/{request_id}/presentation", json=_vp(identity, income))
@@ -347,6 +259,27 @@ def test_404_when_request_already_answered(keys) -> None:
     client.post(f"/api/applications/requests/{request_id}/presentation", json=_vp(identity, income))
     response = client.post(f"/api/applications/requests/{request_id}/presentation", json=_vp(identity, income))
     assert response.status_code == 404
+
+
+# ---- Call 2: without a valid key ----------------------------------------------------------------
+
+
+def test_503_without_a_valid_key_and_the_request_stays_pending(keys, monkeypatch) -> None:
+    import os
+
+    from app import signing
+
+    request_id = _new_request()
+    identity = _identity_token(keys["state"][0], "nj-test-1")
+    income = _paystub_token(keys["payroll"][0], "payroll-test-1")
+    real_key = os.environ[signing.ENV_VAR]
+    monkeypatch.delenv(signing.ENV_VAR, raising=False)
+    response = client.post(f"/api/applications/requests/{request_id}/presentation", json=_vp(identity, income))
+    assert response.status_code == 503
+
+    monkeypatch.setenv(signing.ENV_VAR, real_key)  # restore the throwaway key
+    retry = client.post(f"/api/applications/requests/{request_id}/presentation", json=_vp(identity, income))
+    assert retry.status_code == 200
 
 
 # ---- Re-applying -----------------------------------------------------------------------------
