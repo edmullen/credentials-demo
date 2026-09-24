@@ -1,0 +1,27 @@
+{% extends "program.html" %}
+{% block scale %}
+<section class="stack-s program-section" aria-labelledby="scale">
+  <h2 class="section__title section__title--xs" id="scale">How your payment is worked out</h2>
+  <dl class="facts">
+    <div class="facts__item">
+      <dt>Everyone receives</dt>
+      <dd class="facts__value">{{ facts.base }}</dd>
+      <dd>a month</dd>
+    </div>
+    <div class="facts__item">
+      <dt>Plus up to</dt>
+      <dd class="facts__value">{{ facts.max_bump }}</dd>
+      <dd>a month more, reduced by 25¢ for each dollar you earn</dd>
+    </div>
+    <div class="facts__item">
+      <dt>The extra ends at</dt>
+      <dd class="facts__value">{{ facts.phase_out }}</dd>
+      <dd>a month of income</dd>
+    </div>
+  </dl>
+  <div class="callout" data-program="dividend">
+    <h3 class="callout__title">Earning more never leaves you worse off</h3>
+    <p>Below {{ facts.phase_out }} a month, each extra dollar you earn lowers your Dividend by 25¢, so you keep 75¢. Above {{ facts.phase_out }} you keep the whole dollar. The money in hand goes up at every step.</p>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "program.html" %}
+{% block req_extra %}
+<details class="disclosure disclosure--boxed">
+  <summary>Income limits by county <span class="disclosure__chev" aria-hidden="true"></span></summary>
+  <div class="figures__scroll">
+    <table class="figures">
+      <caption>Annual figures, as of {{ rules.as_of }}</caption>
+      <thead><tr><th scope="col">County</th><th scope="col">Area median income</th><th scope="col">Your limit (30%)</th></tr></thead>
+      <tbody>
+        {% for row in county_limits %}
+        <tr><th scope="row">{{ row.county }}</th><td>{{ row.ami }}</td><td class="figures__strong">{{ row.limit }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</details>
+{% endblock %}

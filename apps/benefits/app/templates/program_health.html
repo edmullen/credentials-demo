@@ -1,0 +1,27 @@
+{% extends "program.html" %}
+{% block scale %}
+<section class="stack-s program-section" aria-labelledby="scale">
+  <h2 class="section__title section__title--xs" id="scale">How your discount is worked out</h2>
+  <dl class="facts">
+    <div class="facts__item">
+      <dt>Full price</dt>
+      <dd class="facts__value">{{ facts.full_price }}</dd>
+      <dd>a month</dd>
+    </div>
+    <div class="facts__item">
+      <dt>Free at or below</dt>
+      <dd class="facts__value">{{ facts.free_at_or_below }}</dd>
+      <dd>a year (138% of the federal poverty level)</dd>
+    </div>
+    <div class="facts__item">
+      <dt>Full price at or above</dt>
+      <dd class="facts__value">{{ facts.full_price_at_or_above }}</dd>
+      <dd>a year (500% of the federal poverty level)</dd>
+    </div>
+  </dl>
+  <div class="callout" data-program="health">
+    <h3 class="callout__title">Earning more never leaves you worse off</h3>
+    <p>Between {{ facts.free_at_or_below }} and {{ facts.full_price_at_or_above }}, each extra $1,000 of annual income adds about {{ facts.marginal_per_1000 }} to your monthly price. There’s no point where a raise costs you your coverage.</p>
+  </div>
+</section>
+{% endblock %}
