@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" data-app="wallet">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Energy Assistance credential — Wallet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;600&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="credentials-benefits.html">
+        <span class="header__mark header__mark--wallet" aria-hidden="true"></span>
+        Wallet
+      </a>
+      <span class="initials" role="img" aria-label="Grace Okafor">GO</span>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <nav class="nav-menu__panel" aria-label="Main">
+          <a href="credentials-benefits.html" aria-current="page">Credentials</a>
+          <a href="connections.html">Connections</a>
+          <a href="activity.html">Activity</a>
+          <a class="nav-menu__signout" href="landing.html">Sign out</a>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <div class="wrap stack">
+      <div class="pagehead">
+        <a class="back" href="credentials-benefits.html">Credentials</a>
+        <span class="pagehead__sep" aria-hidden="true"></span>
+        <h1 class="pagehead__title">Benefit credential</h1>
+      </div>
+      <section class="panel cred--issuer" style="--issuer-hue: 24" aria-labelledby="status">
+        <div class="panel__issuer">
+          <span class="card__meta">Program:</span>
+          <span class="panel__issuer-name">Energy Assistance</span>
+        </div>
+        <div class="panel__status panel__status--error">
+          <h2 class="visually-hidden" id="status">Status</h2>
+          <span class="badge badge--error"><span class="badge__icon" aria-hidden="true">&#10005;</span>Tampered</span>
+          <p>Something in this credential was changed after Benefit Agency issued it, so it can&rsquo;t be trusted or used.</p>
+        </div>
+        <div class="panel__section">
+          <dl class="claims">
+            <div>
+              <dt class="card__meta">Program</dt>
+              <dd class="claims__value--strong">Energy Assistance</dd>
+            </div>
+            <div>
+              <dt class="card__meta">Issued by</dt>
+              <dd>Benefit Agency</dd>
+            </div>
+          </dl>
+        </div>
+        <p class="panel__note">The rest of this credential is shown as it was received. Because the signature no longer matches, none of it can be relied on.</p>
+        <div class="panel__section">
+          <h3 class="panel__title">Benefit</h3>
+          <dl class="claims claims--grid">
+            <dt>Result</dt>
+            <dd class="claims__value--strong">Eligible</dd>
+          </dl>
+        </div>
+        <p class="panel__note">Energy Assistance carries no amount. Holding this credential shows you qualify.</p>
+        <div class="panel__section panel__section--meta">
+          <span>Valid from 1 October 2026</span>
+          <span>Valid until 1 October 2027</span>
+        </div>
+        <details class="disclosure">
+          <summary>View credential details<span class="disclosure__chev" aria-hidden="true"></span></summary>
+          <dl class="disclosure__body">
+            <div>
+              <dt>Credential id</dt>
+              <dd>urn:uuid:d2b8e5f1-6a4c-5c97-a3e0-7b1c9d6f2e48</dd>
+            </div>
+            <div>
+              <dt>Issuer</dt>
+              <dd>did:example:benefit-agency</dd>
+            </div>
+            <div>
+              <dt>Type</dt>
+              <dd>VerifiableCredential, BenefitCredential</dd>
+            </div>
+            <div>
+              <dt>validFrom / validUntil</dt>
+              <dd>2026-10-01T00:00:00Z / 2027-10-01T00:00:00Z</dd>
+            </div>
+            <div>
+              <dt>Program</dt>
+              <dd>energy</dd>
+            </div>
+            <div>
+              <dt>Display</dt>
+              <dd>Program colour, hue 24</dd>
+            </div>
+            <div>
+              <dt>Signed JWT</dt>
+              <dd class="jwt">eyJhbGciOiJFUzI1NiIsImtpZCI6ImJlbmVmaXQtMSIsInR5cCI6InZjK2p3dCJ9.eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvbnMvY3JlZGVudGlhbHMvdjIiXSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIkJlbmVmaXRDcmVkZW50aWFsIl0sImlzc3VlciI6eyJpZCI6ImRpZDpleGFtcGxlOmJlbmVmaXQtYWdlbmN5IiwibmFtZSI6IkJlbmVmaXQgQWdlbmN5In0&hellip;</dd>
+            </div>
+          </dl>
+        </details>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p class="footer__note"><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></p>
+      <span class="footer__aside"><a href="person-switcher.html">Switch person</a></span>
+    </div>
+  </footer>
+</body>
+</html>

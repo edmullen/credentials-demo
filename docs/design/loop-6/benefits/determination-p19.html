@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" data-app="benefits">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Emily Carter · Determination · Benefit Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@600&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="landing.html">
+        <span class="header__mark" aria-hidden="true"></span>
+        Benefit Agency
+      </a>
+      <nav class="header__nav" aria-label="Main">
+        <a href="food.html">Food Assistance</a>
+        <a href="energy.html">Energy Assistance</a>
+        <a href="housing.html">Housing Assistance</a>
+        <a href="health.html">Health</a>
+        <a href="dividend.html">Dividend</a>
+      </nav>
+      <a class="header__admin" href="admin.html" aria-current="page">Admin</a>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <div class="nav-menu__panel">
+          <a href="food.html">Food Assistance</a>
+          <a href="energy.html">Energy Assistance</a>
+          <a href="housing.html">Housing Assistance</a>
+          <a href="health.html">Health</a>
+          <a href="dividend.html">Dividend</a>
+          <a class="nav-menu__admin" href="admin.html" aria-current="page">Admin (demo)</a>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <div class="wrap det">
+      <div class="stack-s">
+        <a class="back" href="admin.html">‹ Applications</a>
+        <p class="intro__eyebrow">Determination · demo admin view</p>
+        <h1 class="intro__title">Emily Carter</h1>
+        <p class="det__summary">Not a New Jersey resident: 0 of 5 approved</p>
+        <dl class="meta">
+          <div><dt>Received</dt><dd>1 Oct 2026, 10:42:03 AM</dd></div>
+          <div><dt>Application id</dt><dd class="mono">urn:uuid:e81e6a0e-7f90-57b1-af50-cac1052bc990</dd></div>
+          <div><dt>Subject id</dt><dd class="mono">urn:uuid:bf402d54-4a34-5979-b386-01f5fc3ce172</dd></div>
+        </dl>
+      </div>
+
+      <section class="stack-s" aria-labelledby="checks">
+        <h2 class="section__title section__title--sm" id="checks">1. Credential checks</h2>
+        <ul class="checks">
+          <li>
+            <details class="disclosure">
+              <summary>
+                <span class="check__text"><span class="check__label">Identity credential</span><span class="check__detail">State of Michigan · signature matches State of Michigan’s key</span></span>
+                <span class="check__end"><span class="badge badge--verified">Verified</span><span class="disclosure__chev" aria-hidden="true"></span></span>
+              </summary>
+              <dl class="disclosure__body">
+                <dt>Header</dt>
+                <dd><pre class="code">{
+  &quot;alg&quot;: &quot;ES256&quot;,
+  &quot;kid&quot;: &quot;mi-1&quot;,
+  &quot;typ&quot;: &quot;vc+jwt&quot;
+}</pre></dd>
+                <dt>Claims</dt>
+                <dd><pre class="code code--tall">{
+  &quot;@context&quot;: [
+    &quot;https://www.w3.org/ns/credentials/v2&quot;
+  ],
+  &quot;id&quot;: &quot;urn:uuid:447403be-93ed-54e1-aa5a-54e99068a5c0&quot;,
+  &quot;type&quot;: [
+    &quot;VerifiableCredential&quot;,
+    &quot;IdentityCredential&quot;
+  ],
+  &quot;issuer&quot;: {
+    &quot;id&quot;: &quot;did:example:state-of-michigan&quot;,
+    &quot;name&quot;: &quot;State of Michigan&quot;
+  },
+  &quot;validFrom&quot;: &quot;2026-01-15T00:00:00Z&quot;,
+  &quot;validUntil&quot;: &quot;2030-01-15T00:00:00Z&quot;,
+  &quot;credentialSubject&quot;: {
+    &quot;id&quot;: &quot;urn:uuid:bf402d54-4a34-5979-b386-01f5fc3ce172&quot;,
+    &quot;givenName&quot;: &quot;Emily&quot;,
+    &quot;familyName&quot;: &quot;Carter&quot;,
+    &quot;birthDate&quot;: &quot;1987-05-21&quot;,
+    &quot;image&quot;: &quot;data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ… (photo, not shown)&quot;,
+    &quot;address&quot;: {
+      &quot;type&quot;: &quot;PostalAddress&quot;,
+      &quot;streetAddress&quot;: &quot;19120 Merriman Road&quot;,
+      &quot;addressLocality&quot;: &quot;Livonia&quot;,
+      &quot;county&quot;: &quot;Wayne&quot;,
+      &quot;addressRegion&quot;: &quot;MI&quot;,
+      &quot;postalCode&quot;: &quot;48152&quot;
+    }
+  }
+}</pre></dd>
+                <dt>Raw JWT</dt>
+                <dd class="jwt">eyJhbGciOiJFUzI1NiIsImtpZCI6Im1pLTEiLCJ0eXAiOiJ2Yytqd3QifQ.eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvbnMvY3JlZGVudGlhbHMvdjIiXSwiaWQiOiJ1cm46dXVpZDo0NDc0MDNiZS05M2VkLTU0ZTEtYWE1YS01NGU5OTA2OGE1YzAiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiSWRlbnRpdHlDcmVkZW50aWFsIl0sImlzc3VlciI6eyJpZCI6ImRpZDpleGFtcGxlOnN0YXRlLW9mLW1pY2hpZ2FuIiwibmFtZSI6IlN0YXRlIG9mIE1pY2hpZ2FuIn0sInZhbGlkRnJvbSI6IjIwMjYtMDEtMTVUMDA6MDA6MDBaIiwidmFsaWRVbnRpbCI6IjIwMzAtMDEtMTVUMDA6MDA6MDBaIiwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJ1cm46dXVpZDpiZjQwMmQ1NC00YTM0LTU5NzktYjM4Ni0wMWY1ZmMzY2UxNzIiLCJnaXZlbk5hbWUiOiJFbWlseSIsImZhbWlseU5hbWUiOiJDYXJ0ZXIiLCJiaXJ0aERhdGUiOiIxOTg3LTA1LTIxIiwiaW1hZ2UiOiJkYXRhOmltYWdlL2pwZWc7YmFzZTY0LC85ai80QUFRU2taSlJnQUJBUeKApiAocGhvdG8sIG5vdCBzaG93bikiLCJhZGRyZXNzIjp7InR5cGUiOiJQb3N0YWxBZGRyZXNzIiwic3RyZWV0QWRkcmVzcyI6IjE5MTIwIE1lcnJpbWFuIFJvYWQiLCJhZGRyZXNzTG9jYWxpdHkiOiJMaXZvbmlhIiwiY291bnR5IjoiV2F5bmUiLCJhZGRyZXNzUmVnaW9uIjoiTUkiLCJwb3N0YWxDb2RlIjoiNDgxNTIifX19.VzB2EGJR1uPUHGLhrm03modw5UahQdUTCy2LEn5QjcQTo9EvjXTlLxWBQrJalnMD</dd>
+              </dl>
+            </details>
+          </li>
+          <li>
+            <details class="disclosure">
+              <summary>
+                <span class="check__text"><span class="check__label">Income credential</span><span class="check__detail">Northfield Pharmaceuticals · paid Sep 15, 2026 · signature matches Meridian Payroll’s key</span></span>
+                <span class="check__end"><span class="badge badge--verified">Verified</span><span class="disclosure__chev" aria-hidden="true"></span></span>
+              </summary>
+              <dl class="disclosure__body">
+                <dt>Header</dt>
+                <dd><pre class="code">{
+  &quot;alg&quot;: &quot;ES256&quot;,
+  &quot;kid&quot;: &quot;payroll-1&quot;,
+  &quot;typ&quot;: &quot;vc+jwt&quot;
+}</pre></dd>
+                <dt>Claims</dt>
+                <dd><pre class="code code--tall">{
+  &quot;@context&quot;: [
+    &quot;https://www.w3.org/ns/credentials/v2&quot;
+  ],
+  &quot;id&quot;: &quot;urn:uuid:39c98ab7-9d3c-5481-a932-310a24f68c2c&quot;,
+  &quot;type&quot;: [
+    &quot;VerifiableCredential&quot;,
+    &quot;PaystubCredential&quot;
+  ],
+  &quot;issuer&quot;: {
+    &quot;id&quot;: &quot;https://cred-demo-payroll.onrender.com&quot;,
+    &quot;name&quot;: &quot;Meridian Payroll&quot;
+  },
+  &quot;validFrom&quot;: &quot;2026-09-15T00:00:00Z&quot;,
+  &quot;credentialSubject&quot;: {
+    &quot;id&quot;: &quot;urn:uuid:bf402d54-4a34-5979-b386-01f5fc3ce172&quot;,
+    &quot;employer&quot;: {
+      &quot;type&quot;: &quot;Organization&quot;,
+      &quot;name&quot;: &quot;Northfield Pharmaceuticals&quot;
+    },
+    &quot;payPeriodStart&quot;: &quot;2026-09-01&quot;,
+    &quot;payPeriodEnd&quot;: &quot;2026-09-15&quot;,
+    &quot;payDate&quot;: &quot;2026-09-15&quot;,
+    &quot;grossPay&quot;: {
+      &quot;type&quot;: &quot;MonetaryAmount&quot;,
+      &quot;value&quot;: &quot;3666.67&quot;,
+      &quot;currency&quot;: &quot;USD&quot;
+    }
+  }
+}</pre></dd>
+                <dt>Raw JWT</dt>
+                <dd class="jwt">eyJhbGciOiJFUzI1NiIsImtpZCI6InBheXJvbGwtMSIsInR5cCI6InZjK2p3dCJ9.eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvbnMvY3JlZGVudGlhbHMvdjIiXSwiaWQiOiJ1cm46dXVpZDozOWM5OGFiNy05ZDNjLTU0ODEtYTkzMi0zMTBhMjRmNjhjMmMiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiUGF5c3R1YkNyZWRlbnRpYWwiXSwiaXNzdWVyIjp7ImlkIjoiaHR0cHM6Ly9jcmVkLWRlbW8tcGF5cm9sbC5vbnJlbmRlci5jb20iLCJuYW1lIjoiTWVyaWRpYW4gUGF5cm9sbCJ9LCJ2YWxpZEZyb20iOiIyMDI2LTA5LTE1VDAwOjAwOjAwWiIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoidXJuOnV1aWQ6YmY0MDJkNTQtNGEzNC01OTc5LWIzODYtMDFmNWZjM2NlMTcyIiwiZW1wbG95ZXIiOnsidHlwZSI6Ik9yZ2FuaXphdGlvbiIsIm5hbWUiOiJOb3J0aGZpZWxkIFBoYXJtYWNldXRpY2FscyJ9LCJwYXlQZXJpb2RTdGFydCI6IjIwMjYtMDktMDEiLCJwYXlQZXJpb2RFbmQiOiIyMDI2LTA5LTE1IiwicGF5RGF0ZSI6IjIwMjYtMDktMTUiLCJncm9zc1BheSI6eyJ0eXBlIjoiTW9uZXRhcnlBbW91bnQiLCJ2YWx1ZSI6IjM2NjYuNjciLCJjdXJyZW5jeSI6IlVTRCJ9fX0.E47ft6vIVqmYwQ-KGHiceP8nPdFjP6uNYs1ioc_Oqc6cAtGINKgBBe6UWj0ultPd</dd>
+              </dl>
+            </details>
+          </li>
+          <li>
+            <details class="disclosure">
+              <summary>
+                <span class="check__text"><span class="check__label">Income credential</span><span class="check__detail">Northfield Pharmaceuticals · paid Sep 30, 2026 · signature matches Meridian Payroll’s key</span></span>
+                <span class="check__end"><span class="badge badge--verified">Verified</span><span class="disclosure__chev" aria-hidden="true"></span></span>
+              </summary>
+              <dl class="disclosure__body">
+                <dt>Header</dt>
+                <dd><pre class="code">{
+  &quot;alg&quot;: &quot;ES256&quot;,
+  &quot;kid&quot;: &quot;payroll-1&quot;,
+  &quot;typ&quot;: &quot;vc+jwt&quot;
+}</pre></dd>
+                <dt>Claims</dt>
+                <dd><pre class="code code--tall">{
+  &quot;@context&quot;: [
+    &quot;https://www.w3.org/ns/credentials/v2&quot;
+  ],
+  &quot;id&quot;: &quot;urn:uuid:33c742ae-962e-5283-a4d4-89e38da5d38a&quot;,
+  &quot;type&quot;: [
+    &quot;VerifiableCredential&quot;,
+    &quot;PaystubCredential&quot;
+  ],
+  &quot;issuer&quot;: {
+    &quot;id&quot;: &quot;https://cred-demo-payroll.onrender.com&quot;,
+    &quot;name&quot;: &quot;Meridian Payroll&quot;
+  },
+  &quot;validFrom&quot;: &quot;2026-09-30T00:00:00Z&quot;,
+  &quot;credentialSubject&quot;: {
+    &quot;id&quot;: &quot;urn:uuid:bf402d54-4a34-5979-b386-01f5fc3ce172&quot;,
+    &quot;employer&quot;: {
+      &quot;type&quot;: &quot;Organization&quot;,
+      &quot;name&quot;: &quot;Northfield Pharmaceuticals&quot;
+    },
+    &quot;payPeriodStart&quot;: &quot;2026-09-16&quot;,
+    &quot;payPeriodEnd&quot;: &quot;2026-09-30&quot;,
+    &quot;payDate&quot;: &quot;2026-09-30&quot;,
+    &quot;grossPay&quot;: {
+      &quot;type&quot;: &quot;MonetaryAmount&quot;,
+      &quot;value&quot;: &quot;3666.67&quot;,
+      &quot;currency&quot;: &quot;USD&quot;
+    }
+  }
+}</pre></dd>
+                <dt>Raw JWT</dt>
+                <dd class="jwt">eyJhbGciOiJFUzI1NiIsImtpZCI6InBheXJvbGwtMSIsInR5cCI6InZjK2p3dCJ9.eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvbnMvY3JlZGVudGlhbHMvdjIiXSwiaWQiOiJ1cm46dXVpZDozM2M3NDJhZS05NjJlLTUyODMtYTRkNC04OWUzOGRhNWQzOGEiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiUGF5c3R1YkNyZWRlbnRpYWwiXSwiaXNzdWVyIjp7ImlkIjoiaHR0cHM6Ly9jcmVkLWRlbW8tcGF5cm9sbC5vbnJlbmRlci5jb20iLCJuYW1lIjoiTWVyaWRpYW4gUGF5cm9sbCJ9LCJ2YWxpZEZyb20iOiIyMDI2LTA5LTMwVDAwOjAwOjAwWiIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoidXJuOnV1aWQ6YmY0MDJkNTQtNGEzNC01OTc5LWIzODYtMDFmNWZjM2NlMTcyIiwiZW1wbG95ZXIiOnsidHlwZSI6Ik9yZ2FuaXphdGlvbiIsIm5hbWUiOiJOb3J0aGZpZWxkIFBoYXJtYWNldXRpY2FscyJ9LCJwYXlQZXJpb2RTdGFydCI6IjIwMjYtMDktMTYiLCJwYXlQZXJpb2RFbmQiOiIyMDI2LTA5LTMwIiwicGF5RGF0ZSI6IjIwMjYtMDktMzAiLCJncm9zc1BheSI6eyJ0eXBlIjoiTW9uZXRhcnlBbW91bnQiLCJ2YWx1ZSI6IjM2NjYuNjciLCJjdXJyZW5jeSI6IlVTRCJ9fX0.Xl1pTgdN2jc2y9dHtPAE7mjK_aD8PcnvILHbDIGLzdCXgYHh-M-yCy_zHTx1qtsP</dd>
+              </dl>
+            </details>
+          </li>
+          <li class="check">
+            <span class="check__text"><span class="check__label">Same person</span><span class="check__detail">All 3 credentials name subject bf402d54…</span></span>
+            <span class="badge badge--verified">Same subject</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="stack-s" aria-labelledby="submitted">
+        <h2 class="section__title section__title--sm" id="submitted">2. Submitted data</h2>
+        <p class="program-section__note">Recorded as presented. Income was not used: residency is checked first.</p>
+        <div class="submitted">
+          <div class="card card--flat stack-s">
+            <h3 class="card__meta">From the identity credential</h3>
+            <dl class="claims claims--grid">
+              <dt>State</dt><dd class="claims__value--strong">Michigan (MI)</dd>
+              <dt>County</dt><dd class="claims__value--strong">Wayne</dd>
+            </dl>
+          </div>
+          <div class="card card--flat figures__scroll">
+            <table class="figures">
+              <caption>From the income credentials</caption>
+              <thead><tr><th scope="col">Employer</th><th scope="col">Pay date</th><th scope="col">Gross pay</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Northfield Pharmaceuticals</th><td>Sep 15, 2026</td><td>$3,666.67</td></tr>
+                <tr><th scope="row">Northfield Pharmaceuticals</th><td>Sep 30, 2026</td><td>$3,666.67</td></tr>
+              </tbody>
+              <tfoot>
+                <tr><th scope="row" colspan="2">Monthly income</th><td>$7,333.34</td></tr>
+                <tr><th scope="row" colspan="2">Annual income (× 12)</th><td>$88,000.08</td></tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="stack-s" aria-labelledby="programs">
+        <h2 class="section__title section__title--sm" id="programs">3. Program decisions</h2>
+        <div class="callout">
+          <h3 class="callout__title">Residency stopped the application</h3>
+          <p>The identity credential gives Michigan (MI). Every program requires New Jersey residency, so all five were denied without checking income. This person may apply again.</p>
+        </div>
+        <ul class="decisions">
+          <li class="decision" data-program="food">
+            <div class="decision__head">
+              <h3 class="decision__name">Food Assistance</h3>
+              <span class="badge badge--neutral">Not eligible</span>
+            </div>
+            <div class="decision__foot decision__foot--plain">No credential issued · reason <code>not_nj_resident</code></div>
+          </li>
+          <li class="decision" data-program="energy">
+            <div class="decision__head">
+              <h3 class="decision__name">Energy Assistance</h3>
+              <span class="badge badge--neutral">Not eligible</span>
+            </div>
+            <div class="decision__foot decision__foot--plain">No credential issued · reason <code>not_nj_resident</code></div>
+          </li>
+          <li class="decision" data-program="housing">
+            <div class="decision__head">
+              <h3 class="decision__name">Housing Assistance</h3>
+              <span class="badge badge--neutral">Not eligible</span>
+            </div>
+            <div class="decision__foot decision__foot--plain">No credential issued · reason <code>not_nj_resident</code></div>
+          </li>
+          <li class="decision" data-program="health">
+            <div class="decision__head">
+              <h3 class="decision__name">Health</h3>
+              <span class="badge badge--neutral">Not eligible</span>
+            </div>
+            <div class="decision__foot decision__foot--plain">No credential issued · reason <code>not_nj_resident</code></div>
+          </li>
+          <li class="decision" data-program="dividend">
+            <div class="decision__head">
+              <h3 class="decision__name">Dividend</h3>
+              <span class="badge badge--neutral">Not eligible</span>
+            </div>
+            <div class="decision__foot decision__foot--plain">No credential issued · reason <code>not_nj_resident</code></div>
+          </li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></span>
+    </div>
+  </footer>
+</body>
+</html>

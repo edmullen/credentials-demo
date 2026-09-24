@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" data-app="benefits">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Benefit Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@600&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="landing.html">
+        <span class="header__mark" aria-hidden="true"></span>
+        Benefit Agency
+      </a>
+      <nav class="header__nav" aria-label="Main">
+        <a href="food.html">Food Assistance</a>
+        <a href="energy.html">Energy Assistance</a>
+        <a href="housing.html">Housing Assistance</a>
+        <a href="health.html">Health</a>
+        <a href="dividend.html">Dividend</a>
+      </nav>
+      <a class="header__admin" href="admin.html">Admin</a>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <div class="nav-menu__panel">
+          <a href="food.html">Food Assistance</a>
+          <a href="energy.html">Energy Assistance</a>
+          <a href="housing.html">Housing Assistance</a>
+          <a href="health.html">Health</a>
+          <a href="dividend.html">Dividend</a>
+          <a class="nav-menu__admin" href="admin.html">Admin (demo)</a>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <div class="wrap stack">
+      <div class="stack-s">
+        <p class="intro__eyebrow">Benefit Agency</p>
+        <h1 class="intro__title">Programs to support your needs</h1>
+      </div>
+      <p class="intro__purpose">Benefit Agency runs five programs for New Jersey residents. You apply for all five at once with your digital wallet, so there's no form to fill in and no pay stubs to upload.</p>
+      <hr class="rule">
+      <h2 class="section__title section__title--sm">Our programs</h2>
+      <ul class="programs">
+        <li>
+          <a class="program-card" data-program="food" href="food.html">
+            <span class="program-card__name">Food Assistance</span>
+            <span class="program-card__phrase">Help buying groceries each month.</span>
+          </a>
+        </li>
+        <li>
+          <a class="program-card" data-program="energy" href="energy.html">
+            <span class="program-card__name">Energy Assistance</span>
+            <span class="program-card__phrase">Help paying heating, cooling and electricity bills.</span>
+          </a>
+        </li>
+        <li>
+          <a class="program-card" data-program="housing" href="housing.html">
+            <span class="program-card__name">Housing Assistance</span>
+            <span class="program-card__phrase">Help with rent, with a limit set by your county.</span>
+          </a>
+        </li>
+        <li>
+          <a class="program-card" data-program="health" href="health.html">
+            <span class="program-card__name">Health</span>
+            <span class="program-card__phrase">A discount on the Public Option health plan.</span>
+          </a>
+        </li>
+        <li>
+          <a class="program-card" data-program="dividend" href="dividend.html">
+            <span class="program-card__name">Dividend</span>
+            <span class="program-card__phrase">A monthly payment of at least $100.</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></span>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" data-app="benefits">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Applications · Benefit Agency (demo admin)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@600&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="landing.html">
+        <span class="header__mark" aria-hidden="true"></span>
+        Benefit Agency
+      </a>
+      <nav class="header__nav" aria-label="Main">
+        <a href="food.html">Food Assistance</a>
+        <a href="energy.html">Energy Assistance</a>
+        <a href="housing.html">Housing Assistance</a>
+        <a href="health.html">Health</a>
+        <a href="dividend.html">Dividend</a>
+      </nav>
+      <a class="header__admin" href="admin.html" aria-current="page">Admin</a>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <div class="nav-menu__panel">
+          <a href="food.html">Food Assistance</a>
+          <a href="energy.html">Energy Assistance</a>
+          <a href="housing.html">Housing Assistance</a>
+          <a href="health.html">Health</a>
+          <a href="dividend.html">Dividend</a>
+          <a class="nav-menu__admin" href="admin.html" aria-current="page">Admin (demo)</a>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <main class="main" id="main">
+    <div class="wrap stack">
+      <h1 class="intro__title">Applications</h1>
+      <div class="empty">
+        <p><strong>No applications yet</strong></p>
+        <p class="empty__note">Applications appear here when someone applies from their digital wallet. Records are kept in memory, so they're cleared whenever Benefit Agency restarts.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></span>
+    </div>
+  </footer>
+</body>
+</html>

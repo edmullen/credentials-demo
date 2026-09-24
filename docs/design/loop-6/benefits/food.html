@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" data-app="benefits">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Food Assistance · Benefit Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@600&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cred.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="header">
+    <div class="header__inner">
+      <a class="header__brand" href="landing.html">
+        <span class="header__mark" aria-hidden="true"></span>
+        Benefit Agency
+      </a>
+      <nav class="header__nav" aria-label="Main">
+        <a href="food.html" aria-current="page">Food Assistance</a>
+        <a href="energy.html">Energy Assistance</a>
+        <a href="housing.html">Housing Assistance</a>
+        <a href="health.html">Health</a>
+        <a href="dividend.html">Dividend</a>
+      </nav>
+      <a class="header__admin" href="admin.html">Admin</a>
+      <details class="nav-menu">
+        <summary>Menu</summary>
+        <div class="nav-menu__panel">
+          <a href="food.html" aria-current="page">Food Assistance</a>
+          <a href="energy.html">Energy Assistance</a>
+          <a href="housing.html">Housing Assistance</a>
+          <a href="health.html">Health</a>
+          <a href="dividend.html">Dividend</a>
+          <a class="nav-menu__admin" href="admin.html">Admin (demo)</a>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <main class="main main--flush" id="main">
+    <div class="program-band" data-program="food">
+      <div class="wrap stack-s program-band__inner">
+        <a class="back" href="landing.html">‹ All programs</a>
+        <p class="intro__eyebrow">Benefit Agency program</p>
+        <h1 class="intro__title">Food Assistance</h1>
+        <p class="intro__purpose">Food Assistance helps with the cost of groceries. It is decided on a single income limit.</p>
+      </div>
+    </div>
+    <div class="wrap program-body">
+      <section class="stack-s program-section" aria-labelledby="req">
+        <h2 class="section__title" id="req">Qualification requirements</h2>
+        <p>You qualify if all of these are true:</p>
+        <ol class="criteria">
+          <li><span class="criteria__num" aria-hidden="true">1</span><span class="criteria__text"><span>You have a valid identity credential in your digital wallet.</span><span class="criteria__note">Issued by your state, and not changed since.</span></span></li>
+          <li><span class="criteria__num" aria-hidden="true">2</span><span class="criteria__text"><span>You live in New Jersey.</span><span class="criteria__note">Your identity credential shows your state.</span></span></li>
+          <li><span class="criteria__num" aria-hidden="true">3</span><span class="criteria__text"><span class="criteria__rule">Your annual income is at or below $29,526.00.</span><span class="criteria__note">185% of the federal poverty level, as of September 2026.</span></span></li>
+        </ol>
+        <p class="program-section__note">Income means gross pay, before tax, from the income credentials in your wallet. Annual income is one month’s total × 12.</p>
+      </section>
+
+      <section class="stack-s program-section program-section--wide" aria-labelledby="apply">
+        <h2 class="section__title" id="apply">Apply</h2>
+        <p>One application covers all five programs.</p>
+        <div class="apply">
+          <div class="apply__option apply__option--wallet">
+            <a class="btn" href="../wallet/landing-request.html" aria-describedby="apply-wallet-note">Apply with Digital Wallet</a>
+            <p class="apply__note" id="apply-wallet-note">Using your digital wallet uses info from your wallet to make applying fast and secure.</p>
+          </div>
+          <div class="apply__option">
+            <button class="btn" type="button" disabled aria-describedby="apply-here-note">Apply here</button>
+            <p class="apply__note" id="apply-here-note">Applying without a digital wallet isn't available yet.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span><strong>This is a demo.</strong> For more info, <a href="https://github.com/edmullen/credentials-demo">view this repo.</a></span>
+    </div>
+  </footer>
+</body>
+</html>
