@@ -175,23 +175,30 @@ sequenceDiagram
    and income summed from the
    gross pay on the income credentials.
 7. Benefits returns an **outcome for every program** — eligible or denied, possibly with a
-   reason — and a **benefit credential for each eligible one**. The per-program outcome is plain
-   protocol data, not a credential.
+   reason — with the entitlement's own figures alongside an eligible outcome (a discount and
+   plan price, or a payment amount), and issues a **benefit credential for each eligible one**.
+   The per-program outcome and figures are plain protocol data, not a credential; repeating them
+   lets the Wallet say what the person got before the credentials themselves arrive.
 8. The Wallet stores the benefit credentials under the **Benefits** category and records every
    outcome in the Activity log, **denials included** — a denial produces no credential, so the
    log is the only place the person sees it afterwards.
-9. Once the person holds benefit credentials, the Wallet **stops offering Find government
-   services** and shows the credentials in its place. There is no re-applying.
+9. Once the person **holds any benefit credential**, the Wallet **stops offering Find
+   government services** and shows the credentials in its place. A person denied every program
+   keeps the option and may apply again — Benefits replaces the earlier, all-denied
+   determination with the new one rather than keeping both.
 10. Benefits keeps a **determination record**: the presented credentials verbatim, the derived
     figures it used, the subject identifier and the outcomes. There is no applicant-facing view
     of it; it exists for a future admin view (see `docs/decisions.md`).
 
 **When it fails:** a tampered identity credential fails verification at step 5 and every
-program is denied. A person with no identity credential cannot satisfy the request at step 3.
-Out-of-state identities verify successfully but fail the residency test at step 6. In all three
-cases the person holds no benefit credentials afterwards, so Find government services stays
-available and they can apply again — getting the same answer. That is acceptable, and nothing
-is built to prevent it.
+program is denied — though in practice this is stopped earlier: a tampered identity credential
+already fails Phase 2's connection to Payroll, so a person in that state holds no income
+credentials to present here at all. The realistic path to this outcome at Benefits is a
+tampered **income** credential instead. A person with no identity credential cannot satisfy the
+request at step 3. Out-of-state identities verify successfully but fail the residency test at
+step 6. In all three cases the person holds no benefit credentials afterwards, so Find
+government services stays available and they can apply again — getting the same answer. That is
+acceptable, and nothing is built to prevent it.
 
 ### Phase 5 — Present a benefit credential
 
@@ -558,6 +565,11 @@ list of credential queries, each naming a credential type. That keeps a later mo
 OpenID4VP a translation rather than a redesign. DCQL can also name individual claims. The demo
 leaves that out while credentials are shared whole (§3, decision 1), and would add it along
 with selective disclosure (#28).
+
+Benefits' request also uses DCQL's own `multiple: true` flag, on the income entry, for "every
+matching credential, not one" (docs/design.md §2, Loop 6). It settles Intent 006's open
+question about how to ask for several credentials of one type with the real OpenID4VP term, so
+a later move to real OpenID4VP stays a translation there too.
 
 ### Things that would be contrary — and so are ruled out
 

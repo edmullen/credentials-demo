@@ -1,15 +1,30 @@
 from decimal import Decimal
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Body, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app import signing
+from app import applications, clock, signing, trust
 from app.display import money, money_whole
-from app.eligibility import rules
+from app.eligibility import ProgramResult, rules
+from app.presentation import decide_application
 from app.programs import all_programs, get_program
+
+# DCQL-shaped, naming credential types only — no claims list (docs/design.md §2, credential-model
+# §3, decision 1). "multiple: true" is DCQL's own term for "every matching credential".
+DCQL_QUERY = {
+    "credentials": [
+        {"id": "identity", "format": "vc+jwt", "meta": {"type_values": [["IdentityCredential"]]}},
+        {
+            "id": "income",
+            "format": "vc+jwt",
+            "multiple": True,
+            "meta": {"type_values": [["PaystubCredential"]]},
+        },
+    ]
+}
 
 BASE_DIR = Path(__file__).parent
 
@@ -177,6 +192,110 @@ async def apply() -> RedirectResponse:
     # Until PR 10 wires the real by-reference request, this points at the Wallet's landing page
     # so the button is never a dead link on the deployed site (docs/design.md §7.3).
     return RedirectResponse("https://cred-demo-wallet.onrender.com", status_code=303)
+
+
+def _iso(dt) -> str:
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _program_entry(result: ProgramResult) -> dict:
+    entry = {"program": result.program, "outcome": result.outcome}
+    if result.outcome == "denied":
+        entry["reason"] = result.reason
+        return entry
+    # Eligible programs will also carry a credentialId once #106 issues the credential.
+    if result.discount_percent is not None:
+        entry["discountPercent"] = float(result.discount_percent)
+        entry["planCost"] = {
+            "type": "MonetaryAmount", "value": float(result.plan_cost), "currency": "USD"
+        }
+    if result.monthly_payment is not None:
+        entry["monthlyPayment"] = {
+            "type": "MonetaryAmount", "value": float(result.monthly_payment), "currency": "USD"
+        }
+    return entry
+
+
+@app.post("/api/applications/requests")
+async def create_application_request() -> JSONResponse:
+    request_id = applications.create_request(clock.now())
+    return JSONResponse(
+        status_code=201,
+        content={
+            "requestId": request_id,
+            "dcql_query": DCQL_QUERY,
+            "response_uri": f"/api/applications/requests/{request_id}/presentation",
+        },
+    )
+
+
+@app.get("/api/applications/requests/{request_id}")
+async def get_application_request(request_id: str) -> JSONResponse:
+    # Fetchable any number of times until a presentation answers it (docs/design.md §2) — it
+    # doesn't consume the pending request, unlike the presentation POST below.
+    pending = applications.peek_request(request_id, clock.now())
+    if pending is None:
+        return JSONResponse(status_code=404, content={"error": "unknown_request"})
+    return JSONResponse(
+        status_code=200,
+        content={
+            "requestId": request_id,
+            "dcql_query": DCQL_QUERY,
+            "response_uri": f"/api/applications/requests/{request_id}/presentation",
+        },
+    )
+
+
+@app.post("/api/applications/requests/{request_id}/presentation")
+async def submit_application_presentation(request_id: str, vp: dict = Body(...)) -> JSONResponse:
+    now = clock.now()
+    pending = applications.pop_request(request_id, now)
+    if pending is None:
+        return JSONResponse(status_code=404, content={"error": "unknown_request"})
+
+    outcome, extra = decide_application(vp, trust.trust_list(), now)
+    if outcome == "invalid_presentation":
+        return JSONResponse(status_code=400, content={"error": "invalid_presentation"})
+
+    if outcome in ("credential_invalid", "subjects_differ"):
+        subject_id, name, presented = extra
+        applications.record_application(
+            subject_id=subject_id,
+            name=name,
+            presented=presented,
+            same_subject=None if outcome == "credential_invalid" else False,
+            outcome="refused",
+            reason=outcome,
+            facts=None,
+            determination=None,
+            now=now,
+        )
+        return JSONResponse(status_code=200, content={"outcome": "refused", "reason": outcome})
+
+    decided = extra
+    application = applications.record_application(
+        subject_id=decided.subject_id,
+        name=decided.name,
+        presented=decided.presented,
+        same_subject=True,
+        outcome="decided",
+        reason=None,
+        facts=decided.facts,
+        determination=decided.determination,
+        now=now,
+    )
+    # A connection either way — even an all-denied determination (docs/design.md §2).
+    connection_id = applications.connect(decided.subject_id, application.id, now)
+    return JSONResponse(
+        status_code=200,
+        content={
+            "outcome": "decided",
+            "connectionId": connection_id,
+            "applicationId": application.id,
+            "decidedAt": _iso(now),
+            "programs": [_program_entry(r) for r in decided.determination.programs],
+        },
+    )
 
 
 @app.get("/health")
