@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app import applications, clock, signing, trust
+from app.admin import application_rows, determination_view
 from app.display import money, money_whole
 from app.eligibility import PROGRAMS, ProgramResult, rules
 from app.issuance import issue_eligible
@@ -195,6 +196,22 @@ async def apply() -> RedirectResponse:
     return RedirectResponse("https://cred-demo-wallet.onrender.com", status_code=303)
 
 
+@app.get("/admin", response_class=HTMLResponse)
+async def admin(request: Request) -> HTMLResponse:
+    rows = application_rows(applications.all_applications())
+    if not rows:
+        return render(request, "admin_empty.html", "admin")
+    return render(request, "admin.html", "admin", rows=rows)
+
+
+@app.get("/admin/applications/{application_id}", response_class=HTMLResponse)
+async def admin_determination(request: Request, application_id: str) -> HTMLResponse:
+    application = applications.get_application(application_id)
+    if application is None:
+        raise HTTPException(status_code=404)
+    return render(request, "determination.html", "admin", det=determination_view(application))
+
+
 def _iso(dt) -> str:
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -265,15 +282,15 @@ async def submit_application_presentation(request_id: str, vp: dict = Body(...))
         return JSONResponse(status_code=400, content={"error": "invalid_presentation"})
 
     if outcome in ("credential_invalid", "subjects_differ"):
-        subject_id, name, presented = extra
+        refused = extra
         applications.record_application(
-            subject_id=subject_id,
-            name=name,
-            presented=presented,
-            same_subject=None if outcome == "credential_invalid" else False,
+            subject_id=refused.subject_id,
+            name=refused.name,
+            presented=refused.presented,
+            same_subject=refused.same_subject,
             outcome="refused",
             reason=outcome,
-            facts=None,
+            facts=refused.facts,
             determination=None,
             now=now,
         )
@@ -285,7 +302,7 @@ async def submit_application_presentation(request_id: str, vp: dict = Body(...))
         subject_id=decided.subject_id,
         name=decided.name,
         presented=decided.presented,
-        same_subject=True,
+        same_subject=decided.same_subject,
         outcome="decided",
         reason=None,
         facts=decided.facts,

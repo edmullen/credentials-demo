@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block page_title %}{{ det.name }} · Determination · Benefit Agency{% endblock %}
+{% block main %}
+<div class="wrap det">
+  <div class="stack-s">
+    <a class="back" href="/admin">‹ Applications</a>
+    <p class="intro__eyebrow">Determination · demo admin view</p>
+    <h1 class="intro__title">{{ det.name }}</h1>
+    <p class="det__summary{% if det.summary_error %} det__summary--error{% endif %}">{{ det.summary }}</p>
+    <dl class="meta">
+      <div><dt>Received</dt><dd>{{ det.received }}</dd></div>
+      <div><dt>Application id</dt><dd class="mono">{{ det.application_id }}</dd></div>
+      <div><dt>Subject id</dt><dd class="mono">{{ det.subject_id }}</dd></div>
+    </dl>
+  </div>
+
+  <section class="stack-s" aria-labelledby="checks">
+    <h2 class="section__title section__title--sm" id="checks">1. Credential checks</h2>
+    <ul class="checks">
+      {% for c in det.checks %}
+      <li>
+        <details class="disclosure">
+          <summary>
+            <span class="check__text"><span class="check__label">{{ c.label }}</span><span class="check__detail">{{ c.detail }}</span></span>
+            <span class="check__end"><span class="badge badge--{{ c.badge_variant }}">{{ c.badge_label }}</span><span class="disclosure__chev" aria-hidden="true"></span></span>
+          </summary>
+          <dl class="disclosure__body">
+            <dt>Header</dt>
+            <dd><pre class="code">{{ c.header_json }}</pre></dd>
+            <dt>Claims</dt>
+            <dd><pre class="code code--tall">{{ c.claims_json }}</pre></dd>
+            <dt>Raw JWT</dt>
+            <dd class="jwt">{{ c.jwt }}</dd>
+          </dl>
+        </details>
+      </li>
+      {% endfor %}
+      <li class="check">
+        <span class="check__text"><span class="check__label">Same person</span><span class="check__detail">{{ det.same_subject_check.detail }}</span></span>
+        <span class="badge badge--{{ det.same_subject_check.badge_variant }}">{{ det.same_subject_check.badge_label }}</span>
+      </li>
+    </ul>
+  </section>
+
+  {% if det.submitted %}
+  <section class="stack-s" aria-labelledby="submitted">
+    <h2 class="section__title section__title--sm" id="submitted">2. Submitted data</h2>
+    {% if det.submitted.note %}
+    <p class="program-section__note">{{ det.submitted.note }}</p>
+    {% endif %}
+    <div class="submitted">
+      <div class="card card--flat stack-s">
+        <h3 class="card__meta">From the identity credential</h3>
+        <dl class="claims claims--grid">
+          <dt>State</dt><dd class="claims__value--strong">{{ det.submitted.state_name }}{% if det.submitted.region %} ({{ det.submitted.region }}){% endif %}</dd>
+          <dt>County</dt><dd class="claims__value--strong">{{ det.submitted.county }}</dd>
+        </dl>
+      </div>
+      <div class="card card--flat figures__scroll">
+        <table class="figures">
+          <caption>From the income credentials</caption>
+          <thead><tr><th scope="col">Employer</th><th scope="col">Pay date</th><th scope="col">Gross pay</th></tr></thead>
+          <tbody>
+            {% for p in det.submitted.paystubs %}
+            <tr><th scope="row">{{ p.employer }}</th><td>{{ p.pay_date }}</td><td>{{ p.gross }}</td></tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr><th scope="row" colspan="2">Monthly income</th><td>{{ det.submitted.monthly }}</td></tr>
+            <tr><th scope="row" colspan="2">Annual income (× 12)</th><td>{{ det.submitted.annual }}</td></tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="stack-s" aria-labelledby="programs">
+    <h2 class="section__title section__title--sm" id="programs">3. Program decisions</h2>
+
+    {% if det.callout %}
+    <div class="callout{% if det.variant == 'refused' %} callout--error{% endif %}">
+      <h3 class="callout__title">{{ det.callout[0] }}</h3>
+      <p>{{ det.callout[1] }}</p>
+    </div>
+    {% endif %}
+
+    {% if det.variant == "not_nj" %}
+    <ul class="decisions">
+      {% for d in det.decisions %}
+      <li class="decision" data-program="{{ d.code }}">
+        <div class="decision__head">
+          <h3 class="decision__name">{{ d.name }}</h3>
+          <span class="badge badge--{{ d.badge_variant }}">{{ d.badge_label }}</span>
+        </div>
+        <div class="decision__foot decision__foot--plain">No credential issued · reason <code>{{ d.reason }}</code></div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% elif det.variant == "decided" %}
+    <ul class="decisions">
+      {% for d in det.decisions %}
+      <li class="decision" data-program="{{ d.code }}">
+        <div class="decision__head">
+          <h3 class="decision__name">{{ d.name }}</h3>
+          <span class="badge badge--{{ d.badge_variant }}">{{ d.badge_label }}</span>
+        </div>
+        <div class="decision__body">
+          <dl class="decision__facts">
+            <dt>Figure</dt><dd>{{ d.figure }}</dd>
+            <dt>Result</dt><dd class="decision__result">{{ d.result }}</dd>
+          </dl>
+          <div class="scale" aria-hidden="true" style="--zone-start: {{ '%.2f'|format(d.scale.zone_start) }}%; --zone-width: {{ '%.2f'|format(d.scale.zone_width) }}%; --dot: {{ '%.2f'|format(d.scale.dot) }}%;">
+            <div class="scale__track"><div class="scale__zone"></div><div class="scale__dot"></div></div>
+            <div class="scale__legend"><span>{{ d.legend_left }}</span><span>{{ d.legend_right }}</span></div>
+          </div>
+        </div>
+        {% if d.outcome == "eligible" %}
+        <div class="decision__foot">
+          <span class="decision__foot-label">{{ d.foot_label }}</span>
+          <span class="mono">{{ d.credential_id }}</span>
+          <span class="mono">{{ d.mono }}</span>
+        </div>
+        {% else %}
+        <div class="decision__foot decision__foot--plain">No credential issued · reason <code>{{ d.reason }}</code></div>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

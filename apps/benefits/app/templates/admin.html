@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block page_title %}Applications · Benefit Agency (demo admin){% endblock %}
+{% block main %}
+<div class="wrap stack">
+  <h1 class="intro__title">Applications</h1>
+  <div class="apps">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Applicant</th>
+          <th scope="col">Received</th>
+          <th scope="col">Result</th>
+          <th scope="col"><span class="visually-hidden">Determination</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr{% if row.start %} class="apps__start"{% endif %}>
+          <th scope="row">{{ row.name or "" }}</th>
+          <td class="apps__when">{{ row.when }}</td>
+          <td>{{ row.summary }}</td>
+          <td class="apps__view">
+            <a href="/admin/applications/{{ row.id }}">View<span class="visually-hidden"> determination{% if row.name %} for {{ row.name }}{% endif %}, {{ row.when }}</span></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
