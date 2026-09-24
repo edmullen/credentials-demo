@@ -48,7 +48,7 @@ class Application:
     reason: str | None = None  # set when refused
     facts: Facts | None = None  # set when decided
     determination: Determination | None = None  # set when decided
-    issued: dict[str, tuple[str, str]] = field(default_factory=dict)  # program -> (id, jwt); #106
+    issued: dict = field(default_factory=dict)  # program -> issuance.Issued, set when decided
 
 
 @dataclass
@@ -106,6 +106,7 @@ def record_application(
     reason: str | None,
     facts: Facts | None,
     determination: Determination | None,
+    issued: dict | None = None,
     now: datetime,
 ) -> Application:
     application = Application(
@@ -119,6 +120,7 @@ def record_application(
         reason=reason,
         facts=facts,
         determination=determination,
+        issued=issued or {},
     )
     _applications.append(application)
     return application
