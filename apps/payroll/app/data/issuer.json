@@ -5,8 +5,8 @@
   "publicKey": {
     "kty": "EC",
     "crv": "P-256",
-    "x": "ZnFLQBKhXHamNLRfd-rOLtQwEqR9WyPv4GO43Re37b8",
-    "y": "OFhL8HwgLuL0Sx6-nWftEMpH4YYgaKnTAUkFXzJVrVk",
+    "x": "OSld4XnZInxINZ3paXIEZdrjgpzFHvg5Gy1QQKDHOAk",
+    "y": "goZa6c6VcIrf1i3d0HHzjPLagRs05LhBEJYuRtIYymY",
     "kid": "payroll-1"
   }
 }

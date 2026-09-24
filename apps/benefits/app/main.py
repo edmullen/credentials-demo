@@ -1,9 +1,11 @@
 from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
+from app import signing
 
 BASE_DIR = Path(__file__).parent
 
@@ -35,5 +37,13 @@ async def index(request: Request) -> HTMLResponse:
 
 
 @app.get("/health")
-async def health() -> dict:
-    return {"status": "ok"}
+async def health() -> JSONResponse:
+    result = signing.status()
+    if not result.ok:
+        return JSONResponse(status_code=503, content={"status": "unhealthy", "reason": result.reason})
+    return JSONResponse(content={"status": "ok"})
+
+
+@app.get("/.well-known/jwks.json")
+async def jwks() -> dict:
+    return {"keys": [signing.public_jwk()]}

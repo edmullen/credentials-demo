@@ -51,3 +51,5 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.14"
+      - key: BENEFITS_SIGNING_KEY
+        sync: false

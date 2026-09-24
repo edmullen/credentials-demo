@@ -1,0 +1,12 @@
+{
+  "id": "https://cred-demo-benefits.onrender.com",
+  "name": "Benefit Agency",
+  "kid": "benefits-1",
+  "publicKey": {
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "mTzzZzD8TTXRNB0YzScedcte9K98JXPGPsZVZu4WGBc",
+    "y": "Lx0FCQZEAjeIN13iZdk8GXsXcpTzbeSq-LJVYHV36bw",
+    "kid": "benefits-1"
+  }
+}
