@@ -6,7 +6,7 @@
       "runtimeExecutable": "sh",
       "runtimeArgs": [
         "-c",
-        "cd apps/wallet && MERIDIAN_PAYROLL_URL=http://localhost:8002 uv run uvicorn app.main:app --reload --port 8001"
+        "cd apps/wallet && MERIDIAN_PAYROLL_URL=http://localhost:8002 BENEFIT_AGENCY_URL=http://localhost:8003 uv run uvicorn app.main:app --reload --port 8001"
       ],
       "port": 8001
     },
@@ -24,7 +24,7 @@
       "runtimeExecutable": "sh",
       "runtimeArgs": [
         "-c",
-        "cd apps/benefits && uv run uvicorn app.main:app --reload --port 8003"
+        "cd apps/benefits && WALLET_URL=http://localhost:8001 uv run uvicorn app.main:app --reload --port 8003 --env-file .env"
       ],
       "port": 8003
     },

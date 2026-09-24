@@ -9,11 +9,14 @@ Run by hand from the repo root:
     uv run tools/generate_credentials.py
 
 Reads   tools/sample_data/generated/{people,employers}.json, tools/sample_data/photos/pNN.jpg
-Writes  keys/{nj,mi,ny,oh,payroll}-1.jwk.json    private keys, gitignored
+Writes  keys/{nj,mi,ny,oh,payroll,benefits}-1.jwk.json    private keys, gitignored
         apps/wallet/app/data/{people,credentials,trust}.json
         apps/payroll/app/data/trust.json
         apps/payroll/app/data/issuer.json
         apps/payroll/.env                        gitignored; PAYROLL_SIGNING_KEY
+        apps/benefits/app/data/trust.json
+        apps/benefits/app/data/issuer.json
+        apps/benefits/.env                       gitignored; BENEFITS_SIGNING_KEY
 
 A one-shot generator with committed output, as docs/decisions.md allows: nothing runs it at
 build or deploy time. Keys are disposable (docs/credential-model.md §2): every run replaces
@@ -22,17 +25,23 @@ Wallet's detail-page URLs stay the same.
 
 What it builds is docs/design.md §2–3: one ES256 key pair per state, one signed identity
 credential for each person whose `identity` is not "none", and the two deliberately tampered
-credentials the sample data asks for. Benefits' key arrives in Loop 6; issuers are data here, so
-adding them is an entry in ISSUERS, not new code.
+credentials the sample data asks for.
 
-Payroll gets its own key too (docs/design.md §3), separate from ISSUERS since it never signs an
-IdentityCredential: a fresh pair, `payroll-1`, written to keys/, to apps/payroll/.env for local
-runs, and to apps/payroll/app/data/issuer.json (public half, committed) for Payroll's own
-self-check and JWKS. The Wallet's trust.json gains Payroll, trusted for PaystubCredential only;
-Payroll's own trust.json is unchanged, since Payroll never verifies its own credentials.
+Payroll and Benefit Agency each get their own key too (docs/design.md §3), separate from ISSUERS
+since neither signs an IdentityCredential: a fresh pair per issuer, written to keys/, to that
+app's .env for local runs, and to its app/data/issuer.json (public half, committed) for its own
+self-check and JWKS. The Wallet's trust.json gains both: Payroll trusted for PaystubCredential,
+Benefit Agency for BenefitCredential. Benefits' own trust.json holds the four states (for
+IdentityCredential) and Payroll (for PaystubCredential) — everything it verifies a presentation
+against. Payroll's own trust.json is unchanged, since Payroll never verifies its own credentials.
+
+It no longer prints private keys (docs/design.md §3, §16 item 13, after Loop 5 PR 1's leak):
+it prints where each `.env` was written instead. Ed copies the values from those gitignored
+files, and Claude hands them over in chat if asked, never on GitHub.
 
 `cryptography<49` is deliberate: 49 and later publish no wheel for Intel Macs, and building it
-from source needs OpenSSL and pkg-config. The Wallet's pyproject carries the same cap.
+from source needs OpenSSL and pkg-config. The Wallet's and Benefits' pyprojects carry the same
+cap.
 """
 
 import base64
@@ -54,6 +63,8 @@ KEYS_DIR = ROOT / "keys"
 WALLET_DATA = ROOT / "apps" / "wallet" / "app" / "data"
 PAYROLL_DATA = ROOT / "apps" / "payroll" / "app" / "data"
 PAYROLL_ROOT = ROOT / "apps" / "payroll"
+BENEFITS_DATA = ROOT / "apps" / "benefits" / "app" / "data"
+BENEFITS_ROOT = ROOT / "apps" / "benefits"
 
 # Same namespace the sample data uses for name-based ids (tools/generate_sample_data.py).
 NAMESPACE = uuid.UUID("6f1c2a4e-2d7b-5c1e-9a3f-0b8d4e7c1a52")
@@ -76,6 +87,15 @@ PAYROLL_ISSUER = {
     "kid": "payroll-1",
 }
 PAYROLL_TRUSTED_FOR = ["PaystubCredential"]
+
+# Benefit Agency issues BenefitCredentials. Its id is its own deployed origin, the same rule as
+# Payroll's (docs/design.md §16 item 1) — not the handoff's placeholder did:example:benefit-agency.
+BENEFITS_ISSUER = {
+    "id": "https://cred-demo-benefits.onrender.com",
+    "name": "Benefit Agency",
+    "kid": "benefits-1",
+}
+BENEFITS_TRUSTED_FOR = ["BenefitCredential"]
 
 # credential-model §5: identity credentials issue in the first half of 2026 and last four
 # years, so none expires mid-demo and no test depends on today's date.
@@ -153,32 +173,23 @@ def trust_list(keys: dict[str, dict]) -> dict:
     }
 
 
-def write_payroll_key(payroll_key: dict) -> str:
-    """Writes payroll-1's private key to keys/, apps/payroll/.env, and its public half to
-    apps/payroll/app/data/issuer.json (committed). Returns the PAYROLL_SIGNING_KEY line, for
-    printing so Ed can paste it into Render (docs/design.md §3)."""
+def write_issuer_key(issuer: dict, key: dict, env_var: str, app_root: Path, data_dir: Path) -> Path:
+    """Writes an issuer's private key to keys/, <app>/.env, and its public half to
+    <app>/app/data/issuer.json (committed). Returns the .env path written, so main() can tell Ed
+    where to copy the value from — the generator prints no private key (docs/design.md §3,
+    §16 item 13)."""
     KEYS_DIR.mkdir(exist_ok=True)
-    (KEYS_DIR / f"{PAYROLL_ISSUER['kid']}.jwk.json").write_text(
-        json.dumps(payroll_key["private"], indent=2) + "\n"
-    )
-    line = f"PAYROLL_SIGNING_KEY={json.dumps(payroll_key['private'], separators=(',', ':'))}"
-    (PAYROLL_ROOT / ".env").write_text(line + "\n")
-    write_json(
-        "issuer.json",
-        {**PAYROLL_ISSUER, "publicKey": payroll_key["public"]},
-        directory=PAYROLL_DATA,
-    )
-    return line
+    (KEYS_DIR / f"{issuer['kid']}.jwk.json").write_text(json.dumps(key["private"], indent=2) + "\n")
+    env_path = app_root / ".env"
+    env_path.write_text(f"{env_var}={json.dumps(key['private'], separators=(',', ':'))}\n")
+    write_json("issuer.json", {**issuer, "publicKey": key["public"]}, directory=data_dir)
+    return env_path
 
 
-def add_payroll_to_trust(trust: dict, payroll_key: dict) -> dict:
+def add_to_trust(trust: dict, issuer: dict, key: dict, trusted_for: list[str]) -> dict:
     return {
         **trust,
-        PAYROLL_ISSUER["id"]: {
-            "name": PAYROLL_ISSUER["name"],
-            "trustedFor": PAYROLL_TRUSTED_FOR,
-            "keys": [payroll_key["public"]],
-        },
+        issuer["id"]: {"name": issuer["name"], "trustedFor": trusted_for, "keys": [key["public"]]},
     }
 
 
@@ -291,6 +302,7 @@ def main() -> None:
     employer_names = {e["id"]: e["name"] for e in json.loads(SAMPLE_EMPLOYERS.read_text())}
     keys = make_keys()
     payroll_key = generate_keypair(PAYROLL_ISSUER["kid"])
+    benefits_key = generate_keypair(BENEFITS_ISSUER["kid"])
 
     holders = [p for p in people if p["identity"] != "none"]
     for person in holders:
@@ -301,18 +313,29 @@ def main() -> None:
     write_keys(keys)
     write_json("people.json", [wallet_person(p, employer_names) for p in people])
     write_json("credentials.json", credentials)
-    write_json("trust.json", add_payroll_to_trust(trust_list(keys), payroll_key))
+    wallet_trust = add_to_trust(trust_list(keys), PAYROLL_ISSUER, payroll_key, PAYROLL_TRUSTED_FOR)
+    wallet_trust = add_to_trust(wallet_trust, BENEFITS_ISSUER, benefits_key, BENEFITS_TRUSTED_FOR)
+    write_json("trust.json", wallet_trust)
     # Payroll never verifies its own credentials, so its trust list stays the four states only
     # (docs/design.md §3).
     write_json("trust.json", trust_list(keys), directory=PAYROLL_DATA)
-    payroll_line = write_payroll_key(payroll_key)
+    # Benefits verifies both the identity credential and every paystub it's handed, so it trusts
+    # the four states plus Payroll (docs/design.md §3, §6).
+    benefits_trust = add_to_trust(trust_list(keys), PAYROLL_ISSUER, payroll_key, PAYROLL_TRUSTED_FOR)
+    write_json("trust.json", benefits_trust, directory=BENEFITS_DATA)
+    payroll_env = write_issuer_key(
+        PAYROLL_ISSUER, payroll_key, "PAYROLL_SIGNING_KEY", PAYROLL_ROOT, PAYROLL_DATA
+    )
+    benefits_env = write_issuer_key(
+        BENEFITS_ISSUER, benefits_key, "BENEFITS_SIGNING_KEY", BENEFITS_ROOT, BENEFITS_DATA
+    )
 
     tampered = [p["id"] for p in holders if p.get("tamper")]
-    print(f"Keys:        {len(keys) + 1} written to keys/ (gitignored)")
+    print(f"Keys:        {len(keys) + 2} written to keys/ (gitignored)")
     print(f"Credentials: {len(holders)} signed, {len(tampered)} tampered ({', '.join(tampered)})")
     print(f"People:      {len(people)}; {len(people) - len(holders)} hold nothing")
-    print(f"Payroll:     apps/payroll/.env written; paste into Render's dashboard too:")
-    print(f"  {payroll_line}")
+    print(f"Payroll:     {payroll_env.relative_to(ROOT)} written; copy PAYROLL_SIGNING_KEY from it into Render's dashboard too")
+    print(f"Benefits:    {benefits_env.relative_to(ROOT)} written; copy BENEFITS_SIGNING_KEY from it into Render's dashboard too")
 
 
 if __name__ == "__main__":
