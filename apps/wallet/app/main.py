@@ -26,6 +26,7 @@ from app.connections import (
 from app.credentials import credentials_for, find_credential, identity_status
 from app.display import long_date
 from app.issuance import check_status, maybe_start_check
+from app.outcomes import PRESENTATIONS
 from app.people import all_people, get_person
 from app.programs import all_programs
 from app.providers import all_employers, all_providers, all_services, get_provider
@@ -558,9 +559,19 @@ async def services_results(
         identity_ok = identity is not None and identity.outcome is Outcome.VERIFIED
         income_ok = bool(income) and all(c.outcome is Outcome.VERIFIED for c in income)
         sentence = results.refusal_sentence(link.refusal, identity_ok and income_ok, not identity_ok)
+        # Name the badge the failing credential actually shows (Tampered, Not yet valid, …),
+        # rather than assuming Tampered. None when nothing failed a check: subjects differing, or
+        # the Wallet's own checks passing.
+        failed = None
+        if link.refusal == "credential_invalid":
+            failed = next(
+                (c for c in [identity, *income] if c is not None and c.outcome is not Outcome.VERIFIED),
+                None,
+            )
+        failed_label = PRESENTATIONS[failed.outcome].label if failed else None
         return render(
             request, "results.html", person, "credentials",
-            variant="refused", refusal_sentence=sentence,
+            variant="refused", refusal_sentence=sentence, failed_label=failed_label,
         )
 
     determination = link.determination

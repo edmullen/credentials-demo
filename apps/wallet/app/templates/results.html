@@ -13,7 +13,7 @@
           <span class="badge badge--error"><span class="badge__icon" aria-hidden="true">&#10005;</span>Refused</span>
           <p>{{ refusal_sentence }}</p>
         </div>
-        <p class="panel__note">Nothing was issued. On your Credentials page, the credential that failed shows as Tampered.</p>
+        <p class="panel__note">Nothing was issued.{% if failed_label %} On your Credentials page, the credential that failed shows as {{ failed_label }}.{% endif %}</p>
       </section>
       <p class="visually-hidden" role="status">Your application couldn&rsquo;t be decided. {{ refusal_sentence }}</p>
       <a class="btn btn--block" href="/p/{{ person.id }}/credentials">Go to your credentials</a>
