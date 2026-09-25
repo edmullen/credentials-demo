@@ -1,3 +1,4 @@
+import os
 from decimal import Decimal
 from pathlib import Path
 
@@ -29,6 +30,10 @@ DCQL_QUERY = {
 }
 
 BASE_DIR = Path(__file__).parent
+
+# Where Apply with Digital Wallet sends the browser (docs/design.md §3, §7.3). Local runs point
+# it at a local Wallet, as the Wallet's MERIDIAN_PAYROLL_URL does for Payroll.
+WALLET_URL = os.environ.get("WALLET_URL", "https://cred-demo-wallet.onrender.com").rstrip("/")
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
@@ -191,9 +196,11 @@ async def program_page(request: Request, code: str) -> HTMLResponse:
 
 @app.get("/apply")
 async def apply() -> RedirectResponse:
-    # Until PR 10 wires the real by-reference request, this points at the Wallet's landing page
-    # so the button is never a dead link on the deployed site (docs/design.md §7.3).
-    return RedirectResponse("https://cred-demo-wallet.onrender.com", status_code=303)
+    # A GET because the handoff's button is a link. Creating a request is harmless: it holds
+    # nothing personal, expires in 15 minutes and is pruned. The browser carries only its id;
+    # the Wallet fetches the request itself, by reference (docs/design.md §2, §7.3).
+    request_id = applications.create_request(clock.now())
+    return RedirectResponse(f"{WALLET_URL}/requests/benefits/{request_id}", status_code=303)
 
 
 @app.get("/admin", response_class=HTMLResponse)

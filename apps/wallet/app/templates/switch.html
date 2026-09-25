@@ -9,7 +9,7 @@
       <ul class="people">
         {% for p in people %}
         <li>
-          <a class="people__row" href="/p/{{ p.id }}/{{ screen }}"{% if p.id == person.id %} aria-current="page"{% endif %}>
+          <a class="people__row" href="/p/{{ p.id }}/{{ row_path }}"{% if p.id == person.id %} aria-current="page"{% endif %}>
             <span class="initials initials--sm" role="img" aria-label="{{ p.name }}">{{ p.initials }}</span>
             <span class="people__meta">
               <span class="people__name">{{ p.name }}</span>

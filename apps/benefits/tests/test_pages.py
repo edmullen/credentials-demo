@@ -1,7 +1,10 @@
 """Landing and program pages (docs/design.md §7, #20)."""
 
+import re
+
 from fastapi.testclient import TestClient
 
+from app import main
 from app.main import app
 
 client = TestClient(app)
@@ -99,10 +102,30 @@ def test_every_program_page_offers_apply_options_with_aria_describedby() -> None
         assert 'id="apply-here-note"' in body
 
 
-def test_apply_redirects_to_the_wallet_with_a_303() -> None:
+def test_apply_redirects_to_the_wallet_with_a_live_request_id() -> None:
     response = client.get("/apply", follow_redirects=False)
     assert response.status_code == 303
-    assert response.headers["location"] == "https://cred-demo-wallet.onrender.com"
+    location = response.headers["location"]
+    prefix = "https://cred-demo-wallet.onrender.com/requests/benefits/"
+    assert location.startswith(prefix)
+    request_id = location.removeprefix(prefix)
+    assert re.fullmatch(r"[0-9a-f]{32}", request_id)
+    # Only the id travels in the URL; the request itself is fetched by reference.
+    by_reference = client.get(f"/api/applications/requests/{request_id}")
+    assert by_reference.status_code == 200
+    assert by_reference.json()["requestId"] == request_id
+
+
+def test_apply_makes_a_fresh_request_each_time() -> None:
+    first = client.get("/apply", follow_redirects=False).headers["location"]
+    second = client.get("/apply", follow_redirects=False).headers["location"]
+    assert first != second
+
+
+def test_apply_uses_the_configured_wallet_url(monkeypatch) -> None:
+    monkeypatch.setattr(main, "WALLET_URL", "http://localhost:8001")
+    location = client.get("/apply", follow_redirects=False).headers["location"]
+    assert location.startswith("http://localhost:8001/requests/benefits/")
 
 
 def test_no_script_tag_on_any_benefits_page() -> None:

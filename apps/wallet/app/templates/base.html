@@ -25,7 +25,7 @@
           {% for key, label in nav %}
           <a href="/p/{{ person.id }}/{{ key }}"{% if key == active %} aria-current="page"{% endif %}>{{ label }}</a>
           {% endfor %}
-          <a class="nav-menu__signout" href="/">Sign out</a>
+          <a class="nav-menu__signout" href="/sign-out">Sign out</a>
         </nav>
       </details>
       {% else %}

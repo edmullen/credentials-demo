@@ -60,10 +60,23 @@ def income_groups(income: list) -> list[dict]:
     return result
 
 
+def pay_months(income: list) -> str:
+    """The purpose line's "September" (handoff consent-p01.html): the income panels' month or
+    span, without the year."""
+    return month_span([c.subject.get("payDate") for c in income]).rsplit(" ", 1)[0]
+
+
 def holds_benefit_credential(person_id: str) -> bool:
     """"Holds" counts every received BenefitCredential, whatever its verification outcome
     (docs/design.md §10.1)."""
     return any(c.category == "Benefits" for c in credentials_for(person_id))
+
+
+def arrival_in_progress(person_id: str, request_id: str) -> bool:
+    """True if this person's attempt is already answering this very request, so a reload of the
+    arrival URL returns to it instead of starting over (docs/design.md §16 item 8)."""
+    link = state.get_link(person_id, SERVICE_ID)
+    return link is not None and link.request is not None and link.request.request_id == request_id
 
 
 def where_is_the_attempt(person_id: str) -> str:
@@ -83,11 +96,14 @@ def _still_current(person_id: str, token: str) -> state.Link | None:
     return link
 
 
-def start_apply(person_id: str) -> None:
-    """GET …/apply: a fresh token, phase asking, call 1 spawned."""
+def start_apply(person_id: str, request_id: str | None = None) -> None:
+    """GET …/apply: a fresh token, phase asking, call 1 spawned. With `request_id` — an arrival
+    from Benefit Agency (docs/design.md §12) — call 1 fetches that request by reference."""
     link = state.get_or_create_link(person_id, SERVICE_ID)
     token = state.new_token()
-    link.request = state.PendingRequest(token=token, phase="asking")
+    link.request = state.PendingRequest(
+        token=token, phase="asking", request_id=request_id, arrived=request_id is not None
+    )
     outbound.spawn(run_call_one(person_id, token))
 
 
@@ -96,9 +112,19 @@ async def run_call_one(person_id: str, token: str) -> None:
     link = _still_current(person_id, token)
     if link is None:
         return
+    request_id = link.request.request_id
     try:
-        response = await outbound.post_json(f"{service['url']}/api/applications/requests", {})
-        if response.status_code != 201:
+        # Always the registry's URL: the arrival URL supplies only a validated id, so nothing a
+        # browser carries can steer this call elsewhere (docs/design.md §12.2).
+        if request_id is None:
+            response = await outbound.post_json(f"{service['url']}/api/applications/requests", {})
+            expected = 201
+        else:
+            response = await outbound.get_json(
+                f"{service['url']}/api/applications/requests/{request_id}"
+            )
+            expected = 200
+        if response.status_code != expected:
             raise ValueError(f"unexpected status {response.status_code}")
         body = response.json()
         dcql_query = body["dcql_query"]

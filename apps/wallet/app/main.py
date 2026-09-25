@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Query, Request
@@ -51,6 +52,12 @@ SITE = {
 NAV = [("credentials", "Credentials"), ("connections", "Connections"), ("activity", "Activity")]
 DEFAULT_PERSON = "p01"
 
+# The last person viewed, so an arrival from Benefit Agency knows who is signed in
+# (docs/design.md §12.1). Navigation, not authentication — exactly like Sign in.
+PERSON_COOKIE = "wallet_person"
+# Benefit Agency's request ids are uuid4().hex. Anything else is refused before it reaches a URL.
+REQUEST_ID = re.compile(r"[0-9a-f]{32}")
+
 
 def viewed_person(person_id: str) -> dict:
     person = get_person(person_id)
@@ -62,12 +69,44 @@ def viewed_person(person_id: str) -> dict:
 def render(
     request: Request, template: str, person: dict | None, active: str, **context
 ) -> HTMLResponse:
-    """`person` is None only on the landing page, where no one is signed in."""
-    return templates.TemplateResponse(
+    """`person` is None only on the landing page, where no one is signed in. Every page with a
+    person remembers them in the cookie (docs/design.md §12.1)."""
+    response = templates.TemplateResponse(
         request,
         template,
         {"site": SITE, "nav": NAV, "person": person, "active": active, **context},
     )
+    if person is not None:
+        response.set_cookie(
+            PERSON_COOKIE, person["id"], httponly=True, samesite="lax", path="/",
+            secure=_over_https(request),
+        )
+    return response
+
+
+def _over_https(request: Request) -> bool:
+    # Render's proxy terminates TLS, so the app sees http; the proxy says what the browser used.
+    forwarded = request.headers.get("x-forwarded-proto", "").split(",")[0].strip()
+    return (forwarded or request.url.scheme) == "https"
+
+
+def _valid_arrival(service_id: str, request_id: str) -> None:
+    """A registry service and a well-formed request id, or 404 (docs/design.md §12.2)."""
+    provider = get_provider(service_id)
+    if provider is None or provider["kind"] != "service" or not REQUEST_ID.fullmatch(request_id):
+        raise HTTPException(status_code=404)
+
+
+def _parse_carried_request(value: str | None) -> tuple[str, str] | None:
+    """The switcher's `request={service_id}:{request_id}`, validated, or None."""
+    if not value:
+        return None
+    service_id, _, request_id = value.partition(":")
+    try:
+        _valid_arrival(service_id, request_id)
+    except HTTPException:
+        return None
+    return service_id, request_id
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -79,6 +118,44 @@ async def landing(request: Request) -> HTMLResponse:
         sign_in=f"/p/{DEFAULT_PERSON}/credentials",
         switcher=f"/p/{DEFAULT_PERSON}/switch",
     )
+
+
+@app.get("/sign-out")
+async def sign_out() -> RedirectResponse:
+    response = RedirectResponse("/", status_code=303)
+    response.delete_cookie(PERSON_COOKIE, path="/")
+    return response
+
+
+@app.get("/requests/{service_id}/{request_id}", response_class=HTMLResponse)
+async def arrival(request: Request, service_id: str, request_id: str) -> HTMLResponse:
+    """Arriving from Benefit Agency with its request id (docs/design.md §12.2)."""
+    _valid_arrival(service_id, request_id)
+    remembered = get_person(request.cookies.get(PERSON_COOKIE, ""))
+    if remembered is not None:
+        return RedirectResponse(
+            f"/p/{remembered['id']}/requests/{service_id}/{request_id}", status_code=303
+        )
+    return render(
+        request, "landing.html", None, "",
+        sign_in=f"/p/{DEFAULT_PERSON}/requests/{service_id}/{request_id}",
+        switcher=f"/p/{DEFAULT_PERSON}/switch?request={service_id}:{request_id}",
+        arriving_from=get_provider(service_id)["name"],
+    )
+
+
+@app.get("/p/{person_id}/requests/{service_id}/{request_id}")
+async def person_arrival(
+    service_id: str, request_id: str, person: dict = Depends(viewed_person)
+) -> RedirectResponse:
+    _valid_arrival(service_id, request_id)
+    person_id = person["id"]
+    if application.holds_benefit_credential(person_id):
+        return RedirectResponse(f"/p/{person_id}/services/{service_id}/already", status_code=303)
+    if application.arrival_in_progress(person_id, request_id):
+        return RedirectResponse(application.where_is_the_attempt(person_id), status_code=303)
+    application.start_apply(person_id, request_id)
+    return RedirectResponse(f"/p/{person_id}/services/{service_id}/asking", status_code=303)
 
 
 @app.get("/p/{person_id}/credentials", response_class=HTMLResponse)
@@ -302,13 +379,22 @@ async def switch(
     request: Request,
     person: dict = Depends(viewed_person),
     from_screen: str = Query("credentials", alias="from"),
+    carried: str | None = Query(None, alias="request"),
 ) -> HTMLResponse:
     # Rows keep the reader on the kind of screen they came from. Only a known screen name is
     # accepted, so the query string can't steer a link anywhere else.
     screen = from_screen if from_screen in dict(NAV) else "credentials"
+    # Arriving from Benefit Agency, each row carries the request on to that person's consent
+    # (docs/design.md §12.2) — again only once validated.
+    carried_request = _parse_carried_request(carried)
+    row_path = (
+        "requests/{}/{}".format(*carried_request) if carried_request is not None else screen
+    )
     # Each badge is the result of verifying that person's credential, not a stored field.
     rows = [{**p, "status": identity_status(p["id"])} for p in all_people()]
-    return render(request, "switch.html", person, "", people=rows, screen=screen)
+    return render(
+        request, "switch.html", person, "", people=rows, screen=screen, row_path=row_path
+    )
 
 
 @app.get("/p/{person_id}/services", response_class=HTMLResponse)
@@ -376,11 +462,13 @@ async def services_request(
     income = application.held_income(person_id)
     groups = application.income_groups(income)
     total = 1 + len(income)
+    arrived_request = link.request.request_id if link.request.arrived else None
     return render(
         request, "services-consent.html", person, "credentials",
         service_id=service_id, identity=identity,
         identity_tampered=identity.outcome is Outcome.TAMPERED,
-        income_groups=groups, total=total,
+        income_groups=groups, total=total, arrived_request=arrived_request,
+        pay_months=application.pay_months(income),
     )
 
 

@@ -1,7 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Wallet: Collect and present your credentials in one place{% endblock %}
+{% block title %}{% if arriving_from %}Sign in to see {{ arriving_from }}&rsquo;s request — {{ site.name }}{% else %}Wallet: Collect and present your credentials in one place{% endif %}{% endblock %}
 {% block main %}
     <div class="wrap landing">
+      {% if arriving_from %}
+      <div class="notice" role="status">
+        <p><strong>{{ arriving_from }} is asking for credentials.</strong></p>
+        <p>Sign in, and your wallet will show you exactly what it wants before anything is shared.</p>
+      </div>
+      {% endif %}
       <h1 class="landing__title"><span class="landing__lead">Wallet:</span> Collect and present your credentials in one place</h1>
       <p class="intro__purpose">Wallet is a secure place to store your credentials, like your ID, proof of income, and benefits you receive from the government.</p>
       <div class="stack-s">

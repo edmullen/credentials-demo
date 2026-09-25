@@ -66,6 +66,11 @@ Theming is one attribute: `<html data-app="…">`, with all component CSS readin
 - **One uvicorn worker per app, with no `--workers`.** Runtime state (connections, requests,
   activity) lives in each app's memory. More than one worker would split it and break the
   connection flow.
+- **The Wallet sets a `wallet_person` cookie on every `/p/…` page, and Sign out goes to
+  `/sign-out`.** It isn't a login: it only lets an arrival from Benefit Agency
+  (`/requests/benefits/{id}`) know who was last viewed (`docs/decisions.md`). The arrival URL
+  carries only a request id; the Wallet fetches the request from the registry's URL, never one
+  from the browser.
 - **The Wallet sends Payroll's `response_uri` only to the origin it already holds.** Payroll
   returns that URI as a path, not an absolute URL, for the same TLS-proxy reason as the
   `cred.css` href above.

@@ -3,12 +3,25 @@
 {% block main %}
     <div class="wrap stack">
       <div class="pagehead">
+        {% if arrived_request %}
+        <a class="back" href="/p/{{ person.id }}/credentials">Credentials</a>
+        {% else %}
         <a class="back" href="/p/{{ person.id }}/services">Government services</a>
+        {% endif %}
         <span class="pagehead__sep" aria-hidden="true"></span>
         <h1 class="pagehead__title">Request from Benefit Agency</h1>
       </div>
+      {% if arrived_request %}
+      <div class="arrival">
+        <img class="arrival__photo" src="{{ identity.subject.image }}" alt="" width="44" height="55">
+        <div class="arrival__text">
+          <p>Benefit Agency sent you here. You&rsquo;re applying as <strong>{{ person.name }}</strong>.</p>
+          <a href="/p/{{ person.id }}/switch?request={{ service_id }}:{{ arrived_request }}">Not you? Switch person</a>
+        </div>
+      </div>
+      {% endif %}
       <h2 class="intro__title">{{ page_title }}</h2>
-      <p class="intro__purpose">Benefit Agency uses your identity and your pay to decide five programs at once: Food, Energy and Housing Assistance, Health, and Dividend.</p>
+      <p class="intro__purpose">Benefit Agency uses your identity and your {{ pay_months ~ " " if pay_months }}pay to decide five programs at once: Food, Energy and Housing Assistance, Health, and Dividend.</p>
       <form class="decision" method="post" action="/p/{{ person.id }}/services/{{ service_id }}/request">
         <p class="decision__lead">This applies to the whole request: all {{ total }} credentials.</p>
         <div class="actions">
