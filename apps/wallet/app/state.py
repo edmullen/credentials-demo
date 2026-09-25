@@ -27,7 +27,10 @@ class PendingRequest:
     dcql_query: dict | None = None
     response_uri: str | None = None
     missing: str | None = None  # "identity" | "income" — which one Benefit Agency's request needs
-    arrived: bool = False  # fetched by reference (§12, a later loop)
+    # Arriving from Benefit Agency (docs/design.md §12): call 1 fetches this request by
+    # reference instead of making a new one, and consent shows the arrival row.
+    request_id: str | None = None
+    arrived: bool = False
 
 
 @dataclass

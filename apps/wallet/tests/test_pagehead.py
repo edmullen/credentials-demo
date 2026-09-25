@@ -78,7 +78,7 @@ def test_the_menu_is_the_only_nav_and_ends_with_sign_out(screen: str) -> None:
     menu = re.search(r'<nav class="nav-menu__panel" aria-label="Main">(.*?)</nav>', body, re.S).group(1)
     links = re.findall(r'<a (?:class="([^"]+)" )?href="([^"]+)"[^>]*>([^<]+)</a>', menu)
     assert [label for _, _, label in links] == [label for _, label in NAV] + ["Sign out"]
-    assert links[-1] == ("nav-menu__signout", "/", "Sign out")
+    assert links[-1] == ("nav-menu__signout", "/sign-out", "Sign out")
 
 
 def test_signed_in_the_brand_still_opens_the_persons_credentials() -> None:

@@ -76,6 +76,12 @@
   the reset. Within a session, removing a provider in the Wallet returns that person to the
   start, and reconnecting overwrites Payroll's record. Worth rechecking at Loop 6, where holding
   benefit credentials is the first state change with no in-app way back.
+- **The Wallet remembers the last person viewed in one cookie,** `wallet_person` (Ed,
+  2026-09-24, docs/design.md §12.1), so a browser arriving from Benefit Agency's **Apply with
+  Digital Wallet** lands on that person's consent page. It is navigation, not authentication,
+  exactly like **Sign in**: it holds a person id and nothing else, and **Sign out** (`/sign-out`)
+  clears it. This amends Loop 4a's "signing out clears nothing" (design/loop-4a/design.md §3);
+  runtime state is still never cleared by signing out.
 - **JavaScript is allowed sparingly** (Ed, 2026-09-22, amending "no JavaScript"; extended
   2026-09-23 to the Credentials page): only where a no-JS option is insufficient, as
   progressive enhancement over a page that already works without it. No framework, no library,

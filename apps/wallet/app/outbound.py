@@ -40,6 +40,11 @@ def resolve(provider_url: str, response_uri: str) -> str | None:
     return resolved if _same_origin(provider_url, resolved) else None
 
 
+async def get_json(url: str) -> httpx.Response:
+    async with httpx.AsyncClient(timeout=TIMEOUT, headers={"User-Agent": USER_AGENT}) as client:
+        return await client.get(url)
+
+
 async def post_json(url: str, payload: dict) -> httpx.Response:
     async with httpx.AsyncClient(timeout=TIMEOUT, headers={"User-Agent": USER_AGENT}) as client:
         return await client.post(url, json=payload)
