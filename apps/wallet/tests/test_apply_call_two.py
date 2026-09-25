@@ -15,8 +15,11 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from app import outbound, state
+from app import credentials, outbound, state
 from app.main import app
+
+# Captured at import, before any fixture patches it.
+_original_committed = credentials._committed
 from tests.apply_helpers import income_credential, payroll_trust
 
 client = TestClient(app)
@@ -284,6 +287,40 @@ def test_results_page_refused(monkeypatch, collector, payroll_trust) -> None:
     body = client.get("/p/p01/services/benefits/results").text
     assert "Your application couldn&rsquo;t be decided" in body
     assert "The credentials you shared aren’t all about the same person." in body
+    # Nothing failed the Wallet's own checks, so the note names no failing credential.
+    assert '<p class="panel__note">Nothing was issued.</p>' in body
+
+
+@pytest.fixture
+def full_trust(monkeypatch, payroll_trust):
+    """payroll_trust plus the committed trust list, so p01's identity still verifies."""
+    stored, payroll_only = credentials._committed()
+    _, committed = _original_committed()
+    monkeypatch.setattr(credentials, "_committed", lambda: (stored, {**committed, **payroll_only}))
+    return payroll_trust
+
+
+def _refused_with_income(payroll_trust, **income_kwargs) -> str:
+    _, token = income_credential(payroll_trust, **income_kwargs)
+    state.add_received("p01", "cred-1", token)
+    state.get_or_create_link("p01", "benefits").refusal = "credential_invalid"
+    return client.get("/p/p01/services/benefits/results").text
+
+
+def test_results_refused_names_a_not_yet_valid_credential(full_trust) -> None:
+    # The fixed clock is 21 Sep 2026: a 30 Sep paystub isn't valid yet (the real-date case
+    # that blocked Loop 6's live pass until 30 Sep).
+    body = _refused_with_income(
+        full_trust, pay_date="2026-09-30", pay_period_start="2026-09-16", pay_period_end="2026-09-30"
+    )
+    assert "One of your income credentials couldn’t be verified" in body
+    assert "the credential that failed shows as Not yet valid." in body
+    assert "Tampered" not in body
+
+
+def test_results_refused_names_a_tampered_credential(full_trust) -> None:
+    body = _refused_with_income(full_trust, tamper=True)
+    assert "the credential that failed shows as Tampered." in body
 
 
 def test_results_redirects_with_no_determination() -> None:
