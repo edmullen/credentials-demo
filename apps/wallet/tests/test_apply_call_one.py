@@ -249,3 +249,17 @@ def test_a_cant_apply_attempt_is_not_a_connection(monkeypatch, collector) -> Non
     body = client.get("/p/p01/connections").text
     assert "Benefit Agency" not in body
     assert "Now connect your payroll" not in body
+
+
+def test_consent_income_badge_renders_a_check_not_an_escaped_entity(
+    monkeypatch, collector, payroll_trust
+) -> None:
+    # Found in Loop 6's live pass: the badge showed a literal "&#10003;".
+    _, token = income_credential(payroll_trust)
+    state.add_received("p01", "cred-1", token)
+    _patch_transport(monkeypatch, lambda r: httpx.Response(201, json=_dcql_response()))
+    client.get("/p/p01/services/benefits/apply")
+    collector.run()
+    body = client.get("/p/p01/services/benefits/request").text
+    assert '<span class="badge__icon" aria-hidden="true">&#10003;</span>All verified' in body
+    assert "&amp;#" not in body
