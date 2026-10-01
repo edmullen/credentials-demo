@@ -62,7 +62,7 @@
                   <span class="card__meta">{{ group.credentials|length }} paystub{{ "s" if group.credentials|length != 1 }}</span>
                   <span class="cred__issuer-name">{{ group.period_label }}</span>
                 </span>
-                <span class="badge badge--{{ 'verified' if group.all_verified else 'caution' }}"><span class="badge__icon" aria-hidden="true">{{ "&#10003;" if group.all_verified else "!" }}</span>{{ "All verified" if group.all_verified else "Check details" }}</span>
+                <span class="badge badge--{{ 'verified' if group.all_verified else 'caution' }}"><span class="badge__icon" aria-hidden="true">{% if group.all_verified %}&#10003;{% else %}!{% endif %}</span>{{ "All verified" if group.all_verified else "Check details" }}</span>
               </span>
               <p>{% if group.all_verified %}Nothing in these {{ group.credentials|length }} credentials has changed since {{ group.issuer_name }} issued them. Open one to see every claim it shares.{% else %}Not every credential from {{ group.issuer_name }} could be verified. Open one to see every claim it shares.{% endif %}</p>
             </div>
