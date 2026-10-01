@@ -557,3 +557,126 @@ negatives is what let the other two (`EXPIRED`, `NOT_YET_VALID`) get swept in by
 6 adds Benefits' own eligibility outcomes alongside the identity and income ones already in
 play — the same trap is easy to hit again with more outcomes around, and it's cheap to check by
 writing out the full outcome table before deciding what each display rule keys on.
+
+## Loop 6 — Benefits Programs and Eligibility
+
+**Built.** Benefit Agency becomes a verifier and an issuer. It publishes five programs, decides
+all five from one presentation of identity and income credentials, and issues a
+`BenefitCredential` for each eligible program. The Wallet finds government services, applies,
+shows the results, and holds the benefit credentials. Nine issues: #20 and #104–#111. Planning
+took one day (23–24 Sep). There were three rounds of scope questions before any issue was
+drafted, then Intent 006 ([#112](https://github.com/edmullen/credentials-demo/pull/112)), one
+brief run as two Claude Design sessions (Benefits, then Wallet;
+[#113](https://github.com/edmullen/credentials-demo/pull/113),
+[#114](https://github.com/edmullen/credentials-demo/pull/114)), and the design with 31
+acceptance criteria ([#115](https://github.com/edmullen/credentials-demo/pull/115)). Ten build
+PRs followed on 24–25 Sep, all hands-off merges once CI was green:
+
+- [#116](https://github.com/edmullen/credentials-demo/pull/116): `CredDemoIssuerColor` renamed
+  to `CredDemoCardColor`. Closed #110.
+- [#117](https://github.com/edmullen/credentials-demo/pull/117): Benefits' key, trust list,
+  `/health` and JWKS. The generator re-keys everything and no longer prints private keys.
+- [#118](https://github.com/edmullen/credentials-demo/pull/118): the eligibility engine and
+  `rules.json`, checked against every row of sample-data.md.
+- [#119](https://github.com/edmullen/credentials-demo/pull/119): Benefit Agency's landing and
+  five program pages.
+- [#120](https://github.com/edmullen/credentials-demo/pull/120): call 1, the request by
+  reference, call 2, verification and the application record.
+- [#121](https://github.com/edmullen/credentials-demo/pull/121): the benefit credential and
+  call 3.
+- [#122](https://github.com/edmullen/credentials-demo/pull/122): the admin view.
+- [#123](https://github.com/edmullen/credentials-demo/pull/123): benefit credentials in the
+  Wallet.
+- [#124](https://github.com/edmullen/credentials-demo/pull/124): the Wallet's apply flow, the
+  largest PR of the loop (+1,926 lines).
+- [#125](https://github.com/edmullen/credentials-demo/pull/125): applying from a program page,
+  the `wallet_person` cookie and `/sign-out`. Closed #108.
+
+Then came three follow-ups: [#126](https://github.com/edmullen/credentials-demo/pull/126) (the
+refused page always said "Tampered"), [#127](https://github.com/edmullen/credentials-demo/pull/127)
+and [#128](https://github.com/edmullen/credentials-demo/pull/128) (both found on the live pass).
+The live pass itself is [#129](https://github.com/edmullen/credentials-demo/pull/129), on
+1 October. Benefits' suite grew from 4 to 132 tests, and the Wallet's from 219 to 317. Payroll
+stayed at 97. The design and the live pass record are in [design.md](design.md) (§18).
+
+**What went wrong.**
+
+- *Loop 4a's improvement, which held through Loop 5, slipped.* Design.md §15 said the plan step
+  comes before PR 1, and that a UI PR merges only with a clean side-by-side table. No
+  reconciliation was written; Loop 5's was a PR of its own (#95). PR 1 merged eight minutes
+  after the design did. Only one of the five UI PRs (#125, the last) carried the table.
+  - #119 talked itself out of the table by misreading §15, and compared screenshots and page
+    text instead.
+  - #122 and #123 compared text line by line against the handoff.
+  - #124 recorded no comparison at all.
+
+  The cost showed up as soon as a table was finally measured. #125 found that #124's consent
+  page had dropped "September" from the purpose line, which moved everything below it 26px at
+  375px. The loop's main reason for a plan step is to catch drift like that in the PR that
+  causes it, not one PR later.
+- *The outcome tables were written but not tested cell by cell.* Loop 5's improvement held as
+  far as design.md §13: every display rule had its full outcome table. But two bugs broke rows
+  of those tables, and no test checked those rows.
+  - #126: the refused page named "Tampered" for any failing credential.
+  - #127, found live: table C says a can't-apply attempt makes **no connection**, but the
+    Wallet kept the attempt's link. That listed Benefit Agency on Connections and kept the
+    heading at "Now connect your payroll". Worse, the attempt stayed open after **Find your
+    employer**, so once the person connected payroll, applying again returned to "Connect your
+    payroll provider first". The person was stuck until the Wallet restarted. Each test started
+    from a prepared state, so none ran the sequence a real person would: can't apply, connect,
+    apply again.
+- *The live pass waited a week for the calendar.* Every sample person's latest paystub is paid
+  on 30 September, and `validFrom` is the pay date. Until then, Benefit Agency correctly refused
+  every application as "Not yet valid". This is the moving-clock gap Loop 5's retro named, one
+  loop later and bigger: it blocked the whole loop's end-to-end check instead of tinting a card.
+  It was knowable at design time by comparing sample-data.md's pay dates with the build date.
+  Nobody looked, because the fixed-clock tests passed.
+- *A double-escaped entity shipped.* The consent income badge read a literal `&#10003;`, from an
+  entity inside a Jinja string expression (#128). Geometry tables don't catch this; a text diff
+  against the handoff would have.
+- *A slip on the live pass itself.* Clicking stale element references added the wrong employer
+  (Harborline) for p07. It was caught and removed before connecting, but it shows in p07's
+  Activity on the live Wallet until the Wallet restarts.
+
+**Slow or expensive.** The build itself was fast: ten PRs in about ten hours of wall time, each a
+single commit. The slow part was the gap between building and checking:
+six days between the last build PR and the live pass, with the loop open the whole time. The
+three rounds of planning questions took time, but they saved time later. Every scope decision
+was closed before an issue was drafted, and only one had to be reopened (`discountPercent`,
+whole number → one decimal, to match the oracle).
+
+**Confirmed.** *Deploy scope per PR.* Ed checked Render's events log: every build PR redeployed
+only the services §15 lists, and #127 and #128 redeployed only the Wallet. *The oracle held
+live.* p01 and p07 got sample-data.md's outcomes exactly on the deployed services, including
+Health's one-decimal discounts and the Wallet's derived prices.
+
+**Process note.** Hands-off merges held for every build PR and both live-pass fixes. Ed stepped
+in where only he could: setting `BENEFITS_SIGNING_KEY` and the new `PAYROLL_SIGNING_KEY` in
+Render before #117 merged, deciding to wait for 30 September instead of changing code, and the
+events-log check. No secret went anywhere near a PR this time. The generator no longer prints
+private keys, so it couldn't happen the way it did in Loop 5.
+
+**Last loop's improvement.** Partly held. Every display rule got its outcome table up front
+(design.md §13), and the hue rule was right first time. The tables still didn't stop #126 or
+#127, because a table only helps if each of its rows is a test.
+
+**Improvements for Loop 7.**
+
+*The plan step (Claude's).* Make the plan step a merged PR before PR 1 again, as #95 was,
+and make it carry two lists the build PRs are checked against:
+- **Which UI PR measures which handoff page**, at which widths. A UI PR's description then has
+  to include its table, not an explanation of why it doesn't.
+- **The test that covers each row of each outcome table**, including at least one test that
+  runs a real sequence across features (fail, fix the cause, retry) instead of starting from a
+  prepared state.
+
+Add one line to that PR: the date each sample credential becomes valid, against the expected
+live-pass date.
+
+*PR titles that trace to the design (Ed's).* Matching a build PR to its row in design.md meant
+reading PR bodies: "PR 9" in §15 is #124 on GitHub, and nothing in either place says so. From
+Loop 7, every build PR is titled `Loop X PR Y: <description>`, where Y is its number in the
+design's build-order table. An unplanned follow-up, like this loop's #126–#128, takes the next
+free number and adds its own row to the table in the same PR, so the table stays the complete
+list of what the build merged. Planning and retro PRs come before or after that table, so
+they're titled `Loop X: <description>` with no PR number.
