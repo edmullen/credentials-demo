@@ -221,3 +221,31 @@ def test_apply_redirects_to_already_when_a_credential_is_held(benefits_trust) ->
     response = client.get("/p/p01/services/benefits/apply", follow_redirects=False)
     assert response.status_code == 303
     assert response.headers["location"] == "/p/p01/services/benefits/already"
+
+
+def test_apply_after_connecting_payroll_starts_over_from_cant_apply(
+    monkeypatch, collector, payroll_trust
+) -> None:
+    # Found in Loop 6's live pass: can't-apply → Find your employer → connect → apply again
+    # returned to the stale can't-apply page, since leaving by that link never closes it.
+    _patch_transport(monkeypatch, lambda r: httpx.Response(201, json=_dcql_response()))
+    client.get("/p/p01/services/benefits/apply")
+    collector.run()
+    assert state.get_link("p01", "benefits").request.phase == "missing"
+    _, token = income_credential(payroll_trust)
+    state.add_received("p01", "cred-1", token)
+    response = client.get("/p/p01/services/benefits/apply", follow_redirects=False)
+    assert response.headers["location"] == "/p/p01/services/benefits/asking"
+    collector.run()
+    assert state.get_link("p01", "benefits").request.phase == "consent"
+
+
+def test_a_cant_apply_attempt_is_not_a_connection(monkeypatch, collector) -> None:
+    # docs/design.md §13 table C: missing income makes no connection, so Connections neither
+    # lists Benefit Agency nor counts it as a provider still to connect.
+    _patch_transport(monkeypatch, lambda r: httpx.Response(201, json=_dcql_response()))
+    client.get("/p/p01/services/benefits/apply")
+    collector.run()
+    body = client.get("/p/p01/connections").text
+    assert "Benefit Agency" not in body
+    assert "Now connect your payroll" not in body

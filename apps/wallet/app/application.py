@@ -72,11 +72,19 @@ def holds_benefit_credential(person_id: str) -> bool:
     return any(c.category == "Benefits" for c in credentials_for(person_id))
 
 
+def attempt_in_progress(person_id: str) -> bool:
+    """True if an attempt is running that a fresh GET …/apply should return to. A can't-apply
+    attempt doesn't count: the person may since have connected payroll, and leaving that page by
+    **Find your employer** never closes it, so returning to it would strand them there."""
+    link = state.get_link(person_id, SERVICE_ID)
+    return link is not None and link.request is not None and link.request.phase != "missing"
+
+
 def arrival_in_progress(person_id: str, request_id: str) -> bool:
     """True if this person's attempt is already answering this very request, so a reload of the
     arrival URL returns to it instead of starting over (docs/design.md §16 item 8)."""
     link = state.get_link(person_id, SERVICE_ID)
-    return link is not None and link.request is not None and link.request.request_id == request_id
+    return attempt_in_progress(person_id) and link.request.request_id == request_id
 
 
 def where_is_the_attempt(person_id: str) -> str:
