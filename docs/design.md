@@ -1011,3 +1011,56 @@ table. There are no screenshots.
     from a program page, and matches one credential's id, claims and signature between Benefits'
     admin page and the Wallet's detail page. Ed confirms from Render's events log that each PR
     redeployed only the services §15 lists.
+
+## 18. Live pass on Render (PR 11, AC 31)
+
+Run 2026-10-01, against the three production URLs, once #126 had redeployed. It waited for
+30 September: every sample person's latest paystub has that `payDate` and `validFrom`, so before
+then Benefit Agency refused every application as `credential_invalid` ("Not yet valid").
+
+- **Health and keys.** `/health` returned `200` on all three services (cold starts of 22–43s).
+  Benefits' `/.well-known/jwks.json` serves one `benefits-1` key, the same `x` as the Wallet's
+  committed trust entry for Benefit Agency.
+- **p01 (Grace Okafor), from the Wallet.** **Find government services** sat between Identity and
+  Income. Applying with no income gave "Connect your payroll provider first" (AC 17). After
+  connecting Pinecrest Home Care through Meridian (2 paystubs, both Verified), applying again
+  gave consent for 3 credentials. **Approve and share** led to "You qualify for all 5 programs",
+  with Health at 92.4% off ($57.00 a month) and Dividend at $100.00. That's sample-data.md's
+  row exactly. The Benefits category replaced **Find government services**, each card in its
+  program's hue (169, 24, 342, 223, 121).
+- **p07 (Luis Ferreira), from a program page.** With p01 still remembered, Energy Assistance's
+  **Apply with Digital Wallet** gave "You've already applied". After **Sign out**, it gave the
+  signed-out landing with the request notice. **Switch person** to p07 kept the request and
+  gave the income can't-apply page. After connecting Pinecrest, Crossroads and Beacon (6
+  paystubs), the program page's button opened consent for 7 credentials, with "You're applying
+  as Luis Ferreira" and the actions repeated below the list (AC 18, 27). Results: "You qualify
+  for 2 programs", with Health at 85.4% off ($109.50) and Dividend at $100.00, and Food, Energy
+  and Housing as plain denials. That's the oracle's row. Connections showed Benefit Agency as a
+  connected government service with 2 benefit credentials. Activity logged the application,
+  each outcome, the connection and the credentials received.
+- **Matched one credential end to end.** p01's Health credential:
+  - The Wallet's detail page showed id `urn:uuid:c5a01de1-e52d-4335-9a47-2d6b6c2ba2c9`,
+    `discountPercent` 92.4, plan cost $750.00, the price "worked out by your wallet", validity
+    `2026-10-01T21:49:00Z` to `2027-10-01T21:49:00Z` (floored to the minute), hue 223, and its
+    JWT.
+  - Benefits' admin determination for Grace Okafor showed the same id and claims. It also
+    showed $2,200.00 a month, $26,400.00 a year, each figure against its limit, and the three
+    presented credentials with their claims (photo not shown) and raw JWTs.
+  - The Wallet's JWT verified with the live JWKS: header `ES256` / `benefits-1` / `vc+jwt`, and
+    no name or address in the subject. The admin page shows an issued credential's id and claims
+    but not its JWT (AC 15 doesn't ask for it), so this signature check stands in for comparing
+    two JWTs.
+- **Defects found and fixed during the pass**, in two Wallet-only PRs, each with regression
+  tests that fail on the earlier `main`:
+  - **#127:** a can't-apply attempt stayed open after **Find your employer**, so applying again
+    after connecting payroll returned to "Connect your payroll provider first", and the person
+    was stuck until the Wallet restarted. The same leftover link also listed Benefit Agency on
+    Connections and kept the heading at "Now connect your payroll", against §13 table C.
+    Re-run live after the redeploy: fixed.
+  - **#128:** the consent income panel's badge read a literal `&#10003;`, an entity inside a Jinja
+    string that autoescape doubled. Re-checked live with p05: it now reads "✓ All verified".
+- **AC 31 is satisfied** for its live half: all three suites passed in CI on every PR, both
+  applications ran on the deployed services, and the credential matched.
+
+Ed confirms separately, from Render's events log, that each PR redeployed only the services §15
+lists, and that #127 and #128 redeployed only the Wallet.
