@@ -17,6 +17,11 @@ Three documents drive the work and are worth reading before changing anything:
 - [docs/loop-log.md](docs/loop-log.md): a retro after each loop — what shipped, what went
   wrong, what to change. Worth checking before starting a new loop.
 
+**PR titles trace to the design.** A build PR is titled `Loop X PR Y: <description>`, where Y is
+its row in design.md's build-order table. An unplanned follow-up takes the next free number and
+adds its row to that table in the same PR. Planning and retro PRs (intent, brief, handoff,
+design, retro) are titled `Loop X: <description>`.
+
 Three reference documents from Loop 1 define what the apps build *towards*. Read the relevant one
 before touching credentials, eligibility or sample data:
 

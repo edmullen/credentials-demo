@@ -660,7 +660,9 @@ private keys, so it couldn't happen the way it did in Loop 5.
 (design.md §13), and the hue rule was right first time. The tables still didn't stop #126 or
 #127, because a table only helps if each of its rows is a test.
 
-**One improvement for Loop 7.** Make the plan step a merged PR before PR 1 again, as #95 was,
+**Improvements for Loop 7.**
+
+*The plan step (Claude's).* Make the plan step a merged PR before PR 1 again, as #95 was,
 and make it carry two lists the build PRs are checked against:
 - **Which UI PR measures which handoff page**, at which widths. A UI PR's description then has
   to include its table, not an explanation of why it doesn't.
@@ -670,3 +672,11 @@ and make it carry two lists the build PRs are checked against:
 
 Add one line to that PR: the date each sample credential becomes valid, against the expected
 live-pass date.
+
+*PR titles that trace to the design (Ed's).* Matching a build PR to its row in design.md meant
+reading PR bodies: "PR 9" in §15 is #124 on GitHub, and nothing in either place says so. From
+Loop 7, every build PR is titled `Loop X PR Y: <description>`, where Y is its number in the
+design's build-order table. An unplanned follow-up, like this loop's #126–#128, takes the next
+free number and adds its own row to the table in the same PR, so the table stays the complete
+list of what the build merged. Planning and retro PRs come before or after that table, so
+they're titled `Loop X: <description>` with no PR number.
