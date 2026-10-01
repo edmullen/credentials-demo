@@ -130,6 +130,10 @@ def provider_panels(person_id: str) -> list[dict]:
         link = state.get_link(person_id, provider_id)
         if link is None:
             continue
+        if provider["kind"] == "service" and link.connected_at is None:
+            # An application attempt holds a link before any connection exists; only a
+            # decided application connects (docs/design.md §13, table C).
+            continue
         panels.append({
             "provider_id": provider_id,
             "name": provider["name"],

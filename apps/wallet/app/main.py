@@ -420,8 +420,7 @@ async def services_apply(
     person_id = person["id"]
     if application.holds_benefit_credential(person_id):
         return RedirectResponse(f"/p/{person_id}/services/{service_id}/already", status_code=303)
-    link = state.get_link(person_id, service_id)
-    if link is not None and link.request is not None:
+    if application.attempt_in_progress(person_id):
         return RedirectResponse(application.where_is_the_attempt(person_id), status_code=303)
     application.start_apply(person_id)
     return RedirectResponse(f"/p/{person_id}/services/{service_id}/asking", status_code=303)
