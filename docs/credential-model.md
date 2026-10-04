@@ -8,6 +8,13 @@ Aligned with the **W3C VC Data Model 2.0**, secured as a JWT per **VC-JOSE-COSE*
 the standard, never contrary to it (see `docs/decisions.md`). Eligibility rules live in
 [docs/benefit-programs.md](benefit-programs.md).
 
+> **Direction changed on 2026-10-03** (`docs/decisions.md`, **Security**). The demo now mirrors
+> how deployed wallets work, with OpenID4VC HAIP 1.0 as the yardstick, instead of the W3C model.
+> This document still describes what is **built**: W3C-shaped `vc+jwt` credentials. Loop 8
+> rewrites §3–§4 when it moves every credential to IETF SD-JWT VC (#139), binds credentials to
+> their holder (#25, #140) and has requests name their claims (#28). Until then, read the W3C
+> conformance below as the current state, not the target.
+
 ## 1. Target flow
 
 This is the flow the demo is **eventually** meant to support, written before any of it is
@@ -214,7 +221,8 @@ verifier on the other side of this phase is undefined.
   applications.
 - **Revocation.** A credential, once issued, stays valid until it expires (see §5).
 - **Holder binding.** Presentations are unsigned, so nothing proves the presenter is the
-  credentials' subject. A subset of the standard, not a contradiction of it; deferred to #25.
+  credentials' subject. *Now planned for Loop 8* (#25, rewritten for SD-JWT VC with `cnf` and a
+  Key Binding JWT).
 
 ### Decisions made in review
 
@@ -522,8 +530,8 @@ whether a gap is deliberate.
 | Credential fields | `@context`, `id`, `type`, `issuer`, `validFrom`, `validUntil`, `credentialSubject` | All used (§3) | Adopted |
 | Claim vocabulary | Terms defined in a JSON-LD context | schema.org terms; our own few (`county`, `grossPay`, …) resolve through the base context's issuer-dependent vocabulary | Subset |
 | Presentations | A Verifiable Presentation wrapping credentials | A VP carrying each credential as an `EnvelopedVerifiableCredential` | Adopted |
-| Holder binding | Presentation signed by the holder, with a verifier nonce | Unsigned presentations | Deferred (#25) |
-| Selective disclosure | SD-JWT | Whole credentials only; the consent screen shows every claim | Deferred (#28) |
+| Holder binding | Presentation signed by the holder, with a verifier nonce | Unsigned presentations | Planned, Loop 8 (#25) |
+| Selective disclosure | SD-JWT | Whole credentials only; the consent screen shows every claim | Planned, Loop 8 (#28) |
 | Subject identifiers | Any URI; usually a DID | `urn:uuid:` | Subset |
 | Issuer identifiers | Any URI; usually resolvable | Own origins for Payroll and Benefits; `did:example:` for the states | Subset |
 | Key discovery | DID resolution, or keys published by the issuer | Hard-coded per-app trust lists; issuing apps also publish `/.well-known/jwks.json` | Subset |
